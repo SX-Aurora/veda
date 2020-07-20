@@ -1,0 +1,12 @@
+#include "veda_internal.h"
+
+extern "C" {
+//------------------------------------------------------------------------------
+VEDAresult vedaGetVersion(int* major, int* minor) {
+	*major = ${VEDA_VERSION_MAJOR};
+	*minor = ${VEDA_VERSION_MINOR};
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+}

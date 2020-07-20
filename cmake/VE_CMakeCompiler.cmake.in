@@ -1,0 +1,17 @@
+set(CMAKE_@LANG@_COMPILER "@CMAKE_VE_COMPILER@")
+set(CMAKE_@LANG@_COMPILER_AR "@CMAKE_VE_COMPILER_AR@")
+set(CMAKE_@LANG@_COMPILER_RANLIB "@CMAKE_VE_COMPILER_RANLIB@")
+set(CMAKE_@LANG@_COMPILER_LOADED 1)
+set(CMAKE_@LANG@_COMPILER_WORKS 1)
+set(CMAKE_@LANG@_IGNORE_EXTENSIONS inl;h;hpp;HPP;H;o;O;obj;OBJ;def;DEF;rc;RC)
+set(CMAKE_@LANG@_SOURCE_FILE_EXTENSIONS @EXTENSIONS@)
+set(CMAKE_@LANG@_LINKER_PREFERENCE @PREFERENCE@)
+set(CMAKE_@LANG@_LINKER_PREFERENCE_PROPAGATES 1)
+set(CMAKE_@LANG@_FLAGS_INIT					"-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0 -O4 -DNDEBUG")
+set(CMAKE_@LANG@_FLAGS_DEBUG_INIT			"-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0 -g")
+set(CMAKE_@LANG@_FLAGS_MINSIZEREL_INIT		"-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0 -Os -DNDEBUG")
+set(CMAKE_@LANG@_FLAGS_RELEASE_INIT			"-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0 -O4 -DNDEBUG")
+set(CMAKE_@LANG@_FLAGS_RELWITHDEBINFO_INIT	"-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0 -O4 -g -DNDEBUG")
+set(CMAKE_@LANG@_COMPILER_ENV_VAR "@LANG@")
+
+# TODO: it seems as if the FLAGS do not get set correctlz... it always uses FLAGS_INIT also for DEBUG?!?

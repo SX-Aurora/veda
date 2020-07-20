@@ -1,0 +1,102 @@
+#include "veda_device_internal.h"
+#include <mutex>
+#include <thread>
+
+#define LOCK() std::lock_guard<std::mutex> __lock(veda_mutex)
+
+static std::unordered_map<int, std::tuple<void*, size_t>> veda_ptrs;
+static std::mutex veda_mutex;
+
+extern "C" {
+//------------------------------------------------------------------------------
+#include "../veda_error.inc.cpp"
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr _vptr, const size_t size) {
+	LOCK();
+	assert(size);
+	assert(_vptr);
+
+	VEDAptr vptr(_vptr);
+	if(vptr.offset())
+		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	*ptr = malloc(size);
+	if(*ptr == 0)
+		return VEDA_ERROR_OUT_OF_MEMORY;
+	if(!veda_ptrs.emplace(MAP_EMPLACE(vptr.idx(), *ptr, size)).second)
+		return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+	
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
+	void* ptr;
+	return vedaMemAllocPtr(&ptr, vptr, size);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemFree(VEDAdeviceptr _vptr) {
+	LOCK();
+	VEDAptr vptr(_vptr);
+	if(vptr.offset())
+		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	auto it = veda_ptrs.find(vptr.idx());
+	if(it != veda_ptrs.end()) {
+		auto ptr = std::get<0>(it->second);
+		if(!ptr)
+			return VEDA_ERROR_UNKNOWN_PPTR;
+		
+		free(ptr);
+		veda_ptrs.erase(it);
+		return VEDA_SUCCESS;
+	}
+
+	return VEDA_ERROR_UNKNOWN_VPTR;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr _vptr) {
+	LOCK();
+	*ptr = 0;
+
+	VEDAptr vptr(_vptr);
+	auto it = veda_ptrs.find(vptr.idx());
+	if(it != veda_ptrs.end()) {
+		*ptr = ((char*)std::get<0>(it->second)) + vptr.offset();
+		return VEDA_SUCCESS;
+	}
+	return VEDA_ERROR_UNKNOWN_VPTR;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr _vptr) {
+	LOCK();
+	*ptr = 0;
+	*size = 0;
+
+	VEDAptr vptr(_vptr);
+	auto it = veda_ptrs.find(vptr.idx());
+	if(it != veda_ptrs.end()) {
+		*ptr = ((char*)std::get<0>(it->second)) + vptr.offset();
+		*size = std::get<1>(it->second);
+		return VEDA_SUCCESS;
+	}
+	return VEDA_ERROR_UNKNOWN_VPTR;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr _vptr) {
+	LOCK();
+	VEDAptr vptr(_vptr);
+	auto it = veda_ptrs.find(vptr.idx());
+	if(it != veda_ptrs.end()) {
+		*size = std::get<1>(it->second);
+		return VEDA_SUCCESS;
+	}
+	TRACE("vedaMemSize(0, %p)\n", vptr);
+	return VEDA_ERROR_UNKNOWN_VPTR;
+}
+
+//------------------------------------------------------------------------------
+}

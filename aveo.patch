@@ -1,0 +1,12 @@
+diff --git a/make_aveo.inc b/make_aveo.inc
+index f67a111..b0f33d2 100644
+--- a/make_aveo.inc
++++ b/make_aveo.inc
+@@ -1,6 +1,6 @@
+ NCPP = /opt/nec/ve/bin/nc++
+ NCC = /opt/nec/ve/bin/ncc
+-NFORT = /opt/nec/ve/bin/nfort
++NFORT = /opt/nec/ve/nfort/3.0.4/bin/nfort
+ NAR = /opt/nec/ve/bin/nar
+ GCC = gcc
+ GPP = g++
