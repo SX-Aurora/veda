@@ -72,4 +72,13 @@ VEDAresult vedaStreamSynchronize(VEDAstream hStream) {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaStreamAddCallback(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags) {
+	GUARDED(
+		VEDAcontext ctx = 0;
+		CVEDA(vedaStreamGetCtx(stream, &ctx));
+		callback(stream, ctx->sync(), userData);
+	);
+}
+
+//------------------------------------------------------------------------------
 } // extern "C"

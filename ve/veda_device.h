@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <veda_types.h>
 #include <veda_enums.h>
+#include <veda_types.h>
 #include <veda_macros.h>
 
 #ifdef __cplusplus

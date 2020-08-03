@@ -64,8 +64,10 @@ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr _vptr) {
 	auto it = veda_ptrs.find(vptr.idx());
 	if(it != veda_ptrs.end()) {
 		*ptr = ((char*)std::get<0>(it->second)) + vptr.offset();
+		TRACE("vedaMemPtr(%p, %llu, %p)\n", *ptr, std::get<1>(it->second), _vptr);
 		return VEDA_SUCCESS;
 	}
+	TRACE("vedaMemPtr(%p, %llu, %p)\n", *ptr, std::get<1>(it->second), _vptr);
 	return VEDA_ERROR_UNKNOWN_VPTR;
 }
 
@@ -80,8 +82,10 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr _vptr) {
 	if(it != veda_ptrs.end()) {
 		*ptr = ((char*)std::get<0>(it->second)) + vptr.offset();
 		*size = std::get<1>(it->second);
+		TRACE("vedaMemPtrSize(%p, %llu, %p)\n", *ptr, *size, _vptr);
 		return VEDA_SUCCESS;
 	}
+	TRACE("vedaMemPtrSize(%p, %llu, %p)\n", *ptr, *size, _vptr);
 	return VEDA_ERROR_UNKNOWN_VPTR;
 }
 
@@ -92,9 +96,10 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr _vptr) {
 	auto it = veda_ptrs.find(vptr.idx());
 	if(it != veda_ptrs.end()) {
 		*size = std::get<1>(it->second);
+		TRACE("vedaMemSize(%p, %llu, %p)\n", ((char*)std::get<0>(it->second)) + vptr.offset(), *size, _vptr);
 		return VEDA_SUCCESS;
 	}
-	TRACE("vedaMemSize(0, %p)\n", vptr);
+	TRACE("vedaMemSize(%p, %llu, %p)\n", ((char*)std::get<0>(it->second)) + vptr.offset(), *size, _vptr);
 	return VEDA_ERROR_UNKNOWN_VPTR;
 }
 

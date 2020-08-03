@@ -1,11 +1,18 @@
-# VEDA (VE Driver API)
+# VEDA (VE Driver API) and VERA (VE Runtime API)
 
-VEDA is a CUDA Driver API-like API for programming the NEC SX-Aurora. It is based on [AVEO](https://github.com/sx-aurora/aveo). Most of the functionality is identical to the [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html).
+VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NEC SX-Aurora. It is based on [AVEO](https://github.com/sx-aurora/aveo). Most of the functionality is identical to the [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) and [CUDA Runtime API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
+
+## Release Notes
+| Version | Comment |
+| --- | --- |
+| v0.7.1 | Bugfix release |
+| v0.7 | initial VERA release |
+| v0.6 | initial VEDA release |
 
 ## Differences between VEDA and CUDA Driver API:
-1. Additionally to ```vedaInit(0)``` in the beginning, ```vedaExit()``` needs to be called at the end of the application, to ensure that no dead device processes stay alive.
-1. All function calls start with ```veda*``` instead of ```cu*```
-1. Objects start with ```VEDA*``` instead of ```CU*```
+1. [VEDA] Additionally to ```vedaInit(0)``` in the beginning, ```vedaExit()``` needs to be called at the end of the application, to ensure that no dead device processes stay alive.
+1. All function calls start with: [VEDA] ```veda*``` instead of ```cu*``` and [VERA] ```vera*``` instead of ```cuda*```
+1. Objects start with [VEDA] ```VEDA*``` instead of ```CU*``` and ```vera*``` instead of ```cuda*```
 1. VEDA supports asynchronous malloc and free:
 VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. They can be used like the synchronous calls, but don't need to synchronize the execution between device and host.
 1. ```vedaDeviceGetPower(float* power, VEDAdevice dev)``` and ```vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev)``` allow to fetch the power consumption (in W) and temperature (in C).
@@ -84,7 +91,18 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 			ptr[cnt] = ...;
 	}
 	```
+
+## Differences between VERA and CUDA Runtime API:
+1. All function calls start with ```vera*``` instead of ```cuda*```
+1. Objects start with ```vera*``` instead of ```cuda*```
+1. VERA supports asynchronous malloc and free, see VEDA.
+VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. They can be used like the synchronous calls, but don't need to synchronize the execution between device and host.
+1. ```vedaDeviceGetPower(float* power, VEDAdevice dev)``` and ```vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev)``` allow to fetch the power consumption (in W) and temperature (in C).
+1. As the programming model of the SX-Aurora differs from NVIDIA GPUs, launching kernels looks different:
+
+## Limitations:
 1. The SX-Aurora does not support the usage of multiple-streams, so VEDA maps all functions added to multiple streams onto the same work queue.
+2. No Unified Memory Space **yet**.
 
 ## How to build:
 ```bash

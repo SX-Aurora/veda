@@ -21,6 +21,7 @@ typedef uint64_t veo_ptr;
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include <functional>
 
 #include "veda.h"
 #include "VEDAkernel.h"
@@ -33,7 +34,7 @@ typedef uint64_t veo_ptr;
 #define MAP_EMPLACE(KEY, ...) std::piecewise_construct, std::forward_as_tuple(KEY), std::forward_as_tuple(__VA_ARGS__)
 
 #define CVEO(ERR)	{ int err = ERR; if(err != VEO_COMMAND_OK) return vedaVEOtoVEDA(err); }
-#ifndef NDEBUG
+#if 0
 #define TRACE(...)	printf("[VEDA Host  ] " __VA_ARGS__)
 #else
 #define TRACE(...)

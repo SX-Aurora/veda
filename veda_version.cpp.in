@@ -2,9 +2,8 @@
 
 extern "C" {
 //------------------------------------------------------------------------------
-VEDAresult vedaGetVersion(int* major, int* minor) {
-	*major = ${VEDA_VERSION_MAJOR};
-	*minor = ${VEDA_VERSION_MINOR};
+VEDAresult vedaGetVersion(const char** str) {
+	*str = "${VEDA_VERSION}";
 	return VEDA_SUCCESS;
 }
 

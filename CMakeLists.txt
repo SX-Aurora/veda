@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(VEDA VERSION 0.6 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 0.7.1 LANGUAGES C CXX)
 SET(CMAKE_BUILD_TYPE RELEASE)
 
 ## CMake Stuff -----------------------------------------------------------------
@@ -65,12 +65,14 @@ SET(AVEO_URPC_LIBRARY	"${AVEO_PATH}/src/install/lib64/liburpcVH.a")
 
 ## Build VEDA ------------------------------------------------------------------
 CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda_version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp)
+CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/veda_version.h)
 
 FIND_LIBRARY(LIBUDEV_LIBRARY "libudev.so")
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${AVEO_INCLUDE})
-SET(SRC
+SET(VEDA_SRC
 	${CMAKE_CURRENT_LIST_DIR}/veda.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_args.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_context.cpp
@@ -82,12 +84,13 @@ SET(SRC
 	${CMAKE_CURRENT_LIST_DIR}/veda_proc.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_stream.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/veda_version.h
 	${CMAKE_CURRENT_LIST_DIR}/VEDAcontext.cpp
 	${CMAKE_CURRENT_LIST_DIR}/VEDAmodule.cpp
 	${CMAKE_CURRENT_LIST_DIR}/VEDAproc.cpp
 )
 
-ADD_LIBRARY(veda ${BUILD_TYPE} ${SRC})
+ADD_LIBRARY(veda ${BUILD_TYPE} ${VEDA_SRC})
 TARGET_LINK_LIBRARIES(veda ${AVEO_LIBRARY} ${AVEO_URPC_LIBRARY} ${LIBUDEV_LIBRARY} dl)
 TARGET_LINK_OPTIONS(veda PRIVATE -lpthread)
 TARGET_COMPILE_OPTIONS(veda PRIVATE
@@ -107,16 +110,38 @@ IF(DOWNLOAD_AVEO)
 	ADD_DEPENDENCIES(veda aveo)
 ENDIF()
 
+## Build VERA ------------------------------------------------------------------
+SET(VERA_SRC
+	${CMAKE_CURRENT_LIST_DIR}/vera.cpp
+)
+ADD_LIBRARY(vera ${BUILD_TYPE} ${VERA_SRC})
+TARGET_LINK_LIBRARIES(vera veda)
+TARGET_COMPILE_OPTIONS(vera PRIVATE
+	-Wuninitialized
+	-Wunknown-pragmas
+	-Wunused-function
+	-Wunused-label
+	-Wunused-value
+	-Wunused-variable
+	-Wno-return-local-addr)
+TARGET_LINK_OPTIONS(vera PRIVATE
+	-Wl,--no-as-needed
+	-Wl,-z,defs
+	-Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/libvera.map
+)
+
 ADD_SUBDIRECTORY(ve)
 
 ## Install Files ---------------------------------------------------------------
 INSTALL(FILES 
+	${CMAKE_CURRENT_LIST_DIR}/vera.h
 	${CMAKE_CURRENT_LIST_DIR}/veda.h 
+	${CMAKE_CURRENT_BINARY_DIR}/veda_version.h
 	${CMAKE_CURRENT_LIST_DIR}/veda_types.h 
 	${CMAKE_CURRENT_LIST_DIR}/veda_macros.h 
 	${CMAKE_CURRENT_LIST_DIR}/veda_enums.h 
 	DESTINATION include)
-INSTALL(TARGETS veda LIBRARY DESTINATION lib)
+INSTALL(TARGETS veda vera LIBRARY DESTINATION lib)
 
 ## CMake Find Script -----------------------------------------------------------
 INCLUDE(${CMAKE_CURRENT_LIST_DIR}/cmake/CMakeLists.txt)

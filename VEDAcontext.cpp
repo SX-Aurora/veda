@@ -73,8 +73,16 @@ VEDAresult __VEDAcontext::memcpyH2D(VEDAdeviceptr dst, const void* src, const si
 //------------------------------------------------------------------------------
 VEDAresult __VEDAcontext::call(VEDAfunction func, VEDAargs args, const bool destroyArgs, const bool checkResult) {
 	LOCK();
-	TRACE("VEDAcontext::call(%p, %p, %i, %i)\n", func, args, destroyArgs, checkResult);
+	TRACE("VEDAcontext::call(%p (%s), %p, %i, %i)\n", func, proc()->kernelName(func), args, destroyArgs, checkResult);
 	m_calls.emplace_back(veo_call_async(ctx(), func, args), destroyArgs ? args : 0, checkResult);
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult __VEDAcontext::call(VEDAhost_function func, void* userData) {
+	LOCK();
+	TRACE("VEDAcontext::call(%p, %p)\n", func, userData);
+	m_calls.emplace_back(veo_call_async_vh(ctx(), func, userData), (VEDAargs)0, false);
 	return VEDA_SUCCESS;
 }
 
@@ -96,6 +104,9 @@ VEDAresult __VEDAcontext::memAllocPitch(VEDAdeviceptr* vptr, size_t* pitch, cons
 
 //------------------------------------------------------------------------------
 VEDAresult __VEDAcontext::memFree(VEDAdeviceptr vptr) {
+	if(VEDAptr(vptr).offset() != 0)
+		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+
 	size_t size; veo_ptr ptr;
 
 	// get physical pointer
@@ -122,8 +133,8 @@ VEDAresult __VEDAcontext::memFree(VEDAdeviceptr vptr) {
 VEDAresult __VEDAcontext::memPtr(veo_ptr* ptr, size_t* size, VEDAdeviceptr vptr) {
 	TRACE("VEDAcontext::memPtr(%p, %llu, %p)\n", *ptr, *size, vptr);
 	return vedaCtxCall(this, false, proc()->kernel(VEDA_KERNEL_MEM_PTR), 
-		VEDAstack(ptr, VEDA_ARGS_INTENT_OUT, sizeof(veo_ptr)), 
-		VEDAstack(size, VEDA_ARGS_INTENT_OUT, sizeof(size_t)), 
+		VEDAstack(ptr, VEDA_ARGS_INTENT_INOUT, sizeof(veo_ptr)),
+		VEDAstack(size, VEDA_ARGS_INTENT_INOUT, sizeof(size_t)), 
 		vptr);
 }
 

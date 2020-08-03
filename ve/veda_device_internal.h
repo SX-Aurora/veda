@@ -9,9 +9,8 @@
 
 #define MAP_EMPLACE(KEY, ...) std::piecewise_construct, std::forward_as_tuple(KEY), std::forward_as_tuple(__VA_ARGS__)
 
-#ifndef NDEBUG
+#if 0
 #define TRACE(...)	printf("[VEDA Device] " __VA_ARGS__)
-#error test
 #else
 #define TRACE(...)
 #endif

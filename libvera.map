@@ -1,0 +1,4 @@
+{
+	global: *vera*;
+	local: *;
+};

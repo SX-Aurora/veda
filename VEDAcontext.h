@@ -16,6 +16,7 @@ public:
 	VEDAproc		proc			(void) const;
 	VEDAresult		getPtr			(veo_ptr* ptr, size_t* size, VEDAdeviceptr vptr);
 	VEDAresult		call			(VEDAfunction func, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
+	VEDAresult		call			(VEDAhost_function func, void* userData);
 	VEDAresult		memAlloc		(VEDAdeviceptr* vptr, const size_t size);
 	VEDAresult		memAllocPitch	(VEDAdeviceptr* vptr, size_t* pitch, const size_t w_bytes, const size_t h, const uint32_t elementSize);
 	VEDAresult		memFree			(VEDAdeviceptr vptr);

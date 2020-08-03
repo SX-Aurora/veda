@@ -15,6 +15,7 @@ extern "C" {
 #include "veda_enums.h"
 #include "veda_types.h"
 #include "veda_macros.h"
+#include "veda_version.h"
 
 VEDAresult	vedaArgsCreate				(VEDAargs* args);
 VEDAresult	vedaArgsDestroy				(VEDAargs args);
@@ -40,7 +41,7 @@ VEDAresult	vedaCtxPushCurrent			(VEDAcontext ctx);
 VEDAresult	vedaCtxSetCurrent			(VEDAcontext ctx);
 VEDAresult	vedaCtxSynchronize			(void);
 VEDAresult	vedaDeviceGet				(VEDAdevice* device, int ordinal);
-VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev );
+VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev);
 VEDAresult	vedaDeviceGetCount			(int* count);
 VEDAresult	vedaDeviceGetName 			(char* name, int len, VEDAdevice dev);
 VEDAresult	vedaDeviceGetPower			(float* power, VEDAdevice dev);
@@ -53,7 +54,7 @@ VEDAresult	vedaDevicePrimaryCtxSetFlags(VEDAdevice dev, uint32_t flags);
 VEDAresult	vedaDeviceTotalMem			(size_t* bytes, VEDAdevice dev);
 VEDAresult	vedaDriverGetVersion 		(const char** str);
 VEDAresult	vedaMemReport				(void);
-VEDAresult	vedaGetVersion				(int* major, int* minor);
+VEDAresult	vedaGetVersion				(const char** str);
 VEDAresult	vedaExit					(void);
 VEDAresult	vedaGetErrorName			(VEDAresult error, const char** pStr);
 VEDAresult	vedaGetErrorString			(VEDAresult error, const char** pStr);
@@ -71,6 +72,7 @@ VEDAresult	vedaMemFreeHost				(void* ptr);
 VEDAresult	vedaMemGetInfo				(size_t* free, size_t* total);
 VEDAresult	vedaMemGetDevice			(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
+VEDAresult	vedaMemGetRawPointer		(void** rawPtr, VEDAdeviceptr vptr);
 VEDAresult	vedaMemcpy					(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
 VEDAresult	vedaMemcpyAsync				(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
 VEDAresult	vedaMemcpyDtoD				(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount);
@@ -102,6 +104,8 @@ VEDAresult	vedaStreamGetCtx			(VEDAstream hStream, VEDAcontext* pctx);
 VEDAresult	vedaStreamGetFlags			(VEDAstream hStream, uint32_t* flags);
 VEDAresult	vedaStreamQuery				(VEDAstream hStream);
 VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
+VEDAresult	vedaLaunchHostFunc			(VEDAstream stream, VEDAhost_function fn, void* userData);
+VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
 
 #ifdef __cplusplus
 }

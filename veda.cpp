@@ -50,4 +50,25 @@ VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, 
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* userData) {
+	GUARDED(
+		VEDAcontext ctx;
+		CVEDA(vedaStreamGetCtx(stream, &ctx));
+		CVEDA(ctx->call(fn, userData));
+	);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
+	GUARDED(
+		VEDAptr vptr(ptr);
+		VEDAcontext ctx;
+		CVEDA(vedaDevicePrimaryCtxRetain(&ctx, vptr.device()));
+		size_t size;
+		auto ret = ctx->getPtr((veo_ptr*)rawPtr, &size, ptr);
+		if(ret != VEDA_ERROR_UNKNOWN_PPTR) CVEDA(ret);
+	);
+}
+
+//------------------------------------------------------------------------------
 } // extern "C"

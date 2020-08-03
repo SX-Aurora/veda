@@ -17,7 +17,7 @@ __VEDAproc::~__VEDAproc(void) {
 
 //------------------------------------------------------------------------------
 VEDAresult __VEDAproc::memReport(void) {
-	CVEDA(syncPtrs(true));
+	CVEDA(syncPtrs());
 	size_t total;
 	CVEDA(vedaDeviceTotalMem(&total, device()));
 	size_t used = 0;
@@ -41,7 +41,7 @@ VEDAdevice __VEDAproc::device(void) const {
 
 //------------------------------------------------------------------------------
 VEDAresult __VEDAproc::destroy(void) {
-	CVEDA(syncPtrs(true));
+	CVEDA(syncPtrs());
 	for(auto& it : m_ptrs) {
 		auto idx	= it.first;
 		auto& size	= std::get<1>(it.second);
@@ -73,6 +73,32 @@ VEDAresult __VEDAproc::init(void) {
 	if(vctx == 0)	return VEDA_ERROR_CANNOT_CREATE_CONTEXT;
 	m_ctxs.emplace(MAP_EMPLACE(vctx, this, vctx));
 	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+const char* __VEDAproc::kernelName(VEDAfunction func) const {
+	int idx = 0;
+	for(; idx < VEDA_KERNEL_CNT; idx++) {
+		if(m_kernels[idx] == func)
+			break;
+	}
+
+	switch(idx) {
+		case VEDA_KERNEL_MEMSET_U8:		return "VEDA_KERNEL_MEMSET_U8";
+		case VEDA_KERNEL_MEMSET_U16:	return "VEDA_KERNEL_MEMSET_U16";
+		case VEDA_KERNEL_MEMSET_U32:	return "VEDA_KERNEL_MEMSET_U32";
+		case VEDA_KERNEL_MEMSET_U64:	return "VEDA_KERNEL_MEMSET_U64";
+		case VEDA_KERNEL_MEMSET_U8_2D:	return "VEDA_KERNEL_MEMSET_U8_2D";
+		case VEDA_KERNEL_MEMSET_U16_2D:	return "VEDA_KERNEL_MEMSET_U16_2D";
+		case VEDA_KERNEL_MEMSET_U32_2D:	return "VEDA_KERNEL_MEMSET_U32_2D";
+		case VEDA_KERNEL_MEMSET_U64_2D:	return "VEDA_KERNEL_MEMSET_U64_2D";
+		case VEDA_KERNEL_MEMCPY_D2D:	return "VEDA_KERNEL_MEMCPY_D2D";
+		case VEDA_KERNEL_MEM_ALLOC:		return "VEDA_KERNEL_MEM_ALLOC";
+		case VEDA_KERNEL_MEM_FREE:		return "VEDA_KERNEL_MEM_FREE";
+		case VEDA_KERNEL_MEM_PTR:		return "VEDA_KERNEL_MEM_PTR";
+	}
+
+	return "USER_KERNEL";
 }
 
 //------------------------------------------------------------------------------
@@ -141,12 +167,15 @@ void __VEDAproc::incMemIdx(void) {
 	m_memidx++;
 	m_memidx = m_memidx & 0x00FFFFFF;
 	if(m_memidx == 0)
-		m_memidx++;
+		m_memidx = 1;
 }
 
 //------------------------------------------------------------------------------
 VEDAdeviceptr __VEDAproc::newVPTR(veo_ptr** ptr, const size_t size) {
 	LOCK();
+	if(m_ptrs.size() == 0xFFFFFF)
+		return VEDA_ERROR_OUT_OF_MEMORY; // no VPTRs left
+
 	while(m_ptrs.find(m_memidx) != m_ptrs.end())
 		incMemIdx();
 
@@ -173,20 +202,23 @@ VEDAresult __VEDAproc::getBasePtr(veo_ptr* ptr, size_t* size, VEDAdeviceptr vptr
 	VEDAptr pptr(vptr);
 	assert(pptr.device() == device());
 	auto it = m_ptrs.find(pptr.idx());
-	if(it == m_ptrs.end())
+	if(it == m_ptrs.end()) {
+		TRACE("VEDAproc::getBasePtr(%p, %p, %p)\n", *ptr, *size, vptr);
 		return VEDA_ERROR_UNKNOWN_VPTR;
+	}
 	
 	if(std::get<0>(it->second) == 0)
-		CVEDA(syncPtrs(false));
+		CVEDA(syncPtrs());
 
 	*ptr	= std::get<0>(it->second);
 	*size	= std::get<1>(it->second);
+	TRACE("VEDAproc::getBasePtr(%p, %p, %p)\n", *ptr, *size, vptr);
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 VEDAresult __VEDAproc::getFreeMem(size_t* free, const size_t total) {
-	CVEDA(syncPtrs(true));
+	CVEDA(syncPtrs());
 
 	size_t used = 0;
 	for(auto& it : m_ptrs)
@@ -197,50 +229,29 @@ VEDAresult __VEDAproc::getFreeMem(size_t* free, const size_t total) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult __VEDAproc::syncPtrs(const bool fullSync) {
-	TRACE("VEDAproc::syncPtrs(%s)\n", fullSync ? "true" : "false");
+VEDAresult __VEDAproc::syncPtrs(void) {
+	TRACE("VEDAproc::syncPtrs()\n");
 	auto ctx = ctxDefault();
 	bool sync = false;
 
-	if(fullSync) {
-		for(auto& it : m_ptrs) {
-			auto idx	= it.first;
-			auto& ptr	= std::get<0>(it.second);
-			auto& size	= std::get<1>(it.second);
+	for(auto& it : m_ptrs) {
+		auto idx	= it.first;
+		auto& ptr	= std::get<0>(it.second);
+		auto& size	= std::get<1>(it.second);
 
-			if(ptr == 0) {
-				// if size is == 0, then no malloc call had been issued, so we need to fetch the info
-				// is size is != 0, then we only need to wait till the malloc reports back the ptr
-				if(size == 0) {
-					VEDAptr vptr(device(), idx);
-					CVEDA(ctx->memPtr(&ptr, &size, vptr.vptr()));
-				}
-				sync = true;
+		if(ptr == 0) {
+			// if size is == 0, then no malloc call had been issued, so we need to fetch the info
+			// is size is != 0, then we only need to wait till the malloc reports back the ptr
+			if(size == 0) {
+				VEDAptr vptr(device(), idx);
+				CVEDA(ctx->memPtr(&ptr, &size, vptr.vptr()));
 			}
+			sync = true;
 		}
-
-		if(sync)
-			CVEDA(ctx->sync());
-	} else {
-		for(auto& it : m_ptrs) {
-			auto idx	= it.first;
-			auto& ptr	= std::get<0>(it.second);
-			auto& size	= std::get<1>(it.second);
-
-			if(ptr == 0) {
-				// if size is == 0, then no malloc call had been issued, so we need to fetch the info
-				// is size is != 0, then we only need to wait till the malloc reports back the ptr
-				if(size == 0) {
-					VEDAptr vptr(device(), idx);
-					CVEDA(ctx->memPtr(&ptr, &size, vptr.vptr()));
-				}
-				sync = true;
-			}
-		}
-
-		if(sync)
-			CVEDA(ctx->sync());
 	}
+
+	if(sync)
+		CVEDA(ctx->sync());
 	
 	return VEDA_SUCCESS;
 }

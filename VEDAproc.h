@@ -22,6 +22,7 @@ public:
 	VEDAdevice		device				(void) const;
 	VEDAdeviceptr	newVPTR				(veo_ptr** ptr, const size_t size);
 	VEDAfunction	kernel				(VEDAkernel kernel) const;
+	const char*		kernelName			(VEDAfunction func) const;
 	VEDAresult		ctxCreate			(VEDAcontext* ctx);
 	VEDAresult		ctxDestroy			(VEDAcontext ctx);
 	VEDAresult		destroy				(void);
@@ -32,7 +33,7 @@ public:
 	VEDAresult		moduleGetFunction	(VEDAfunction* func, VEDAmodule mod, const char* name);
 	VEDAresult		moduleLoad			(VEDAmodule* mod, const char* name);
 	VEDAresult		moduleUnload		(VEDAmodule mod);
-	VEDAresult		syncPtrs			(const bool fullSync);
+	VEDAresult		syncPtrs			(void);
 	VEDAresult		memReport			(void);
 	size_t			ctxCount			(void) const;
 };
