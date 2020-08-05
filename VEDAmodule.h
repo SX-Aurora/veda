@@ -2,16 +2,12 @@
 
 struct __VEDAmodule {
 private:
-	VEDAproc const	m_proc;
-	const veo_lib	m_lib;
-	int 			m_usage;
+	VEDAcontext const	m_ctx;
+	const veo_lib		m_lib;
 
 public:
-				__VEDAmodule	(VEDAproc proc, const veo_lib lib);
+				__VEDAmodule	(VEDAcontext ctx, const veo_lib lib);
 	virtual		~__VEDAmodule	(void);
-	VEDAproc	proc			(void) const;
+	VEDAcontext	ctx				(void) const;
 	veo_lib		lib				(void) const;
-	int			usage			(void) const;
-	int			inc				(void);
-	int			dec				(void);
 };

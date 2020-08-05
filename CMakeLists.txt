@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(VEDA VERSION 0.7.1 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 0.8 LANGUAGES C CXX)
 SET(CMAKE_BUILD_TYPE RELEASE)
 
 ## CMake Stuff -----------------------------------------------------------------
@@ -35,7 +35,7 @@ ENDIF()
 ## Download/Build AVEO ---------------------------------------------------------
 SET(AVEO_REPO "https://github.com/SX-Aurora/aveo")
 SET(AVEO_PATH ${CMAKE_CURRENT_BINARY_DIR}/aveo)
-SET(AVEO_GIT_TAG "v0.9.10")
+SET(AVEO_GIT_TAG "v0.9.11")
 
 SET(DOWNLOAD_AVEO ON)
 
@@ -81,13 +81,11 @@ SET(VEDA_SRC
 	${CMAKE_CURRENT_LIST_DIR}/veda_kernel.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_mem.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_module.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_proc.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_stream.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/veda_version.h
 	${CMAKE_CURRENT_LIST_DIR}/VEDAcontext.cpp
 	${CMAKE_CURRENT_LIST_DIR}/VEDAmodule.cpp
-	${CMAKE_CURRENT_LIST_DIR}/VEDAproc.cpp
 )
 
 ADD_LIBRARY(veda ${BUILD_TYPE} ${VEDA_SRC})

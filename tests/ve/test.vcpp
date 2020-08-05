@@ -1,5 +1,8 @@
 #include <veda_device.h>
 #include <cstdio>
+#include <omp.h>
+#include <thread>
+#include <functional>
 
 extern "C" VEDAresult ve_test(VEDAdeviceptr vptr, VEDAdeviceptr newPtr, const size_t cnt) {
 	int* out;
@@ -13,4 +16,13 @@ extern "C" VEDAresult ve_test(VEDAdeviceptr vptr, VEDAdeviceptr newPtr, const si
 		out[i] = cnt - 1 - i;
 	
 	return VEDA_SUCCESS;
+}
+
+extern "C" void ve_hello_world(int stream) {
+	#pragma omp parallel
+	{
+    	size_t hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+		printf("Stream %i: Omp: %i/%i Thread: %016llX\n", stream, omp_get_thread_num(), omp_get_num_threads(), hash);
+	}
+	printf("Stream %i DONE!\n", stream);
 }

@@ -5,15 +5,14 @@
 typedef int VEDAdevice;
 typedef uint64_t VEDAdeviceptr;
 
-struct __VEDAcontext;
 struct __VEDAmodule;
-struct __VEDAstream;
+struct __VEDAcontext;
 struct veo_args;
 
-typedef struct __VEDAcontext* VEDAcontext;
 typedef uint64_t VEDAfunction;
+typedef struct __VEDAcontext* VEDAcontext;
 typedef struct __VEDAmodule* VEDAmodule;
-typedef struct __VEDAstream* VEDAstream;
+typedef int VEDAstream;
 typedef struct veo_args* VEDAargs;
 
 typedef uint64_t (*VEDAhost_function)(void*);

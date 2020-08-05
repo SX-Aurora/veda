@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include <string.h>
+#include <veda_device.h>
+
+void delayed_malloc(VEDAdeviceptr host_allocated, VEDAdeviceptr device_allocated, size_t size) {
+	char* host;
+	vedaMemPtr((void**)&host, host_allocated);
+	printf("Device: %s\n", host);
+
+	char* device;
+	vedaMemAllocPtr((void**)&device, device_allocated, size);
+
+	memcpy(device, host, size);
+	printf("Device: %s\n", device);
+}

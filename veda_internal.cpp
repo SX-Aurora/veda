@@ -1,7 +1,6 @@
 #include "veda_internal.h"
 
 //------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
 class Semaphore {
 	std::atomic<uint32_t>	m_value;
 	std::atomic<int>		m_shutdown;
@@ -29,25 +28,17 @@ public:
 	}
 };
 
+//------------------------------------------------------------------------------
+static bool s_initialized	= false;
+static int	s_ompThreads	= 0;
 static Semaphore sem;
 
 //------------------------------------------------------------------------------
-VEDAresult vedaSemAcquire(void) {
-	return sem.acquire();
-}
-
-//------------------------------------------------------------------------------
-void vedaSemRelease(void) {
-	return sem.release();
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaSemShutdown(void) {
-	return sem.shutdown();
-}
-
-//------------------------------------------------------------------------------
-static bool s_initialized = false;
+VEDAresult	vedaIsInitialized	(void) {	return s_initialized ? VEDA_SUCCESS : VEDA_ERROR_NOT_INITIALIZED;	}
+VEDAresult	vedaSemAcquire		(void) {	return sem.acquire();												}
+VEDAresult	vedaSemShutdown		(void) {	return sem.shutdown();												}
+int			vedaOmpThreads		(void) {	return s_ompThreads;												}
+void		vedaSemRelease		(void) {	return sem.release();												}
 
 //------------------------------------------------------------------------------
 VEDAresult vedaSetInitialized(const bool value) {
@@ -55,13 +46,13 @@ VEDAresult vedaSetInitialized(const bool value) {
 		return VEDA_ERROR_ALREADY_INITIALIZED;
 	else if(!value && !s_initialized)
 		return VEDA_ERROR_NOT_INITIALIZED;
+
+	auto env = std::getenv("VE_OMP_NUM_THREADS");
+	if(env)
+		s_ompThreads = std::atoi(env);
+
 	s_initialized = value;
 	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaIsInitialized(void) {
-	return s_initialized ? VEDA_SUCCESS : VEDA_ERROR_NOT_INITIALIZED;
 }
 
 //------------------------------------------------------------------------------

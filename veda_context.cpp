@@ -1,45 +1,104 @@
 #include "veda_internal.h"
 
 //------------------------------------------------------------------------------
-thread_local std::list<VEDAcontext> t_ctxs;
+#define LOCK() std::lock_guard<std::mutex> lock(veda_ctxs_mutex)
+
+thread_local std::list<VEDAcontext> veda_thread_ctxs;
+static std::map<VEDAdevice, __VEDAcontext> veda_ctxs;
+static std::mutex veda_ctxs_mutex;
 
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxExit(void) {
-	t_ctxs.clear(); // this is kind of unsafe, as not all threads get cleared...
+	LOCK();
+	for(auto& it : veda_ctxs)
+		CVEDA(it.second.destroy());	
+	veda_ctxs.clear();
+
+	veda_thread_ctxs.clear(); // this is kind of unsafe, as not all threads get cleared...
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaCtxMemReport(void) {
+	LOCK();
+	for(auto& it : veda_ctxs)
+		CVEDA(it.second.memReport());
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 extern "C" {
 //------------------------------------------------------------------------------
-VEDAresult vedaCtxCreate(VEDAcontext* pctx, uint32_t flags, VEDAdevice dev) {
-	GUARDED(
-		CVEDA(vedaIsDevice(dev));
-		if(flags != 0)	return VEDA_ERROR_INVALID_VALUE;
+VEDAresult vedaCtxGet(VEDAcontext* ctx, const VEDAdevice device) {
+	CVEDA(vedaIsDevice(device));
+	
+	LOCK();
+	auto it = veda_ctxs.find(device);
+	if(it != veda_ctxs.end())	*ctx = &it->second;
+	else						*ctx = 0;
+	return VEDA_SUCCESS;
+}
 
-		VEDAproc proc;
-		CVEDA(vedaProcGet(&proc, dev));
-		if(!proc)
-			CVEDA(vedaProcCreate(&proc, dev));
-		CVEDA(proc->ctxCreate(pctx));
-		t_ctxs.emplace_back(*pctx);
-	);
+//------------------------------------------------------------------------------
+VEDAresult vedaCtxCreate(VEDAcontext* pctx, uint32_t flags, VEDAdevice device) {
+	CVEDA(vedaCtxGet(pctx, device)); // Check if a context already exists
+	if(*pctx != 0)
+		return VEDA_ERROR_CANNOT_CREATE_CONTEXT;
+
+	int cores;
+	CVEDA(vedaDeviceGetAttribute(&cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device));
+	if(flags < 0 || flags > cores)
+		return VEDA_ERROR_INVALID_VALUE;
+
+	int omp = 0;
+
+	if(!flags) {
+		omp = vedaOmpThreads();
+		if(!omp)
+			omp = cores;
+	} else {
+		omp = flags;
+	}
+
+	if(omp == 0)
+		return VEDA_ERROR_INVALID_VALUE;
+
+	char buffer[3];
+	snprintf(buffer, sizeof(buffer), "%i", omp);
+	setenv("VE_OMP_NUM_THREADS", buffer, 1);
+
+	int numStreams = cores/omp;
+	if(numStreams == 0)
+		return VEDA_ERROR_INVALID_VALUE;
+
+	LOCK();
+
+	int idx = 0;
+	CVEDA(vedaDeviceGetPhysicalIdx(&idx, device));
+	auto ptr = veo_proc_create(idx);
+	if(ptr == 0)
+		return VEDA_ERROR_CANNOT_CREATE_CONTEXT;
+	*pctx = &veda_ctxs.emplace(MAP_EMPLACE(device, device, ptr, numStreams)).first->second;
+	CVEDA((*pctx)->init());
+	
+	return vedaCtxPushCurrent(*pctx);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxDestroy(VEDAcontext ctx) {
 	GUARDED(
-		CVEDA(vedaIsContext(ctx));
+		LOCK();
+		CVEDA(ctx->destroy());
+		veda_ctxs.erase(ctx->device());
+	);
+}
 
-		// Destroy Context
-		auto proc = ctx->proc();
-		CVEDA(proc->ctxDestroy(ctx));
-		if(t_ctxs.back() == ctx)
-			t_ctxs.pop_back();
-
-		// If no further contexts, destroy proc
-		if(proc->ctxCount() == 0)
-			CVEDA(vedaProcDestroy(proc));
+//------------------------------------------------------------------------------
+VEDAresult vedaCtxGetMaxStreams(int* streams) {
+	GUARDED(
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		*streams = (int)ctx->streamCount();
 	);
 }
 
@@ -47,7 +106,7 @@ VEDAresult vedaCtxDestroy(VEDAcontext ctx) {
 VEDAresult vedaCtxGetApiVersion(VEDAcontext ctx, uint32_t* version) {
 	GUARDED(
 		uint64_t value = 0;
-		CVEDA(vedaDeviceGetInfo(&value, "abi_version", ctx->proc()->device()));
+		CVEDA(vedaDeviceGetInfo(&value, "abi_version", ctx->device()));
 		*version = (uint32_t)value;
 	);
 }
@@ -55,33 +114,35 @@ VEDAresult vedaCtxGetApiVersion(VEDAcontext ctx, uint32_t* version) {
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxGetCurrent(VEDAcontext* pctx) {
 	GUARDED(
-		if(t_ctxs.empty())	return VEDA_ERROR_NO_CONTEXT;
-		*pctx = t_ctxs.back();
+		if(veda_thread_ctxs.empty())
+			return VEDA_ERROR_NO_CONTEXT;
+		*pctx = veda_thread_ctxs.back();
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxGetDevice(VEDAdevice* device) {
 	GUARDED(
-		VEDAproc proc;
-		CVEDA(vedaProcGetCurrent(&proc));
-		*device = proc->device();
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		*device = ctx->device();
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxPopCurrent(VEDAcontext* pctx) {
 	GUARDED(
-		if(t_ctxs.empty())	return VEDA_ERROR_CANNOT_POP_CONTEXT;
-		*pctx = t_ctxs.back();
-		t_ctxs.pop_back();
+		if(veda_thread_ctxs.empty())
+			return VEDA_ERROR_CANNOT_POP_CONTEXT;
+		*pctx = veda_thread_ctxs.back();
+		veda_thread_ctxs.pop_back();
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaCtxPushCurrent(VEDAcontext ctx) {
 	GUARDED(
-		t_ctxs.emplace_back(ctx);
+		veda_thread_ctxs.emplace_back(ctx);
 	);
 }
 
@@ -89,10 +150,10 @@ VEDAresult vedaCtxPushCurrent(VEDAcontext ctx) {
 VEDAresult vedaCtxSetCurrent(VEDAcontext ctx) {
 	GUARDED(
 		if(ctx) {
-			if(t_ctxs.empty())	t_ctxs.emplace_back(ctx);
-			else				t_ctxs.back() = ctx;
+			if(veda_thread_ctxs.empty())	veda_thread_ctxs.emplace_back(ctx);
+			else				veda_thread_ctxs.back() = ctx;
 		} else {
-			if(!t_ctxs.empty())	t_ctxs.pop_back();
+			if(!veda_thread_ctxs.empty())	veda_thread_ctxs.pop_back();
 		}
 	);
 }

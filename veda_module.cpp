@@ -4,27 +4,23 @@ extern "C" {
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleGetFunction(VEDAfunction* hfunc, VEDAmodule hmod, const char* name) {
 	GUARDED(
-		VEDAproc proc = 0;
-		CVEDA(vedaProcGetCurrent(&proc));
-		CVEDA(proc->moduleGetFunction(hfunc, hmod, name));
+		CVEDA(hmod->ctx()->moduleGetFunction(hfunc, hmod, name));
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleLoad(VEDAmodule* module, const char* fname) {
 	GUARDED(
-		VEDAproc proc = 0;
-		CVEDA(vedaProcGetCurrent(&proc));
-		CVEDA(proc->moduleLoad(module, fname));
+		VEDAcontext ctx = 0;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(ctx->moduleLoad(module, fname));
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleUnload(VEDAmodule hmod) {
 	GUARDED(
-		VEDAproc proc = 0;
-		CVEDA(vedaProcGetCurrent(&proc));
-		CVEDA(proc->moduleUnload(hmod));
+		CVEDA(hmod->ctx()->moduleUnload(hmod));
 	);
 }
 
