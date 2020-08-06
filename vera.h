@@ -54,8 +54,7 @@ inline veraError_t	veraModuleGetFunction	(veraFunction_t* func, veraModule_t mod
 inline veraError_t	veraModuleUnload		(veraModule_t mod)												{	CVEDA(veraInit()); return vedaModuleUnload(mod);												}
 inline veraError_t	veraModuleLoad			(veraModule_t* mod, const char* name)							{	CVEDA(veraInit()); return vedaModuleLoad(mod, name);											}
 inline veraError_t	veraRuntimeGetVersion	(const char** runtimeVersion)									{	CVEDA(veraInit()); return veraDriverGetVersion(runtimeVersion);									}
-inline veraError_t	veraStreamCreate		(veraStream_t* pStream) 										{	CVEDA(veraInit()); return vedaStreamCreate(pStream, 0);											}
-inline veraError_t	veraStreamDestroy		(veraStream_t stream)											{	CVEDA(veraInit()); return vedaStreamDestroy(stream);											}
+inline veraError_t	veraStreamCnt			(int* cnt)														{	CVEDA(veraInit()); return vedaCtxStreamCnt(cnt);												}
 inline veraError_t	veraStreamQuery			(veraStream_t stream)											{	CVEDA(veraInit()); return vedaStreamQuery(stream);												}
 inline veraError_t	veraStreamSynchronize	(veraStream_t stream)											{	CVEDA(veraInit()); return vedaStreamSynchronize(stream);										}
 

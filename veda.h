@@ -31,7 +31,7 @@ VEDAresult	vedaArgsSetU16				(VEDAargs args, const int idx, const uint16_t value
 VEDAresult	vedaArgsSetU32				(VEDAargs args, const int idx, const uint32_t value);
 VEDAresult	vedaArgsSetU64				(VEDAargs args, const int idx, const uint64_t value);
 VEDAresult	vedaArgsSetU8				(VEDAargs args, const int idx, const uint8_t value);
-VEDAresult	vedaCtxCreate				(VEDAcontext* pctx, uint32_t flags, VEDAdevice dev);
+VEDAresult	vedaCtxCreate				(VEDAcontext* pctx, int mode, VEDAdevice dev);
 VEDAresult	vedaCtxDestroy				(VEDAcontext ctx);
 VEDAresult	vedaCtxGet					(VEDAcontext* ctx, const VEDAdevice device);
 VEDAresult	vedaCtxGetApiVersion		(VEDAcontext ctx, uint32_t* version);
@@ -39,8 +39,8 @@ VEDAresult	vedaCtxGetCurrent			(VEDAcontext* pctx);
 VEDAresult	vedaCtxGetDevice			(VEDAdevice* device);
 VEDAresult	vedaCtxPopCurrent			(VEDAcontext* pctx);
 VEDAresult	vedaCtxPushCurrent			(VEDAcontext ctx);
-VEDAresult	vedaCtxGetMaxStreams		(int* streams);
 VEDAresult	vedaCtxSetCurrent			(VEDAcontext ctx);
+VEDAresult	vedaCtxStreamCnt			(int* cnt);
 VEDAresult	vedaCtxSynchronize			(void);
 VEDAresult	vedaDeviceGet				(VEDAdevice* device, int ordinal);
 VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev);
@@ -102,8 +102,6 @@ VEDAresult	vedaModuleGetFunction		(VEDAfunction* hfunc, VEDAmodule hmod, const c
 VEDAresult	vedaModuleLoad				(VEDAmodule* module, const char* fname);
 VEDAresult	vedaModuleUnload			(VEDAmodule hmod);
 VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
-VEDAresult	vedaStreamCreate			(VEDAstream* phStream, uint32_t Flags);
-VEDAresult	vedaStreamDestroy			(VEDAstream hStream);
 VEDAresult	vedaStreamGetFlags			(VEDAstream hStream, uint32_t* flags);
 VEDAresult	vedaStreamQuery				(VEDAstream hStream);
 VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);

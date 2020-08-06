@@ -16,7 +16,7 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
-void run(int omp, VEDAdevice device) {
+void run(VEDAcontext_mode omp, VEDAdevice device) {
 	VEDAcontext ctx;
 	CHECK(vedaCtxCreate(&ctx, omp, device));
 	printf("vedaCtxCreate(%p, %i, %i)\n", ctx, omp, device);
@@ -32,16 +32,14 @@ void run(int omp, VEDAdevice device) {
 	printf("vedaModuleGetFunction(%p, %p, \"%s\")\n", func, mod, funcName);
 
 	int num = 0;
-	CHECK(vedaCtxGetMaxStreams(&num));
-	printf("vedaCtxGetMaxStreams(%i)\n", num);
+	CHECK(vedaCtxStreamCnt(&num));
+	printf("vedaCtxStreamCnt(%i)\n", num);
 
 	std::vector<VEDAstream> streams;
 	streams.resize(num);
 
-	for(int i = 1; i < num; i++)				CHECK(vedaStreamCreate(&streams[i], 0));
 	for(VEDAstream stream : streams)			CHECK(vedaLaunchKernel(func, stream, stream));
 	for(VEDAstream stream : streams)			CHECK(vedaStreamSynchronize(stream));
-	for(size_t i = 1; i < streams.size(); i++)	CHECK(vedaStreamDestroy(streams[i]));
 
 	CHECK(vedaCtxDestroy(ctx));
 }
@@ -49,7 +47,7 @@ void run(int omp, VEDAdevice device) {
 int main(int argc, char** argv) {
 	CHECK(vedaInit(0));
 
-	for(auto omp : {1, 8})
+	for(auto omp : {VEDA_CONTEXT_MODE_OMP, VEDA_CONTEXT_MODE_SCALAR})
 		run(omp, 0);
 
 	CHECK(vedaExit());

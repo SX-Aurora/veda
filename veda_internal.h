@@ -21,6 +21,7 @@ typedef uint64_t veo_ptr;
 #include <thread>
 #include <chrono>
 #include <functional>
+#include <dlfcn.h>
 
 #include "veda.h"
 #include "VEDAkernel.h"
@@ -43,6 +44,7 @@ inline VEDAresult vedaIs(T ptr, VEDAresult err) {
 	return dynamic_cast<T>(ptr) != 0 ? VEDA_SUCCESS : err;
 }
 
+		const char*	vedaModuleStdLib		(void);
 		VEDAresult	vedaCtxExit				(void);
 		VEDAresult	vedaCtxMemReport		(void);
 		VEDAresult	vedaDeviceExit			(void);

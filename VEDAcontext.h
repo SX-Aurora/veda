@@ -56,8 +56,6 @@ public:
 	VEDAresult		moduleUnload		(VEDAmodule mod);
 	VEDAresult		query				(VEDAstream stream);
 	VEDAresult		stream				(veo_thr_ctxt** veo, const VEDAstream stream);
-	VEDAresult		streamCreate		(VEDAstream* stream);
-	VEDAresult		streamDestroy		(VEDAstream stream);
 	VEDAresult		sync				(VEDAstream stream);
 	VEDAresult		sync				(void);
 	const char*		kernelName			(VEDAfunction func) const;

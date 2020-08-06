@@ -65,7 +65,13 @@ enum VEDAargs_intent_enum {
 	VEDA_ARGS_INTENT_OUT	= 2
 };
 
+enum VEDAcontext_mode_enum {
+	VEDA_CONTEXT_MODE_OMP = 0,
+	VEDA_CONTEXT_MODE_SCALAR = 1
+};
+
 typedef enum VEDAresult_enum VEDAresult;
 typedef enum VEDAdevice_attribute_enum VEDAdevice_attribute;
 typedef enum VEDAargs_intent_enum VEDAargs_intent;
+typedef enum VEDAcontext_mode_enum VEDAcontext_mode;
 

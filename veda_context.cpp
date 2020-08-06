@@ -40,38 +40,28 @@ VEDAresult vedaCtxGet(VEDAcontext* ctx, const VEDAdevice device) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaCtxCreate(VEDAcontext* pctx, uint32_t flags, VEDAdevice device) {
+VEDAresult vedaCtxCreate(VEDAcontext* pctx, int mode, VEDAdevice device) {
 	CVEDA(vedaCtxGet(pctx, device)); // Check if a context already exists
 	if(*pctx != 0)
 		return VEDA_ERROR_CANNOT_CREATE_CONTEXT;
 
 	int cores;
 	CVEDA(vedaDeviceGetAttribute(&cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device));
-	if(flags < 0 || flags > cores)
-		return VEDA_ERROR_INVALID_VALUE;
-
-	int omp = 0;
-
-	if(!flags) {
-		omp = vedaOmpThreads();
-		if(!omp)
-			omp = cores;
-	} else {
-		omp = flags;
-	}
-
-	if(omp == 0)
-		return VEDA_ERROR_INVALID_VALUE;
-
-	char buffer[3];
-	snprintf(buffer, sizeof(buffer), "%i", omp);
-	setenv("VE_OMP_NUM_THREADS", buffer, 1);
-
-	int numStreams = cores/omp;
-	if(numStreams == 0)
-		return VEDA_ERROR_INVALID_VALUE;
+	cores = std::min(cores, vedaOmpThreads());
 
 	LOCK();
+	int numStreams;
+	if(mode == VEDA_CONTEXT_MODE_OMP) {
+		char buffer[3];
+		snprintf(buffer, sizeof(buffer), "%i", cores);
+		setenv("VE_OMP_NUM_THREADS", buffer, 1);
+		numStreams = 1;
+	} else if(mode == VEDA_CONTEXT_MODE_SCALAR) {
+		setenv("VE_OMP_NUM_THREADS", "1", 1);
+		numStreams = cores;
+	} else {
+		return VEDA_ERROR_INVALID_VALUE;
+	}
 
 	int idx = 0;
 	CVEDA(vedaDeviceGetPhysicalIdx(&idx, device));
@@ -94,20 +84,20 @@ VEDAresult vedaCtxDestroy(VEDAcontext ctx) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaCtxGetMaxStreams(int* streams) {
-	GUARDED(
-		VEDAcontext ctx;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		*streams = (int)ctx->streamCount();
-	);
-}
-
-//------------------------------------------------------------------------------
 VEDAresult vedaCtxGetApiVersion(VEDAcontext ctx, uint32_t* version) {
 	GUARDED(
 		uint64_t value = 0;
 		CVEDA(vedaDeviceGetInfo(&value, "abi_version", ctx->device()));
 		*version = (uint32_t)value;
+	);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaCtxStreamCnt(int* cnt) {
+	GUARDED(
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		*cnt = (int)ctx->streamCount();
 	);
 }
 

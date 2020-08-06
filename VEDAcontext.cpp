@@ -23,8 +23,9 @@ static VEDAresult vedaCtxCall(VEDAcontext ctx, VEDAstream stream, bool checkResu
 }
 
 //------------------------------------------------------------------------------
-VEDAdevice	__VEDAcontext::device		(void) const {	return m_device;			}
-size_t		__VEDAcontext::streamCount	(void) const {	return m_streams.size();	}
+VEDAdevice __VEDAcontext::device(void) const {
+	return m_device;
+}
 
 //------------------------------------------------------------------------------
 __VEDAcontext::__VEDAcontext(VEDAdevice device, veo_proc_handle* handle, const int numStreams) :
@@ -85,16 +86,21 @@ VEDAresult __VEDAcontext::init(void) {
 	TRACE("VEDAcontext::init(%i)\n", device());
 	assert(m_lib == 0);
 
-	CVEDA(moduleLoad(&m_lib, "libveda.vso"));
+	CVEDA(moduleLoad(&m_lib, vedaModuleStdLib()));
 	for(int i = 0; i < VEDA_KERNEL_CNT; i++) {
 		const char* name = 0;
 		CVEDA(vedaKernelGetName(&name, (VEDAkernel)i));
 		CVEDA(moduleGetFunction(&m_kernels[i], m_lib, name));
 	}
 
-	VEDAstream stream;
-	CVEDA(streamCreate(&stream));
-	assert(stream == 0);
+	for(auto& stream : m_streams) {
+		assert(stream.ctx == 0);
+		stream.ctx = veo_context_open(m_handle);
+		if(stream.ctx == 0)
+			return VEDA_ERROR_CANNOT_CREATE_STREAM;
+		stream.calls.reserve(128);
+		assert(ref.calls.empty());
+	}
 	
 	return VEDA_SUCCESS;
 }
@@ -102,46 +108,15 @@ VEDAresult __VEDAcontext::init(void) {
 //------------------------------------------------------------------------------
 // Stream
 //------------------------------------------------------------------------------
+size_t __VEDAcontext::streamCount(void) const {
+	return m_streams.size();
+}
+
+//------------------------------------------------------------------------------
 VEDAresult __VEDAcontext::stream(veo_thr_ctxt** veo, const VEDAstream stream) {
 	if(stream < 0 || stream >= m_streams.size() || m_streams[stream].ctx == 0)
 		return VEDA_ERROR_UNKNOWN_STREAM;
 	*veo = m_streams[stream].ctx;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult __VEDAcontext::streamCreate(VEDAstream* stream) {
-	TRACE("VEDAcontext::streamCreate(%i)\n", device());
-
-	VEDAstream idx = 0;
-	for(auto& ref : m_streams) {
-		if(ref.ctx == 0) {
-			*stream = idx;
-			ref.ctx = veo_context_open(m_handle);
-			if(ref.ctx == 0)
-				return VEDA_ERROR_CANNOT_CREATE_STREAM;
-			ref.calls.reserve(128);
-			assert(ref.calls.empty());
-			return VEDA_SUCCESS;
-		}
-		idx++;
-	}
-
-	return VEDA_ERROR_CANNOT_CREATE_STREAM;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult __VEDAcontext::streamDestroy(VEDAstream stream) {
-	if(stream < 0 || stream >= m_streams.size())
-		return VEDA_ERROR_INVALID_STREAM;
-
-	auto& ref = m_streams[stream];
-	if(ref.ctx == 0)
-		return VEDA_ERROR_INVALID_STREAM;
-
-	sync(stream); // wait for all work to be done before destroying
-	CVEO(veo_context_close(ref.ctx));
-	ref.ctx = 0;
 	return VEDA_SUCCESS;
 }
 

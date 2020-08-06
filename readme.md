@@ -5,7 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
-| v0.8 | implemented multi-stream support (experimental) |
+| v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
 | v0.7.1 | Bugfix release |
 | v0.7 | initial VERA release |
 | v0.6 | initial VEDA release |
@@ -74,6 +74,8 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 			ptr[cnt] = ...;
 	}
 	```
+1. VEDA streams differ from CUDA streams. See chapter "OMP Threads vs Streams" for more details.
+1. VEDA uses the env var ```VEDA_VISIBLE_DEVICES``` in contrast to ```CUDA_VISIBLE_DEVICES```.
 
 ## Differences between VERA and CUDA Runtime API:
 1. All function calls start with ```vera*``` instead of ```cuda*```
@@ -106,14 +108,17 @@ void mykernel(VEDAdeviceptr vptr, size_t cnt) {
 ```
 
 ### OMP Threads vs Streams (experimental):
-By default VEDA uses all available cores or the number defined by the env var ```VE_OMP_NUM_THREADS``` to parallelize across all cores. Since v0.8 it is possible to define these per device using ```vedaCtxCreate(&ctx, OMP_THREADS, device)```. This influences the number of available streams of the context. Available number of streams calculates as ```numStreams = numCores / numOmpThreads```. Odd values can lead to unused cores! All threads and streams share the same memory space on the VE.
+In CUDA streams can be used to create different execution queues, to overlap compute with memcopy. VEDA supports two stream modes which differ from the CUDA behavior. These can be defined by ```vedaCtxCreate(&ctx, MODE, device)```.
 
-If you use VERA, you can use ```vedaCtxCreate(...)``` to specify the behavior or set ```VE_OMP_NUM_THREADS``` if you want to set it globally for all devices.
+1. ```VEDA_CONTEXT_MODE_OMP``` (default): All cores will be assigned to the default stream (=0). This mode only supports a single stream.
+1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different thread. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
 
-## Limitations:
+Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal number of cores that get use for either mode. If the env var is not set, VEDA uses all available cores of the hardware.
+
+## Limitations/Known Problems:
 1. VEDA only supports one ```VEDAcontext``` per device.
-1. VEDA does only support a limited number of streams per ```VEDAcontext```. Use ```vedaCtxGetMaxStreams()``` to query available number of threads. The default stream (== 0) is always created and cannot be destroyed.
 1. No unified memory space (yet).
+1. VEDA by default uses the current workdirectory for loading modules. This behavior can be changed by using the env var ```VE_LD_LIBRARY_PATH```.
 
 ## How to build:
 ```bash
@@ -135,9 +140,4 @@ ENABLE_LANGUAGE(VC VCPP)
 INCLUDE_DIRECTORIES(${VEDA_INCLUDES})
 ADD_EXECUTABLE(myApp mycode.vc mycode.vcpp)
 TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
-```
-
-Further you need to set following entry in your ```.bashrc```:
-```bash
-export VE_LD_LIBRARY_PATH=/usr/local/ve/veda/lib
 ```
