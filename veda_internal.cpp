@@ -67,12 +67,10 @@ VEDAresult vedaSetInitialized(const bool value) {
 		// Set Paths -----------------------------------------------------------
 		std::string veorun(home);
 		veorun.append("/libexec/aveorun");
-		printf("%s\n", veorun.c_str());
 		setenv("VEORUN_BIN", veorun.c_str(), 1);
 
 		s_stdLib.append(home);
 		s_stdLib.append("/libve/libveda.vso");
-		printf("%s\n", s_stdLib.c_str());
 
 		// Set VE_LD_LIBRARY_PATH if is not set --------------------------------
 		setenv("VE_LD_LIBRARY_PATH", ".", 0);
