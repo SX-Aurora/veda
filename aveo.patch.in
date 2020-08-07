@@ -1,0 +1,25 @@
+diff --git a/make_aveo.inc b/make_aveo.inc
+index 01d395c..a166f9b 100644
+--- a/make_aveo.inc
++++ b/make_aveo.inc
+@@ -1,6 +1,6 @@
+ NCPP = /opt/nec/ve/bin/nc++
+ NCC = /opt/nec/ve/bin/ncc
+-NFORT = /opt/nec/ve/bin/nfort
++NFORT = @AVEO_NFORT@
+ NAR = /opt/nec/ve/bin/nar
+ GCC = gcc
+ GPP = g++
+diff --git a/test/Makefile b/test/Makefile
+index 7ae9d17..23431a1 100644
+--- a/test/Makefile
++++ b/test/Makefile
+@@ -19,7 +19,7 @@ TESTS = $(addprefix $(BB)/,test_callsync test_callasync test_stackargs \
+  test_child1 test_child2 test_async_mem test_thread_main_call_race \
+  test_2ctx_callasync test_omp test_omp_static test_arith_ftrace \
+  test_stackout test_unloadlib test_noproc test_memtransfers \
+- test_omp_2ctx)
++)
+
+ VELIBS = $(addprefix $(BB)/,libvehello.so libvehello2.so \
+  libvestackargs.so libveexcept.so libveasyncmem.so libvetestomp.so \

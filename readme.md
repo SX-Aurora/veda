@@ -111,7 +111,7 @@ void mykernel(VEDAdeviceptr vptr, size_t cnt) {
 In CUDA streams can be used to create different execution queues, to overlap compute with memcopy. VEDA supports two stream modes which differ from the CUDA behavior. These can be defined by ```vedaCtxCreate(&ctx, MODE, device)```.
 
 1. ```VEDA_CONTEXT_MODE_OMP``` (default): All cores will be assigned to the default stream (=0). This mode only supports a single stream.
-1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different thread. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
+1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different stream. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
 
 Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal number of cores that get use for either mode. If the env var is not set, VEDA uses all available cores of the hardware.
 
@@ -119,6 +119,7 @@ Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal n
 1. VEDA only supports one ```VEDAcontext``` per device.
 1. No unified memory space (yet).
 1. VEDA by default uses the current workdirectory for loading modules. This behavior can be changed by using the env var ```VE_LD_LIBRARY_PATH```.
+1. Due to compiler incompatibilities it can be necessary to adjust the CMake variable ```${AVEO_NFORT}``` to another compiler.
 
 ## How to build:
 ```bash
