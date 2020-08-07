@@ -31,14 +31,16 @@ VEDAresult	vedaArgsSetU16				(VEDAargs args, const int idx, const uint16_t value
 VEDAresult	vedaArgsSetU32				(VEDAargs args, const int idx, const uint32_t value);
 VEDAresult	vedaArgsSetU64				(VEDAargs args, const int idx, const uint64_t value);
 VEDAresult	vedaArgsSetU8				(VEDAargs args, const int idx, const uint8_t value);
-VEDAresult	vedaCtxCreate				(VEDAcontext* pctx, uint32_t flags, VEDAdevice dev);
+VEDAresult	vedaCtxCreate				(VEDAcontext* pctx, int mode, VEDAdevice dev);
 VEDAresult	vedaCtxDestroy				(VEDAcontext ctx);
+VEDAresult	vedaCtxGet					(VEDAcontext* ctx, const VEDAdevice device);
 VEDAresult	vedaCtxGetApiVersion		(VEDAcontext ctx, uint32_t* version);
 VEDAresult	vedaCtxGetCurrent			(VEDAcontext* pctx);
 VEDAresult	vedaCtxGetDevice			(VEDAdevice* device);
 VEDAresult	vedaCtxPopCurrent			(VEDAcontext* pctx);
 VEDAresult	vedaCtxPushCurrent			(VEDAcontext ctx);
 VEDAresult	vedaCtxSetCurrent			(VEDAcontext ctx);
+VEDAresult	vedaCtxStreamCnt			(int* cnt);
 VEDAresult	vedaCtxSynchronize			(void);
 VEDAresult	vedaDeviceGet				(VEDAdevice* device, int ordinal);
 VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev);
@@ -53,12 +55,12 @@ VEDAresult	vedaDevicePrimaryCtxRetain	(VEDAcontext* pctx, VEDAdevice dev);
 VEDAresult	vedaDevicePrimaryCtxSetFlags(VEDAdevice dev, uint32_t flags);
 VEDAresult	vedaDeviceTotalMem			(size_t* bytes, VEDAdevice dev);
 VEDAresult	vedaDriverGetVersion 		(const char** str);
-VEDAresult	vedaMemReport				(void);
-VEDAresult	vedaGetVersion				(const char** str);
 VEDAresult	vedaExit					(void);
 VEDAresult	vedaGetErrorName			(VEDAresult error, const char** pStr);
 VEDAresult	vedaGetErrorString			(VEDAresult error, const char** pStr);
+VEDAresult	vedaGetVersion				(const char** str);
 VEDAresult	vedaInit					(uint32_t Flags);
+VEDAresult	vedaLaunchHostFunc			(VEDAstream stream, VEDAhost_function fn, void* userData);
 VEDAresult	vedaLaunchKernel			(VEDAfunction f, VEDAstream stream, VEDAargs);
 VEDAresult	vedaLaunchKernelEx			(VEDAfunction f, VEDAstream stream, VEDAargs, const int destroyArgs);
 VEDAresult	vedaMemAlloc				(VEDAdeviceptr* ptr, size_t size);
@@ -69,10 +71,11 @@ VEDAresult	vedaMemAllocPitchAsync		(VEDAdeviceptr* ptr, size_t* pPitch, size_t W
 VEDAresult	vedaMemFree					(VEDAdeviceptr ptr);
 VEDAresult	vedaMemFreeAsync			(VEDAdeviceptr ptr, VEDAstream stream);
 VEDAresult	vedaMemFreeHost				(void* ptr);
-VEDAresult	vedaMemGetInfo				(size_t* free, size_t* total);
-VEDAresult	vedaMemGetDevice			(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
+VEDAresult	vedaMemGetDevice			(VEDAdevice* dev, VEDAdeviceptr ptr);
+VEDAresult	vedaMemGetInfo				(size_t* free, size_t* total);
 VEDAresult	vedaMemGetRawPointer		(void** rawPtr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemReport				(void);
 VEDAresult	vedaMemcpy					(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
 VEDAresult	vedaMemcpyAsync				(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
 VEDAresult	vedaMemcpyDtoD				(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount);
@@ -98,14 +101,10 @@ VEDAresult	vedaMemsetD8Async			(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, V
 VEDAresult	vedaModuleGetFunction		(VEDAfunction* hfunc, VEDAmodule hmod, const char* name);
 VEDAresult	vedaModuleLoad				(VEDAmodule* module, const char* fname);
 VEDAresult	vedaModuleUnload			(VEDAmodule hmod);
-VEDAresult	vedaStreamCreate			(VEDAstream* phStream, uint32_t Flags);
-VEDAresult	vedaStreamDestroy			(VEDAstream hStream);
-VEDAresult	vedaStreamGetCtx			(VEDAstream hStream, VEDAcontext* pctx);
+VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
 VEDAresult	vedaStreamGetFlags			(VEDAstream hStream, uint32_t* flags);
 VEDAresult	vedaStreamQuery				(VEDAstream hStream);
 VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
-VEDAresult	vedaLaunchHostFunc			(VEDAstream stream, VEDAhost_function fn, void* userData);
-VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
 
 #ifdef __cplusplus
 }

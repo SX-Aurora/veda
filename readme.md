@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
 | v0.7.1 | Bugfix release |
 | v0.7 | initial VERA release |
 | v0.6 | initial VEDA release |
@@ -73,24 +74,8 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 			ptr[cnt] = ...;
 	}
 	```
-1. VEDA does not need to allocate memory from the host, but can do that directly from the device. For this, the host only needs to create an empty VEDAdeviceptr.
-	```cpp
-	// Host Code ---------------------------------------------------------------
-	VEDAdeviceptr vptr;
-	vedaMemAllocAsync(&vptr, 0, 0);
-	vedaLaunchKernel(func, 0, vptr, cnt);
-	vedaMemcpyDtoHAsync(host, vptr, sizeof(float) * cnt, 0);
-	vedaMemFreeAsync(vptr, 0);
-
-	// Device Code -------------------------------------------------------------
-	void mykernel(VEDAdeviceptr vptr, size_t cnt) {
-		float* ptr;
-		vedaMemAllocPtr((void**)&ptr, vptr, cnt * sizeof(float));
-
-		for(size_t i = 0; i < cnt; i++)
-			ptr[cnt] = ...;
-	}
-	```
+1. VEDA streams differ from CUDA streams. See chapter "OMP Threads vs Streams" for more details.
+1. VEDA uses the env var ```VEDA_VISIBLE_DEVICES``` in contrast to ```CUDA_VISIBLE_DEVICES```.
 
 ## Differences between VERA and CUDA Runtime API:
 1. All function calls start with ```vera*``` instead of ```cuda*```
@@ -98,11 +83,43 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 1. VERA supports asynchronous malloc and free, see VEDA.
 VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. They can be used like the synchronous calls, but don't need to synchronize the execution between device and host.
 1. ```vedaDeviceGetPower(float* power, VEDAdevice dev)``` and ```vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev)``` allow to fetch the power consumption (in W) and temperature (in C).
-1. As the programming model of the SX-Aurora differs from NVIDIA GPUs, launching kernels looks different:
+1. As the programming model of the SX-Aurora differs from NVIDIA GPUs, launching kernels looks different.
+1. Similar to CUDA Runtime API, calls from VEDA and VERA can be mixed!
 
-## Limitations:
-1. The SX-Aurora does not support the usage of multiple-streams, so VEDA maps all functions added to multiple streams onto the same work queue.
-2. No Unified Memory Space **yet**.
+## VEDA/VERA Unique Features:
+### Delayed Memory Allocation
+VEDA does not need to allocate memory from the host, but can do that directly from the device. For this, the host only needs to create an empty VEDAdeviceptr.
+```cpp
+// Host Code ---------------------------------------------------------------
+VEDAdeviceptr vptr;
+vedaMemAllocAsync(&vptr, 0, 0);
+vedaLaunchKernel(func, 0, vptr, cnt);
+vedaMemcpyDtoHAsync(host, vptr, sizeof(float) * cnt, 0);
+vedaMemFreeAsync(vptr, 0);
+
+// Device Code -------------------------------------------------------------
+void mykernel(VEDAdeviceptr vptr, size_t cnt) {
+	float* ptr;
+	vedaMemAllocPtr((void**)&ptr, vptr, cnt * sizeof(float));
+
+	for(size_t i = 0; i < cnt; i++)
+		ptr[cnt] = ...;
+}
+```
+
+### OMP Threads vs Streams (experimental):
+In CUDA streams can be used to create different execution queues, to overlap compute with memcopy. VEDA supports two stream modes which differ from the CUDA behavior. These can be defined by ```vedaCtxCreate(&ctx, MODE, device)```.
+
+1. ```VEDA_CONTEXT_MODE_OMP``` (default): All cores will be assigned to the default stream (=0). This mode only supports a single stream.
+1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different stream. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
+
+Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal number of cores that get use for either mode. If the env var is not set, VEDA uses all available cores of the hardware.
+
+## Limitations/Known Problems:
+1. VEDA only supports one ```VEDAcontext``` per device.
+1. No unified memory space (yet).
+1. VEDA by default uses the current workdirectory for loading modules. This behavior can be changed by using the env var ```VE_LD_LIBRARY_PATH```.
+1. Due to compiler incompatibilities it can be necessary to adjust the CMake variable ```${AVEO_NFORT}``` to another compiler.
 
 ## How to build:
 ```bash
@@ -124,9 +141,4 @@ ENABLE_LANGUAGE(VC VCPP)
 INCLUDE_DIRECTORIES(${VEDA_INCLUDES})
 ADD_EXECUTABLE(myApp mycode.vc mycode.vcpp)
 TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
-```
-
-Further you need to set following entry in your ```.bashrc```:
-```bash
-export VE_LD_LIBRARY_PATH=/usr/local/ve/veda/lib
 ```

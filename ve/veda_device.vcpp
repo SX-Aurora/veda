@@ -25,7 +25,6 @@ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr _vptr, const size_t size) {
 		return VEDA_ERROR_OUT_OF_MEMORY;
 	if(!veda_ptrs.emplace(MAP_EMPLACE(vptr.idx(), *ptr, size)).second)
 		return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
-	
 	return VEDA_SUCCESS;
 }
 

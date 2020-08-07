@@ -218,9 +218,12 @@ VEDAresult vedaDeviceTotalMem(size_t* bytes, VEDAdevice dev) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* active) {
-	*flags	= 0;
-	*active = 1;
-	return VEDA_SUCCESS;
+	GUARDED(
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGet(&ctx, dev));
+		*flags	= 0;
+		*active = ctx != 0;
+	);
 }
 
 //------------------------------------------------------------------------------
@@ -231,23 +234,20 @@ VEDAresult vedaDevicePrimaryCtxRelease(VEDAdevice dev) {
 //------------------------------------------------------------------------------
 VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
 	GUARDED(
-		VEDAproc proc;
-		CVEDA(vedaProcGet(&proc, dev));
-		if(proc)
-			CVEDA(vedaProcDestroy(proc));
-		CVEDA(vedaProcCreate(&proc, dev));
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGet(&ctx, dev));
+		if(ctx)
+			CVEDA(vedaCtxDestroy(ctx));
+		CVEDA(vedaCtxCreate(&ctx, 0, dev));
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaDevicePrimaryCtxRetain(VEDAcontext* pctx, VEDAdevice dev) {
-	GUARDED(
-		VEDAproc proc;
-		CVEDA(vedaProcGet(&proc, dev));
-		if(!proc)
-			CVEDA(vedaProcCreate(&proc, dev));
-		*pctx = proc->ctxDefault();
-	);
+	CVEDA(vedaCtxGet(pctx, dev));
+	if(*pctx == 0)
+		CVEDA(vedaCtxCreate(pctx, 0, dev));
+	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------

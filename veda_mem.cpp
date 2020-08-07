@@ -18,8 +18,8 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
 VEDAresult vedaMemAllocAsync(VEDAdeviceptr* ptr, size_t size, VEDAstream stream) {
 	GUARDED(
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(stream, &ctx));
-		CVEDA(ctx->memAlloc(ptr, size));
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(ctx->memAlloc(ptr, size, stream));
 	);
 }
 
@@ -38,8 +38,8 @@ VEDAresult vedaMemAllocPitch(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthIn
 VEDAresult vedaMemAllocPitchAsync(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream) {
 	GUARDED(
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(stream, &ctx));
-		CVEDA(ctx->memAllocPitch(dptr, pPitch, WidthInBytes, Height, ElementSizeByte));
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(ctx->memAllocPitch(dptr, pPitch, WidthInBytes, Height, ElementSizeByte, stream));
 	);
 }
 
@@ -52,13 +52,10 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
 	GUARDED(
-		VEDAcontext ctx;
 		VEDAptr vptr(ptr);
-		CVEDA(vedaDevicePrimaryCtxRetain(&ctx, vptr.device()));
-		if(stream)
-			CVEDA(vedaStreamCompareCtx(stream, ctx));
-		CVEDA(ctx->memFree(ptr));
-		CVEDA(vedaDevicePrimaryCtxRelease(vptr.device()));
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memFree(ptr, stream));
 	);
 }
 
@@ -73,9 +70,9 @@ VEDAresult vedaMemFreeHost(void* ptr) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr) {
 	GUARDED(
-		VEDAcontext ctx;
 		VEDAptr vptr(ptr);
-		CVEDA(vedaDevicePrimaryCtxRetain(&ctx, vptr.device()));
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
 		*base = vptr.base();
 		veo_ptr _;
 		auto ret = ctx->getPtr(&_, size, ptr);
@@ -88,10 +85,10 @@ VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdevicep
 VEDAresult vedaMemGetInfo(size_t* free, size_t* total) {
 	GUARDED(
 		*free = 0; // TODO: is it possible to determine this value?
-		VEDAproc proc;
-		CVEDA(vedaProcGetCurrent(&proc));
-		CVEDA(vedaDeviceTotalMem(total, proc->device()));
-		CVEDA(proc->getFreeMem(free, *total));
+		VEDAcontext ctx;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(vedaDeviceTotalMem(total, ctx->device()));
+		CVEDA(ctx->getFreeMem(free, *total));
 	);
 }
 
@@ -120,28 +117,23 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice,
 	if(dst.device() == src.device()) {
 		GUARDED(
 			VEDAcontext ctx = 0;
-			CVEDA(vedaStreamGetCtx(hStream, &ctx));
-			if(ctx->proc()->device() != dst.device())
-				return VEDA_ERROR_INVALID_STREAM;
-			CVEDA(ctx->memcpyD2D(dstDevice, srcDevice, size));
+			CVEDA(vedaCtxGet(&ctx, dst.device()));
+			CVEDA(ctx->memcpyD2D(dstDevice, srcDevice, size, hStream));
 		);
 	} else {
 		GUARDED(
-			VEDAcontext ctx;
 			void* host = malloc(size);
 
-			VEDAproc srcProc;
-			CVEDA(vedaProcGet(&srcProc, src.device()));
-			CVEDA(vedaCtxPushCurrent(srcProc->ctxDefault()));
-			CVEDA(vedaMemcpyDtoHAsync(host, srcDevice, size, 0));
-			CVEDA(vedaCtxSynchronize());
+			VEDAcontext ctx;
+
+			CVEDA(vedaCtxGet(&ctx, src.device()));
+			CVEDA(vedaCtxPushCurrent(ctx));
+			CVEDA(vedaMemcpyDtoH(host, srcDevice, size));
 			CVEDA(vedaCtxPopCurrent(&ctx));
 
-			VEDAproc dstProc;
-			CVEDA(vedaProcGet(&dstProc, dst.device()));
-			CVEDA(vedaCtxPushCurrent(dstProc->ctxDefault()));
-			CVEDA(vedaMemcpyHtoDAsync(dstDevice, host, size, 0));
-			CVEDA(vedaCtxSynchronize());
+			CVEDA(vedaCtxGet(&ctx, dst.device()));
+			CVEDA(vedaCtxPushCurrent(ctx));
+			CVEDA(vedaMemcpyHtoD(dstDevice, host, size));
 			CVEDA(vedaCtxPopCurrent(&ctx));
 
 			free(host);
@@ -158,9 +150,10 @@ VEDAresult vedaMemcpyDtoH(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCou
 //------------------------------------------------------------------------------
 VEDAresult vedaMemcpyDtoHAsync(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(srcDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memcpyD2H(dstHost, srcDevice, ByteCount));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memcpyD2H(dstHost, srcDevice, ByteCount, hStream));
 	);
 }
 
@@ -173,9 +166,10 @@ VEDAresult vedaMemcpyHtoD(VEDAdeviceptr dstDevice, const void* srcHost, size_t B
 //------------------------------------------------------------------------------
 VEDAresult vedaMemcpyHtoDAsync(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memcpyH2D(dstDevice, srcHost, ByteCount));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memcpyH2D(dstDevice, srcHost, ByteCount, hStream));
 	);
 }
 
@@ -188,9 +182,10 @@ VEDAresult vedaMemsetD16(VEDAdeviceptr dstDevice, uint16_t us, size_t N) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset(dstDevice, us, N));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset(dstDevice, us, N, hStream));
 	);
 }
 
@@ -203,9 +198,10 @@ VEDAresult vedaMemsetD2D16(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D16Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, us, Width, Height));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset2D(dstDevice, dstPitch, us, Width, Height, hStream));
 	);
 }
 
@@ -218,9 +214,10 @@ VEDAresult vedaMemsetD2D32(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D32Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, ui, Width, Height));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset2D(dstDevice, dstPitch, ui, Width, Height, hStream));
 	);
 }
 
@@ -233,9 +230,10 @@ VEDAresult vedaMemsetD2D8(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D8Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, uc, Width, Height));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset2D(dstDevice, dstPitch, uc, Width, Height, hStream));
 	);
 }
 
@@ -248,9 +246,10 @@ VEDAresult vedaMemsetD32(VEDAdeviceptr dstDevice, uint32_t ui, size_t N) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD32Async(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset(dstDevice, ui, N));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset(dstDevice, ui, N, hStream));
 	);
 }
 
@@ -263,9 +262,10 @@ VEDAresult vedaMemsetD64(VEDAdeviceptr dstDevice, uint64_t ui, size_t N) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD64Async(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset(dstDevice, ui, N));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset(dstDevice, ui, N, hStream));
 	);
 }
 
@@ -278,16 +278,17 @@ VEDAresult vedaMemsetD8(VEDAdeviceptr dstDevice, uint8_t uc, size_t N) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream) {
 	GUARDED(
+		VEDAptr vptr(dstDevice);
 		VEDAcontext ctx = 0;
-		CVEDA(vedaStreamGetCtx(hStream, &ctx));
-		CVEDA(ctx->memset(dstDevice, uc, N));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		CVEDA(ctx->memset(dstDevice, uc, N, hStream));
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemReport(void) {
 	GUARDED(
-		CVEDA(vedaProcMemReport());
+		CVEDA(vedaCtxMemReport());
 	);
 }
 

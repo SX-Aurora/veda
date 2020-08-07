@@ -23,7 +23,6 @@ VEDAresult vedaExit(void) {
 	CVEDA(vedaSemShutdown());
 	CVEDA(vedaSetInitialized(false));
 	CVEDA(vedaCtxExit());
-	CVEDA(vedaProcExit());
 	CVEDA(vedaDeviceExit());
 	return VEDA_SUCCESS;
 }
@@ -43,18 +42,18 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
 //------------------------------------------------------------------------------
 VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs) {
 	GUARDED(
-		VEDAcontext ctx;
-		CVEDA(vedaStreamGetCtx(stream, &ctx));
-		CVEDA(ctx->call(f, args, destroyArgs != 0));
+		VEDAcontext ctx = 0;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(ctx->call(f, stream, args, destroyArgs != 0));
 	);
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* userData) {
 	GUARDED(
-		VEDAcontext ctx;
-		CVEDA(vedaStreamGetCtx(stream, &ctx));
-		CVEDA(ctx->call(fn, userData));
+		VEDAcontext ctx = 0;
+		CVEDA(vedaCtxGetCurrent(&ctx));
+		CVEDA(ctx->call(fn, userData, stream));
 	);
 }
 
@@ -63,7 +62,7 @@ VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
 	GUARDED(
 		VEDAptr vptr(ptr);
 		VEDAcontext ctx;
-		CVEDA(vedaDevicePrimaryCtxRetain(&ctx, vptr.device()));
+		CVEDA(vedaCtxGet(&ctx, vptr.device()));
 		size_t size;
 		auto ret = ctx->getPtr((veo_ptr*)rawPtr, &size, ptr);
 		if(ret != VEDA_ERROR_UNKNOWN_PPTR) CVEDA(ret);

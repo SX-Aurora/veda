@@ -17,19 +17,17 @@ typedef uint64_t veo_ptr;
 #include <sstream>
 #include <sys/stat.h>
 #include <vector>
-#include <sstream>
 #include <atomic>
 #include <thread>
 #include <chrono>
 #include <functional>
+#include <dlfcn.h>
 
 #include "veda.h"
 #include "VEDAkernel.h"
 #include "VEDAptr.h"
-#include "VEDAproc.h"
 #include "VEDAcontext.h"
 #include "VEDAmodule.h"
-#include "VEDAstream.h"
 
 #define MAP_EMPLACE(KEY, ...) std::piecewise_construct, std::forward_as_tuple(KEY), std::forward_as_tuple(__VA_ARGS__)
 
@@ -46,7 +44,9 @@ inline VEDAresult vedaIs(T ptr, VEDAresult err) {
 	return dynamic_cast<T>(ptr) != 0 ? VEDA_SUCCESS : err;
 }
 
+		const char*	vedaModuleStdLib		(void);
 		VEDAresult	vedaCtxExit				(void);
+		VEDAresult	vedaCtxMemReport		(void);
 		VEDAresult	vedaDeviceExit			(void);
 		VEDAresult	vedaDeviceGetInfo		(uint64_t* value, const char* file, const VEDAdevice device);
 		VEDAresult	vedaDeviceGetPhysicalIdx(int* idx, const VEDAdevice device);
@@ -57,24 +57,14 @@ inline VEDAresult vedaIs(T ptr, VEDAresult err) {
 		VEDAresult	vedaIsDevice			(const VEDAdevice device);
 		VEDAresult	vedaIsInitialized		(void);
 		VEDAresult	vedaKernelGetName		(const char** name, VEDAkernel kernel);
-		VEDAresult	vedaProcCreate			(VEDAproc* proc, const VEDAdevice device);
-		VEDAresult	vedaProcDestroy			(VEDAproc proc);
-		VEDAresult	vedaProcDestroyAll		(void);
-		VEDAresult	vedaProcExit			(void);
-		VEDAresult	vedaProcGet				(VEDAproc* proc, const VEDAdevice device);
-		VEDAresult	vedaProcGetCurrent		(VEDAproc* proc);
-		VEDAresult	vedaProcMemReport		(void);
+		VEDAresult	vedaSemAcquire			(void);
+		VEDAresult	vedaSemShutdown			(void);
 		VEDAresult	vedaSetInitialized		(const bool value);
-		VEDAresult	vedaStreamCompareCtx	(VEDAstream stream, VEDAcontext ctx);
-		VEDAresult	vedaStreamGetProc		(VEDAproc* proc, VEDAstream stream);
 		VEDAresult	vedaVEOtoVEDA			(const int err);
+		int			vedaOmpThreads			(void);
+		void		vedaSemRelease			(void);
 inline	VEDAresult	vedaIsContext			(VEDAcontext ctx)	{	return vedaIs(ctx, VEDA_ERROR_INVALID_CONTEXT);		}
 inline	VEDAresult	vedaIsModule			(VEDAmodule mod) 	{	return vedaIs(mod, VEDA_ERROR_INVALID_MODULE);		}
-inline	VEDAresult	vedaIsProc				(VEDAproc proc)		{	return vedaIs(proc, VEDA_ERROR_INVALID_PROC);		}
-inline	VEDAresult	vedaIsStream			(VEDAstream stream)	{	return vedaIs(stream, VEDA_ERROR_INVALID_STREAM);	}
-		VEDAresult	vedaSemAcquire			(void);
-		void		vedaSemRelease			(void);
-		VEDAresult	vedaSemShutdown			(void);
 
 struct VEDAguard {
 	VEDAresult acquire(void) {
