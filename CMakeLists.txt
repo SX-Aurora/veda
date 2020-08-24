@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(VEDA VERSION 0.8 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 0.8.1 LANGUAGES C CXX)
 SET(CMAKE_BUILD_TYPE RELEASE)
 
 ## CMake Stuff -----------------------------------------------------------------
@@ -35,7 +35,7 @@ ENDIF()
 ## Download/Build AVEO ---------------------------------------------------------
 SET(AVEO_REPO "https://github.com/SX-Aurora/aveo")
 SET(AVEO_PATH ${CMAKE_CURRENT_BINARY_DIR}/aveo)
-SET(AVEO_GIT_TAG "a68e8bcf4a5fe069de8f1ac8447c3e7584e63f72")
+SET(AVEO_GIT_TAG "0854d5752dc0390a5d0c9361cca710834038c9de")
 SET(AVEO_NFORT "/opt/nec/ve/bin/nfort" CACHE STRING "NFORT Version used to compile AVEO")
 
 CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/aveo.patch.in" "${CMAKE_CURRENT_BINARY_DIR}/aveo.patch" @ONLY)

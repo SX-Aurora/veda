@@ -83,6 +83,9 @@ VEDAresult vedaDeviceInitMapping(const std::set<int>& devices) {
 	std::set<int> visible;
 
 	auto env = std::getenv("VEDA_VISIBLE_DEVICES");
+	if(!env)
+		env = std::getenv("VE_NODE_NUMBER");
+
 	if(env) {
 		std::istringstream ss(env);
 		std::string line;

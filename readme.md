@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.8.1 | updated AVEO. Using VE_NODE_NUMBER as fallback if VEDA_VISIBLE_DEVICES is not set. |
 | v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
 | v0.7.1 | Bugfix release |
 | v0.7 | initial VERA release |
