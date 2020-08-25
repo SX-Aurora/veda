@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(VEDA VERSION 0.8.1 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 0.9 LANGUAGES C CXX)
 SET(CMAKE_BUILD_TYPE RELEASE)
 
 ## CMake Stuff -----------------------------------------------------------------

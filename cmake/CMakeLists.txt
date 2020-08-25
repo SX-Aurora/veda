@@ -1,12 +1,23 @@
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/nec/CMakeLists.txt)
 INSTALL(FILES
-	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVCCompiler.cmake
-	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVCXXCompiler.cmake
-	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVCCompiler.cmake
-	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVCXXCompiler.cmake
-	${CMAKE_CURRENT_LIST_DIR}/CMakeVCInformation.cmake
-	${CMAKE_CURRENT_LIST_DIR}/CMakeVCXXInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVEDA_CCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVEDA_CXXCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVEDA_FortranCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVE_CCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVE_CXXCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeDetermineVE_FortranCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVEDA_CCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVEDA_CXXCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVEDA_FortranCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVE_CCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVE_CXXCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeTestVE_FortranCompiler.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVEDA_CInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVEDA_CXXInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVEDA_FortranInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVE_CInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVE_CXXInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/CMakeVE_FortranInformation.cmake
 	${CMAKE_CURRENT_LIST_DIR}/FindVE.cmake
-	${CMAKE_CURRENT_LIST_DIR}/VE_CMakeCompiler.cmake.in
-	${CMAKE_CURRENT_LIST_DIR}/VE_CMakeDetermineCompiler.cmake
-	${CMAKE_CURRENT_LIST_DIR}/VE_CMakeInformation.cmake
+	${CMAKE_CURRENT_LIST_DIR}/InjectVE.cmake
 	DESTINATION cmake)

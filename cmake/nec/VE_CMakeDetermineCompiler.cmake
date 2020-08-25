@@ -1,3 +1,4 @@
+SET(VEDA_NEC_PATH ${CMAKE_CURRENT_LIST_DIR})
 macro(ve_init_compiler LANG COMPILER EXTENSIONS PREFERENCE)
 	set(CMAKE_VE_PATH "/opt/nec/ve/bin")
 
@@ -9,7 +10,8 @@ macro(ve_init_compiler LANG COMPILER EXTENSIONS PREFERENCE)
 
 		execute_process(COMMAND ${CMAKE_${LANG}_COMPILER} "--version" ERROR_VARIABLE RES)
 		string(REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" RES ${RES})
-		message(STATUS "The ${LANG} compiler identification is NEC ${RES}")
+		message(STATUS "The ${LANG} compiler identification is NCC ${RES}")
+		set(CMAKE_VE_COMPILER_ID "NCC ${RES}")
 		unset(RES)
 	endif()
 
@@ -21,7 +23,7 @@ macro(ve_init_compiler LANG COMPILER EXTENSIONS PREFERENCE)
 	set(CMAKE_VE_COMPILER_AR ${CMAKE_${LANG}_COMPILER_AR})
 	set(CMAKE_VE_COMPILER_RANLIB ${CMAKE_${LANG}_COMPILER_RANLIB})
 
-	configure_file(${CMAKE_CURRENT_LIST_DIR}/VE_CMakeCompiler.cmake.in
+	configure_file(${VEDA_NEC_PATH}/VE_CMakeCompiler.cmake.in
 		${CMAKE_PLATFORM_INFO_DIR}/CMake${LANG}Compiler.cmake
 		@ONLY
 	)

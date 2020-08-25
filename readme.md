@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.9 | Enhanced VEDA CMake Scripts, to also support native NCC compilation. |
 | v0.8.1 | updated AVEO. Using VE_NODE_NUMBER as fallback if VEDA_VISIBLE_DEVICES is not set. |
 | v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
 | v0.7.1 | Bugfix release |
@@ -132,14 +133,30 @@ sudo make install
 ```
 
 ## How to use:
-VEDA has an own CMAKE find script. All ```*.vc``` files get compiled using NCC and ```*.vcpp``` using NC++. The script uses the compilers installed in ```/opt/nec/ve/bin```. You can modify the ```CMAKE_[VC/VCPP]_COMPILER``` flags to change that behavior.
+VEDA has an own CMake find script. This supports 3 modes. The script uses the compilers installed in ```/opt/nec/ve/bin```. You can modify the ```CMAKE_[LANG]_COMPILER``` flags to change that behavior. See the Hello World examples in the [Examples Folder](example)
+
+### 1. VEDA Hybrid Offloading:
+This mode is necessary for VEDA offloading applications. It enables to compile host and device code within the same CMake project. For this it is necessary to use different file extensions for the VE code. All ```*.vc``` files get compiled using NCC, ```*.vcpp``` using NC++ and ```*.vf``` with NFORT.
 
 ```cmake
 SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake)
 FIND_PACKAGE(VE)
-ENABLE_LANGUAGE(VC VCPP)
+ENABLE_LANGUAGE(VEDA_C VEDA_CXX)
 
 INCLUDE_DIRECTORIES(${VEDA_INCLUDES})
 ADD_EXECUTABLE(myApp mycode.vc mycode.vcpp)
 TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
 ```
+
+### 2. VE Native applications:
+This mode enables to compile VE native applications.
+
+```cmake
+SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake)
+FIND_PACKAGE(VE)
+ENABLE_LANGUAGE(VE_C VE_CXX)
+ADD_EXECUTABLE(myApp mycode.c mycode.cpp)
+```
+
+### 3. VE Native Injection:
+If you have a CPU application and you don't want to modify the CMake script you can build your project using ```cmake -C /usr/local/ve/veda/cmake/InjectVE.cmake /path/to/your/source```. It will replace the CPU ```C```, ```CXX``` and ```Fortran``` compilers with NCC.
