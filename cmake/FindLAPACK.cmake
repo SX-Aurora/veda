@@ -1,5 +1,5 @@
 IF(NOT LAPACK_FOUND)
-	# BLAS is part of NLC, so get path -----------------------------------------
+	# LAPACK is part of NLC, so get path ---------------------------------------
 	IF(${LAPACK_FIND_REQUIRED})
 		FIND_PACKAGE(BLAS REQUIRED)
 	ELSE()

@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.9.1 | Added FindBLAS, FindLAPACK, FindASL and FindNCL to CMake. |
 | v0.9 | Enhanced VEDA CMake Scripts, to also support native NCC compilation. |
 | v0.8.1 | updated AVEO. Using VE_NODE_NUMBER as fallback if VEDA_VISIBLE_DEVICES is not set. |
 | v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
