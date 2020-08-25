@@ -1,0 +1,75 @@
+IF(NOT BLAS_FOUND)
+	# BLAS is part of NLC, so get path -----------------------------------------
+	IF(${BLAS_FIND_REQUIRED})
+		FIND_PACKAGE(NLC REQUIRED)
+	ELSE()
+		FIND_PACKAGE(NLC)
+	ENDIF()
+
+	SET(BLAS_LINKER_FLAGS)
+	SET(BLAS_LIBRARIES)
+	SET(BLAS_FOUND FALSE)
+
+	IF(${NLC_FOUND})
+		# Determine if we need OpenMP ------------------------------------------
+		IF(${OpenMP_FOUND})
+			SET(BLA_OPENMP "openmp")
+			SET(BLA_OPENMP_MSG "OpenMP")
+		ELSE()
+			SET(BLA_OPENMP "sequential")
+			SET(BLA_OPENMP_MSG "Sequential")
+		ENDIF()
+
+		# Determine library type -----------------------------------------------
+		IF(${BLA_STATIC})
+			SET(BLA_LIB "a")
+			SET(BLA_LIB_MSG "Static")
+		ELSE()
+			SET(BLA_LIB "so")
+			SET(BLA_LIB_MSG "Shared")
+		ENDIF()
+
+		LIST(APPEND BLAS_LINKER_FLAGS "blas_${BLA_OPENMP}")
+		LIST(APPEND BLAS_LIBRARIES "${NLC_PATH}/lib/libblas_${BLA_OPENMP}.${BLA_LIB}")
+
+		# Determine if we need CBLAS -------------------------------------------
+		IF(	CMAKE_C_COMPILER OR
+			CMAKE_CXX_COMPILER OR
+			CMAKE_VE_C_COMPILER OR
+			CMAKE_VE_CXX_COMPILER OR
+			CMAKE_VEDA_C_COMPILER OR
+			CMAKE_VEDA_CXX_COMPILER
+		)
+			LIST(APPEND BLAS_LINKER_FLAGS "cblas")
+			LIST(APPEND BLAS_LIBRARIES "${NLC_PATH}/lib/libcblas.${BLA_LIB}")
+		ENDIF()
+
+		SET(BLAS_FOUND TRUE)
+		FOREACH(A ${BLAS_LIBRARIES})
+			IF(NOT EXISTS ${A})
+				IF(${BLAS_FIND_REQUIRED})
+					MESSAGE(FATAL_ERROR "Unable to find ${A}")
+				ENDIF()
+				SET(BLAS_FOUND FALSE)
+			ENDIF()
+		ENDFOREACH()
+
+		IF(${BLAS_FOUND})
+			MESSAGE(STATUS "Using NLC ${NLC_VERSION} BLAS ${BLA_OPENMP_MSG} ${BLA_LIB_MSG}")
+		ELSE()
+			SET(BLAS_LINKER_FLAGS)
+			SET(BLAS_LIBRARIES)
+		ENDIF()
+	
+		UNSET(BLA_OPENMP)
+		UNSET(BLA_OPENMP_MSG)
+		UNSET(BLA_LIB)
+		UNSET(BLA_LIB_MSG)
+	ENDIF()
+
+	SET(BLAS_LINKER_FLAGS ${BLAS_LINKER_FLAGS} CACHE STRING "")
+	SET(BLAS_LIBRARIES ${BLAS_LIBRARIES} CACHE STRING "")
+	SET(BLAS95_LIBRARIES "" CACHE STRING "")
+	SET(BLAS95_FOUND FALSE CACHE BOOL "")
+	SET(BLAS_FOUND TRUE CACHE BOOL "")
+ENDIF()

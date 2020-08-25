@@ -159,4 +159,8 @@ ADD_EXECUTABLE(myApp mycode.c mycode.cpp)
 ```
 
 ### 3. VE Native Injection:
-If you have a CPU application and you don't want to modify the CMake script you can build your project using ```cmake -C /usr/local/ve/veda/cmake/InjectVE.cmake /path/to/your/source```. It will replace the CPU ```C```, ```CXX``` and ```Fortran``` compilers with NCC.
+If you have a CPU application and you don't want to modify the CMake script you can build your project using:
+```
+cmake -C /usr/local/ve/veda/cmake/InjectVE.cmake /path/to/your/source
+```
+It will replace the CPU ```C```, ```CXX``` and ```Fortran``` compilers with NCC.
