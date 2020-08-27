@@ -108,6 +108,12 @@ TARGET_LINK_OPTIONS(veda PRIVATE
 	-Wl,-z,defs
 	-Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/libveda.map
 )
+SET_TARGET_PROPERTIES(veda
+    PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+)
 IF(DOWNLOAD_AVEO)
 	ADD_DEPENDENCIES(veda aveo)
 ENDIF()
@@ -131,7 +137,12 @@ TARGET_LINK_OPTIONS(vera PRIVATE
 	-Wl,-z,defs
 	-Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/libvera.map
 )
-
+SET_TARGET_PROPERTIES(vera
+    PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+)
 ADD_SUBDIRECTORY(ve)
 
 ## Install Files ---------------------------------------------------------------
