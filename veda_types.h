@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "veda_enums.h"
 
 typedef int VEDAdevice;
