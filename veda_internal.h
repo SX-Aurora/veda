@@ -61,7 +61,7 @@ inline VEDAresult vedaIs(T ptr, VEDAresult err) {
 		VEDAresult	vedaSemShutdown			(void);
 		VEDAresult	vedaSetInitialized		(const bool value);
 		VEDAresult	vedaVEOtoVEDA			(const int err);
-		int			vedaOmpThreads			(void);
+		int		vedaOmpThreads			(void);
 		void		vedaSemRelease			(void);
 inline	VEDAresult	vedaIsContext			(VEDAcontext ctx)	{	return vedaIs(ctx, VEDA_ERROR_INVALID_CONTEXT);		}
 inline	VEDAresult	vedaIsModule			(VEDAmodule mod) 	{	return vedaIs(mod, VEDA_ERROR_INVALID_MODULE);		}
@@ -82,5 +82,7 @@ struct VEDAguard {
 	CVEDA(__guard.acquire());\
 	__VA_ARGS__\
 	return VEDA_SUCCESS
+
+#define CREQ(REQ)	({ uint64_t _r = REQ; if(_r == VEO_REQUEST_ID_INVALID) return VEDA_ERROR_INVALID_REQID; _r; })
 
 //------------------------------------------------------------------------------

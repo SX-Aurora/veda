@@ -351,7 +351,8 @@ VEDAresult __VEDAcontext::call(VEDAfunction func, VEDAstream _stream, VEDAargs a
 	TRACE("VEDAcontext::call(%p (%s), %p, %i, %i)\n", func, kernelName(func), args, destroyArgs, checkResult);
 	veo_thr_ctxt* str;
 	CVEDA(stream(&str, _stream));
-	m_streams[_stream].calls.emplace_back(veo_call_async(str, func, args), destroyArgs ? args : 0, checkResult);
+	uint64_t req = CREQ(veo_call_async(str, func, args));
+	m_streams[_stream].calls.emplace_back(req, destroyArgs ? args : 0, checkResult);
 	return VEDA_SUCCESS;
 }
 
@@ -361,7 +362,8 @@ VEDAresult __VEDAcontext::call(VEDAhost_function func, void* userData, VEDAstrea
 	TRACE("VEDAcontext::call(%p, %p)\n", func, userData);
 	veo_thr_ctxt* str;
 	CVEDA(stream(&str, _stream));
-	m_streams[_stream].calls.emplace_back(veo_call_async_vh(str, func, userData), (VEDAargs)0, false);
+	uint64_t req = CREQ(veo_call_async_vh(str, func, userData));
+	m_streams[_stream].calls.emplace_back(req, (VEDAargs)0, false);
 	return VEDA_SUCCESS;
 }
 
@@ -381,7 +383,8 @@ VEDAresult __VEDAcontext::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t b
 	LOCK();
 	veo_thr_ctxt* str;
 	CVEDA(stream(&str, _stream));
-	m_streams[_stream].calls.emplace_back(veo_async_read_mem(str, dst, ptr, bytes), (VEDAargs)0, false);
+	uint64_t req = CREQ(veo_async_read_mem(str, dst, ptr, bytes));
+	m_streams[_stream].calls.emplace_back(req, (VEDAargs)0, false);
 	return VEDA_SUCCESS;
 }
 
@@ -393,7 +396,8 @@ VEDAresult __VEDAcontext::memcpyH2D(VEDAdeviceptr dst, const void* src, const si
 	LOCK();
 	veo_thr_ctxt* str;
 	CVEDA(stream(&str, _stream));
-	m_streams[_stream].calls.emplace_back(veo_async_write_mem(str, ptr, src, bytes), (VEDAargs)0, false);
+	uint64_t req = CREQ(veo_async_write_mem(str, ptr, src, bytes));
+	m_streams[_stream].calls.emplace_back(req, (VEDAargs)0, false);
 	return VEDA_SUCCESS;
 }
 
