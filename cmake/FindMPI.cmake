@@ -1,7 +1,17 @@
 INCLUDE(${CMAKE_CURRENT_LIST_DIR}/nec/VE_Helper.cmake)
 
 IF(NOT MPI_FOUND)
-	_NEC_FIND_FOLDER("/opt/nec/ve/mpi/*" MPI_PATH MPI_VERSION)
+	# Try finding mpinc++ through the path variable
+	FIND_PROGRAM(NEC_MPI mpinc++)
+	IF(NEC_MPI)
+		STRING(REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" MPI_VERSION ${NEC_MPI})
+	ENDIF()
+
+	# If not, try selecting the newest one
+	IF(NOT MPI_VERSION)
+		_NEC_FIND_FOLDER("/opt/nec/ve/mpi/*" MPI_PATH MPI_VERSION)
+	ENDIF()
+
 	IF(NOT MPI_VERSION STREQUAL "")
 		MESSAGE(STATUS "Found MPI ${MPI_VERSION}")
 
