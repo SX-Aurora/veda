@@ -7,6 +7,7 @@ IF(NOT MPI_FOUND)
 		STRING(REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" MPI_VERSION ${NEC_MPI})
 		SET(MPI_PATH "/opt/nec/ve/mpi/${MPI_VERSION}")
 	ENDIF()
+	UNSET(NEC_MPI CACHE)
 
 	# If not, try selecting the newest one
 	IF(NOT MPI_VERSION)
