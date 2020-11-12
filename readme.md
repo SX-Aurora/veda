@@ -35,12 +35,12 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 	vedaArgsCreate(&args);
 
 	// Scheme: vedaArgsSet[TYPE](&args, [PARAM_INDEX], [VARIABLE]);
-	vedaArgsSetF32(&args, 0, myFloat);
-	vedaArgsSetU8(&args, 1, myUnsignedChar);
+	vedaArgsSetF32(args, 0, myFloat);
+	vedaArgsSetU8(args, 1, myUnsignedChar);
 
 	// Copy entire arrays as function parameter
 	float array[32];
-	vedaArgsSetStack(&args, 2, array, VEDA_ARGS_INTENT_INOUT, sizeof(array));
+	vedaArgsSetStack(args, 2, array, VEDA_ARGS_INTENT_INOUT, sizeof(array));
 
 	VEDAmodule mod;
 	VEDAfunction func;
