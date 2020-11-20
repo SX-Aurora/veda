@@ -1,6 +1,7 @@
 IF(NOT VEDA_FOUND)
 	FIND_PATH	(VEDA_DIR "include/veda.h" PATHS "/usr/local/ve/veda/" "${CMAKE_CURRENT_LIST_DIR}/../")
-	FIND_LIBRARY(VEDA_LIBRARY "libveda.so" "libveda.a" PATHS "${VEDA_DIR}/lib64")
+	FIND_LIBRARY	(VEDA_LIBRARY "libveda.so" "libveda.a" PATHS "${VEDA_DIR}/lib64")
+	FIND_LIBRARY	(VERA_LIBRARY "libvera.so" "libvera.a" PATHS "${VEDA_DIR}/lib64")
 	FIND_FILE	(VEDA_DEVICE_LIBRARY "libveda.vso" PATHS "${VEDA_DIR}/libve")
 	FIND_PATH	(VEDA_INCLUDES "veda.h" PATHS "${VEDA_DIR}/include")
 	SET(VEDA_FOUND TRUE CACHE BOOL "")
