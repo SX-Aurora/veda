@@ -61,14 +61,14 @@ enum VEDAdevice_attribute_enum {
 };
 
 enum VEDAargs_intent_enum {
-	VEDA_ARGS_INTENT_IN		= 0,
+	VEDA_ARGS_INTENT_IN	= 0,
 	VEDA_ARGS_INTENT_INOUT	= 1,
 	VEDA_ARGS_INTENT_OUT	= 2
 };
 
 enum VEDAcontext_mode_enum {
-	VEDA_CONTEXT_MODE_OMP = 0,
-	VEDA_CONTEXT_MODE_SCALAR = 1
+	VEDA_CONTEXT_MODE_OMP		= 0,
+	VEDA_CONTEXT_MODE_SCALAR	= 1
 };
 
 typedef enum VEDAresult_enum VEDAresult;

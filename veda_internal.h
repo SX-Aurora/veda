@@ -44,27 +44,27 @@ inline VEDAresult vedaIs(T ptr, VEDAresult err) {
 	return dynamic_cast<T>(ptr) != 0 ? VEDA_SUCCESS : err;
 }
 
-		const char*	vedaModuleStdLib		(void);
-		VEDAresult	vedaCtxExit				(void);
-		VEDAresult	vedaCtxMemReport		(void);
-		VEDAresult	vedaDeviceExit			(void);
-		VEDAresult	vedaDeviceGetInfo		(uint64_t* value, const char* file, const VEDAdevice device);
-		VEDAresult	vedaDeviceGetPhysicalIdx(int* idx, const VEDAdevice device);
-		VEDAresult	vedaDeviceGetSensorIdx	(int* idx, const VEDAdevice device);
-		VEDAresult	vedaDeviceInitCount		(std::set<int>& devices);
-		VEDAresult	vedaDeviceInitMapping	(const std::set<int>& devices);
-		VEDAresult	vedaIsCTX				(VEDAcontext ctx);
-		VEDAresult	vedaIsDevice			(const VEDAdevice device);
-		VEDAresult	vedaIsInitialized		(void);
-		VEDAresult	vedaKernelGetName		(const char** name, VEDAkernel kernel);
-		VEDAresult	vedaSemAcquire			(void);
-		VEDAresult	vedaSemShutdown			(void);
-		VEDAresult	vedaSetInitialized		(const bool value);
-		VEDAresult	vedaVEOtoVEDA			(const int err);
-		int		vedaOmpThreads			(void);
-		void		vedaSemRelease			(void);
-inline	VEDAresult	vedaIsContext			(VEDAcontext ctx)	{	return vedaIs(ctx, VEDA_ERROR_INVALID_CONTEXT);		}
-inline	VEDAresult	vedaIsModule			(VEDAmodule mod) 	{	return vedaIs(mod, VEDA_ERROR_INVALID_MODULE);		}
+	const char*	vedaModuleStdLib	(void);
+	VEDAresult	vedaCtxExit		(void);
+	VEDAresult	vedaCtxMemReport	(void);
+	VEDAresult	vedaDeviceExit		(void);
+	VEDAresult	vedaDeviceGetInfo	(uint64_t* value, const char* file, const VEDAdevice device);
+	VEDAresult	vedaDeviceGetPhysicalIdx(int* idx, const VEDAdevice device);
+	VEDAresult	vedaDeviceGetSensorIdx	(int* idx, const VEDAdevice device);
+	VEDAresult	vedaDeviceInitCount	(std::set<int>& devices);
+	VEDAresult	vedaDeviceInitMapping	(const std::set<int>& devices);
+	VEDAresult	vedaIsCTX		(VEDAcontext ctx);
+	VEDAresult	vedaIsDevice		(const VEDAdevice device);
+	VEDAresult	vedaIsInitialized	(void);
+	VEDAresult	vedaKernelGetName	(const char** name, VEDAkernel kernel);
+	VEDAresult	vedaSemAcquire		(void);
+	VEDAresult	vedaSemShutdown		(void);
+	VEDAresult	vedaSetInitialized	(const bool value);
+	VEDAresult	vedaVEOtoVEDA		(const int err);
+	int		vedaOmpThreads		(void);
+	void		vedaSemRelease		(void);
+inline	VEDAresult	vedaIsContext		(VEDAcontext ctx)	{	return vedaIs(ctx, VEDA_ERROR_INVALID_CONTEXT);		}
+inline	VEDAresult	vedaIsModule		(VEDAmodule mod) 	{	return vedaIs(mod, VEDA_ERROR_INVALID_MODULE);		}
 
 struct VEDAguard {
 	VEDAresult acquire(void) {

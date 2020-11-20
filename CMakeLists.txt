@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(VEDA VERSION 0.9.5 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 0.9.5.1 LANGUAGES C CXX)
 SET(CMAKE_BUILD_TYPE RELEASE)
 
 ## CMake Stuff -----------------------------------------------------------------
@@ -45,27 +45,27 @@ OPTION(DOWNLOAD_AVEO "Download and build AVEO" ON)
 IF(DOWNLOAD_AVEO)
 	INCLUDE(ExternalProject)
 	ExternalProject_Add(aveo
-		BINARY_DIR			${AVEO_PATH}/src
+		BINARY_DIR		${AVEO_PATH}/src
 		BUILD_COMMAND		make
 		CONFIGURE_COMMAND	""
 		GIT_REPOSITORY		${AVEO_REPO}
-		GIT_SHALLOW			TRUE
-		GIT_TAG				${AVEO_GIT_TAG}
+		GIT_SHALLOW		TRUE
+		GIT_TAG			${AVEO_GIT_TAG}
 		INSTALL_COMMAND		make install
-		INSTALL_DIR			""
+		INSTALL_DIR		""
 		PATCH_COMMAND		git apply ${CMAKE_CURRENT_BINARY_DIR}/aveo.patch
-		PREFIX				${AVEO_PATH}
-		SOURCE_DIR			${AVEO_PATH}/src
-		STAMP_DIR			${AVEO_PATH}/stamp
-		TMP_DIR				${AVEO_PATH}/tmp
+		PREFIX			${AVEO_PATH}
+		SOURCE_DIR		${AVEO_PATH}/src
+		STAMP_DIR		${AVEO_PATH}/stamp
+		TMP_DIR			${AVEO_PATH}/tmp
 	)
 ENDIF()
 
 # CMake Variables
-SET(AVEO_INCLUDE		"${AVEO_PATH}/src/src/") # don't use the install path, as AVEO gets always rebuild
-SET(AVEO_LIBRARY		"${AVEO_PATH}/src/install/lib64/libveo.a")
+SET(AVEO_INCLUDE	"${AVEO_PATH}/src/src/") # don't use the install path, as AVEO gets always rebuild
+SET(AVEO_LIBRARY	"${AVEO_PATH}/src/install/lib64/libveo.a")
 SET(AVEO_URPC_LIBRARY	"${AVEO_PATH}/src/install/lib64/liburpcVH.a")
-SET(AVEO_AVEORUN		"${AVEO_PATH}/src/install/libexec/aveorun")
+SET(AVEO_AVEORUN	"${AVEO_PATH}/src/install/libexec/aveorun")
 
 ## Build VEDA ------------------------------------------------------------------
 CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda_version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp)
@@ -153,7 +153,9 @@ INSTALL(FILES
 	${CMAKE_CURRENT_LIST_DIR}/veda_macros.h 
 	${CMAKE_CURRENT_LIST_DIR}/veda_types.h 
 	${CMAKE_CURRENT_LIST_DIR}/vera.h
-	DESTINATION include)
+	${CMAKE_CURRENT_LIST_DIR}/vera_enums.h
+	${CMAKE_CURRENT_LIST_DIR}/vera_types.h
+DESTINATION include)
 INSTALL(TARGETS veda vera LIBRARY DESTINATION lib64)
 INSTALL(FILES ${AVEO_AVEORUN} PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE DESTINATION libexec)
 
