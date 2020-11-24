@@ -20,33 +20,33 @@ veraError_t veraGetDeviceProperties(veraDeviceProp* prop, int device) {
 	CVEDA(veraInit());
 
 	CVEDA(vedaDeviceGetName 	(prop->name, sizeof(veraDeviceProp::name), device));
-	CVEDA(vedaDeviceGetAttribute(&prop->clockRate,							VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->clockBase,							VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->multiProcessorCount,				VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->memoryClockRate,					VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->l1DCacheSize,						VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->l1ICacheSize,						VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->l2CacheSize,						VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->abiVersion,							VEDA_DEVICE_ATTRIBUTE_ABI_VERSION, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->clockRate,				VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->clockBase,				VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->multiProcessorCount,		VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->memoryClockRate,			VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->l1DCacheSize,			VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->l1ICacheSize,			VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->l2CacheSize,			VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->abiVersion,				VEDA_DEVICE_ATTRIBUTE_ABI_VERSION, device));
 	CVEDA(vedaDeviceGetAttribute(&prop->singleToDoublePrecisionPerfRatio,	VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO, device));
-	CVEDA(vedaDeviceGetAttribute(&prop->firmwareVersion,					VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION, device));
+	CVEDA(vedaDeviceGetAttribute(&prop->firmwareVersion,			VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION, device));
 	size_t free;
 	CVEDA(vedaMemGetInfo(&free, &prop->totalGlobalMem));
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
-veraError_t	veraStreamAddCallback(veraStream_t stream, veraStreamCallback_t callback, void* userData, unsigned int flags) {
+veraError_t veraStreamAddCallback(veraStream_t stream, veraStreamCallback_t callback, void* userData, unsigned int flags) {
 	CVEDA(veraInit());
 	return vedaStreamAddCallback(stream, callback, userData, flags);
 }
 
 //------------------------------------------------------------------------------
-veraError_t	veraMemcpy(void* dst, const void* src, size_t count, veraMemcpyKind kind) {
+veraError_t veraMemcpy(void* dst, const void* src, size_t count, veraMemcpyKind kind) {
 	CVEDA(veraInit());
 	
 	switch(kind) {
-		case veraMemcpyHostToHost:		memcpy(dst, src, count);	return VEDA_SUCCESS;
+		case veraMemcpyHostToHost:	memcpy(dst, src, count); return VEDA_SUCCESS;
 		case veraMemcpyHostToDevice:	return vedaMemcpyHtoD((VEDAdeviceptr)dst, src, count);
 		case veraMemcpyDeviceToHost:	return vedaMemcpyDtoH(dst, (VEDAdeviceptr)src, count);
 		case veraMemcpyDeviceToDevice:	return vedaMemcpyDtoD((VEDAdeviceptr)dst, (VEDAdeviceptr)src, count);
@@ -62,7 +62,7 @@ veraError_t veraMemcpyAsync(void* dst, const void* src, size_t count, veraMemcpy
 	CVEDA(veraInit());
 
 	switch(kind) {
-		case veraMemcpyHostToHost:			memcpy(dst, src, count);	return VEDA_SUCCESS;
+		case veraMemcpyHostToHost:		memcpy(dst, src, count); return VEDA_SUCCESS;
 		case veraMemcpyHostToDevice:		return vedaMemcpyHtoDAsync((VEDAdeviceptr)dst, src, count, stream);
 		case veraMemcpyDeviceToHost:		return vedaMemcpyDtoHAsync(dst, (VEDAdeviceptr)src, count, stream);
 		case veraMemcpyDeviceToDevice:		return vedaMemcpyDtoDAsync((VEDAdeviceptr)dst, (VEDAdeviceptr)src, count, stream);
@@ -119,7 +119,7 @@ veraError_t veraSetValidDevices(int* device_arr, int len) {
 }
 
 //------------------------------------------------------------------------------
-veraError_t	veraPointerGetAttributes(veraPointerAttributes* attributes, const void* ptr) {
+veraError_t veraPointerGetAttributes(veraPointerAttributes* attributes, const void* ptr) {
 	CVEDA(veraInit());
 	
 	VEDAptr vptr((VEDAdeviceptr)ptr);

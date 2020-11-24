@@ -30,10 +30,10 @@ public:
 		m_ptr.vptr = ptr;
 	}
 
-	inline	VEDAdevice		device			(void) const	{	return m_ptr.mask.idx.device.id;		}
-	inline	Idx				idx				(void) const	{	return m_ptr.mask.idx.id;				}
-	inline	Offset			offset			(void) const	{	return m_ptr.mask.offset;				}
-	inline	VEDAdeviceptr	vptr			(void) const	{	return m_ptr.vptr;						}
-	inline	operator		VEDAdeviceptr	(void) const	{	return m_ptr.vptr;						}
-	inline	VEDAdeviceptr	base			(void) const	{	return VEDAptr(device(), idx()).vptr();	}
+	inline	VEDAdevice	device		(void) const	{	return m_ptr.mask.idx.device.id;	}
+	inline	Idx		idx		(void) const	{	return m_ptr.mask.idx.id;		}
+	inline	Offset		offset		(void) const	{	return m_ptr.mask.offset;		}
+	inline	VEDAdeviceptr	vptr		(void) const	{	return m_ptr.vptr;			}
+	inline	operator	VEDAdeviceptr	(void) const	{	return m_ptr.vptr;			}
+	inline	VEDAdeviceptr	base		(void) const	{	return VEDAptr(device(), idx()).vptr();	}
 };

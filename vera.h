@@ -29,34 +29,34 @@ veraError_t	veraSetValidDevices	(int* device_arr, int len);
 veraError_t	veraStreamAddCallback	(veraStream_t stream, veraStreamCallback_t callback, void* userData, unsigned int flags);
 
 //------------------------------------------------------------------------------
-inline const char*	veraGetErrorName	(veraError_t error)							{	const char* str; vedaGetErrorName(error, &str); return str;										}
-inline const char*	veraGetErrorString	(veraError_t error)							{	const char* str; vedaGetErrorString(error, &str); return str;									}
+inline const char*	veraGetErrorName	(veraError_t error)							{	const char* str; vedaGetErrorName(error, &str); return str;					}
+inline const char*	veraGetErrorString	(veraError_t error)							{	const char* str; vedaGetErrorString(error, &str); return str;					}
 inline veraError_t	veraDeviceGetAttribute	(int* value, veraDeviceAttr attr, int device)				{	CVEDA(veraInit()); return vedaDeviceGetAttribute(value, (VEDAdevice_attribute)attr, device);	}
-inline veraError_t	veraDeviceGetPower	(float* temp, int device)						{	CVEDA(veraInit()); return vedaDeviceGetPower(temp, device);										}
-inline veraError_t	veraDeviceGetTemp	(float* temp, const int coreIdx, int device)				{	CVEDA(veraInit()); return vedaDeviceGetTemp(temp, coreIdx, device);								}
-inline veraError_t	veraDeviceSynchronize	(void)									{	CVEDA(veraInit()); return vedaCtxSynchronize();													}
-inline veraError_t	veraDriverGetVersion	(const char** driverVersion)						{	CVEDA(veraInit()); return vedaDriverGetVersion(driverVersion);									}
-inline veraError_t	veraFree		(void* devPtr)								{	CVEDA(veraInit()); return vedaMemFree((VEDAdeviceptr)devPtr);									}
-inline veraError_t	veraFreeAsync		(void* devPtr, veraStream_t stream = 0)					{	CVEDA(veraInit()); return vedaMemFreeAsync((VEDAdeviceptr)devPtr, stream);						}
-inline veraError_t	veraFreeHost		(void* ptr)								{	CVEDA(veraInit()); return vedaMemFreeHost(ptr);													}
-inline veraError_t	veraGetDevice		(int* device)								{	CVEDA(veraInit()); return vedaCtxGetDevice(device);												}
-inline veraError_t	veraGetDeviceCount	(int* count)								{	CVEDA(veraInit()); return vedaDeviceGetCount(count);											}
-inline veraError_t	veraHostAlloc		(void** pHost, size_t size, unsigned int flags)				{	CVEDA(veraInit()); return vedaMemAllocHost(pHost, size);										}
-inline veraError_t	veraLaunchHostFunc	(veraStream_t stream, veraHostFn_t fn, void* userData)			{	CVEDA(veraInit()); return vedaLaunchHostFunc(stream, fn, userData);								}
-inline veraError_t	veraMalloc		(void** devPtr, size_t size)						{	CVEDA(veraInit()); return vedaMemAlloc((VEDAdeviceptr*)devPtr, size);							}
-inline veraError_t	veraMallocAsync		(void** devPtr, size_t size, veraStream_t stream = 0)			{	CVEDA(veraInit()); return vedaMemAllocAsync((VEDAdeviceptr*)devPtr, size, stream);				}
-inline veraError_t	veraMallocHost		(void** ptr, size_t size)						{	CVEDA(veraInit()); return vedaMemAllocHost(ptr, size);											}
+inline veraError_t	veraDeviceGetPower	(float* temp, int device)						{	CVEDA(veraInit()); return vedaDeviceGetPower(temp, device);					}
+inline veraError_t	veraDeviceGetTemp	(float* temp, const int coreIdx, int device)				{	CVEDA(veraInit()); return vedaDeviceGetTemp(temp, coreIdx, device);				}
+inline veraError_t	veraDeviceSynchronize	(void)									{	CVEDA(veraInit()); return vedaCtxSynchronize();							}
+inline veraError_t	veraDriverGetVersion	(const char** driverVersion)						{	CVEDA(veraInit()); return vedaDriverGetVersion(driverVersion);					}
+inline veraError_t	veraFree		(void* devPtr)								{	CVEDA(veraInit()); return vedaMemFree((VEDAdeviceptr)devPtr);					}
+inline veraError_t	veraFreeAsync		(void* devPtr, veraStream_t stream = 0)					{	CVEDA(veraInit()); return vedaMemFreeAsync((VEDAdeviceptr)devPtr, stream);			}
+inline veraError_t	veraFreeHost		(void* ptr)								{	CVEDA(veraInit()); return vedaMemFreeHost(ptr);							}
+inline veraError_t	veraGetDevice		(int* device)								{	CVEDA(veraInit()); return vedaCtxGetDevice(device);						}
+inline veraError_t	veraGetDeviceCount	(int* count)								{	CVEDA(veraInit()); return vedaDeviceGetCount(count);						}
+inline veraError_t	veraHostAlloc		(void** pHost, size_t size, unsigned int flags)				{	CVEDA(veraInit()); return vedaMemAllocHost(pHost, size);					}
+inline veraError_t	veraLaunchHostFunc	(veraStream_t stream, veraHostFn_t fn, void* userData)			{	CVEDA(veraInit()); return vedaLaunchHostFunc(stream, fn, userData);				}
+inline veraError_t	veraMalloc		(void** devPtr, size_t size)						{	CVEDA(veraInit()); return vedaMemAlloc((VEDAdeviceptr*)devPtr, size);				}
+inline veraError_t	veraMallocAsync		(void** devPtr, size_t size, veraStream_t stream = 0)			{	CVEDA(veraInit()); return vedaMemAllocAsync((VEDAdeviceptr*)devPtr, size, stream);		}
+inline veraError_t	veraMallocHost		(void** ptr, size_t size)						{	CVEDA(veraInit()); return vedaMemAllocHost(ptr, size);						}
 inline veraError_t	veraMallocPitch		(void** devPtr, size_t* pitch, size_t width, size_t height)		{	CVEDA(veraInit()); return vedaMemAllocPitch((VEDAdeviceptr*)devPtr, pitch, width, height, 1);	}
-inline veraError_t	veraMemGetInfo		(size_t* free, size_t* total)						{	CVEDA(veraInit()); return vedaMemGetInfo(free, total);											}
-inline veraError_t	veraMemset		(void* devPtr, int value, size_t count)					{	CVEDA(veraInit()); return vedaMemsetD32((VEDAdeviceptr)devPtr, value, count);					}
-inline veraError_t	veraMemsetAsync		(void* devPtr, int value, size_t count, veraStream_t stream = 0)	{	CVEDA(veraInit()); return vedaMemsetD32Async((VEDAdeviceptr)devPtr, value, count, stream);		}
-inline veraError_t	veraModuleGetFunction	(veraFunction_t* func, veraModule_t mod, const char* name)		{	CVEDA(veraInit()); return vedaModuleGetFunction(func, mod, name);								}
-inline veraError_t	veraModuleUnload	(veraModule_t mod)							{	CVEDA(veraInit()); return vedaModuleUnload(mod);												}
-inline veraError_t	veraModuleLoad		(veraModule_t* mod, const char* name)					{	CVEDA(veraInit()); return vedaModuleLoad(mod, name);											}
-inline veraError_t	veraRuntimeGetVersion	(const char** runtimeVersion)						{	CVEDA(veraInit()); return veraDriverGetVersion(runtimeVersion);									}
-inline veraError_t	veraStreamCnt		(int* cnt)								{	CVEDA(veraInit()); return vedaCtxStreamCnt(cnt);												}
-inline veraError_t	veraStreamQuery		(veraStream_t stream)							{	CVEDA(veraInit()); return vedaStreamQuery(stream);												}
-inline veraError_t	veraStreamSynchronize	(veraStream_t stream)							{	CVEDA(veraInit()); return vedaStreamSynchronize(stream);										}
+inline veraError_t	veraMemGetInfo		(size_t* free, size_t* total)						{	CVEDA(veraInit()); return vedaMemGetInfo(free, total);						}
+inline veraError_t	veraMemset		(void* devPtr, int value, size_t count)					{	CVEDA(veraInit()); return vedaMemsetD32((VEDAdeviceptr)devPtr, value, count);			}
+inline veraError_t	veraMemsetAsync		(void* devPtr, int value, size_t count, veraStream_t stream = 0)	{	CVEDA(veraInit()); return vedaMemsetD32Async((VEDAdeviceptr)devPtr, value, count, stream);	}
+inline veraError_t	veraModuleGetFunction	(veraFunction_t* func, veraModule_t mod, const char* name)		{	CVEDA(veraInit()); return vedaModuleGetFunction(func, mod, name);				}
+inline veraError_t	veraModuleUnload	(veraModule_t mod)							{	CVEDA(veraInit()); return vedaModuleUnload(mod);						}
+inline veraError_t	veraModuleLoad		(veraModule_t* mod, const char* name)					{	CVEDA(veraInit()); return vedaModuleLoad(mod, name);						}
+inline veraError_t	veraRuntimeGetVersion	(const char** runtimeVersion)						{	CVEDA(veraInit()); return veraDriverGetVersion(runtimeVersion);					}
+inline veraError_t	veraStreamCnt		(int* cnt)								{	CVEDA(veraInit()); return vedaCtxStreamCnt(cnt);						}
+inline veraError_t	veraStreamQuery		(veraStream_t stream)							{	CVEDA(veraInit()); return vedaStreamQuery(stream);						}
+inline veraError_t	veraStreamSynchronize	(veraStream_t stream)							{	CVEDA(veraInit()); return vedaStreamSynchronize(stream);					}
 
 //------------------------------------------------------------------------------
 inline veraExtent make_veraExtent(size_t w, size_t h, size_t d) {

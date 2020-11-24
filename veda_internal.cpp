@@ -60,8 +60,8 @@ VEDAresult vedaSetInitialized(const bool value) {
 		Dl_info dl_info;
 		dladdr((void*)&vedaSetInitialized, &dl_info);
 		std::string home(dl_info.dli_fname);
-		auto pos = home.find_last_of('/'); assert(pos != std::string::npos);
-			pos = home.find_last_of('/', pos-1); assert(pos != std::string::npos);
+		auto pos = home.find_last_of('/');	assert(pos != std::string::npos);
+		pos = home.find_last_of('/', pos-1);	assert(pos != std::string::npos);
 		home.replace(pos, std::string::npos, "");
 
 		// Set Paths -----------------------------------------------------------

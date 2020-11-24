@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __ve__
+#error Inclusion of veda.h in device code detected! veda.h is only meant for host code, use veda_device.h instead. If you want to use VEDA data types in a shared header file, use veda_types.h.
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
