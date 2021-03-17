@@ -79,6 +79,8 @@ VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdevic
 VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetInfo			(size_t* free, size_t* total);
 VEDAresult	vedaMemGetRawPointer		(void** rawPtr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemGetAVEOPointer		(veo_ptr* veoPtr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemGetHMEMPointer		(veo_ptr* hmemPtr, VEDAdeviceptr vptr);
 VEDAresult	vedaMemReport			(void);
 VEDAresult	vedaMemcpy			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
 VEDAresult	vedaMemcpyAsync			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);

@@ -1,5 +1,5 @@
 #include "vera.h"
-#include "VEDAptr.h"
+#include "veda/veda.hpp"
 #include <cstring> // memcpy
 
 //------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ veraError_t veraSetValidDevices(int* device_arr, int len) {
 veraError_t veraPointerGetAttributes(veraPointerAttributes* attributes, const void* ptr) {
 	CVEDA(veraInit());
 	
-	VEDAptr vptr((VEDAdeviceptr)ptr);
+	veda::Ptr vptr((VEDAdeviceptr)ptr);
 	attributes->device			= vptr.device();
 	attributes->hostPointer		= 0;
 	attributes->type			= veraMemoryTypeDevice;

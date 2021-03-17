@@ -1,9 +1,9 @@
-#include "veda_internal.h"
+#include "veda/veda.hpp"
 
 extern "C" {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetDevice(VEDAdevice* dev, VEDAdeviceptr ptr) {
-	VEDAptr vptr(ptr);
+	veda::Ptr vptr(ptr);
 	*dev = vptr.device();
 	return VEDA_SUCCESS;
 }
@@ -16,11 +16,7 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemAllocAsync(VEDAdeviceptr* ptr, size_t size, VEDAstream stream) {
-	GUARDED(
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(ctx->memAlloc(ptr, size, stream));
-	);
+	GUARDED(*ptr = veda::Contexts::current()->memAlloc(size, stream);)
 }
 
 //------------------------------------------------------------------------------
@@ -37,10 +33,10 @@ VEDAresult vedaMemAllocPitch(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthIn
 //------------------------------------------------------------------------------
 VEDAresult vedaMemAllocPitchAsync(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream) {
 	GUARDED(
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(ctx->memAllocPitch(dptr, pPitch, WidthInBytes, Height, ElementSizeByte, stream));
-	);
+		auto res = veda::Contexts::current()->memAllocPitch(WidthInBytes, Height, ElementSizeByte, stream);
+		*dptr	= std::get<0>(res);
+		*pPitch	= std::get<1>(res);
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -51,12 +47,7 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
-	GUARDED(
-		VEDAptr vptr(ptr);
-		VEDAcontext ctx;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memFree(ptr, stream));
-	);
+	GUARDED(veda::Devices::get(ptr).ctx()->memFree(ptr, stream);)
 }
 
 //------------------------------------------------------------------------------
@@ -70,26 +61,20 @@ VEDAresult vedaMemFreeHost(void* ptr) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr) {
 	GUARDED(
-		VEDAptr vptr(ptr);
-		VEDAcontext ctx;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
+		veda::Ptr vptr(ptr);
+		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
 		*base = vptr.base();
-		veo_ptr _;
-		auto ret = ctx->getPtr(&_, size, ptr);
-		if(ret == VEDA_ERROR_UNKNOWN_PPTR)	*size = 0;
-		else								CVEDA(ret);
-	);
+		*size = std::get<1>(res);
+	)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetInfo(size_t* free, size_t* total) {
 	GUARDED(
-		*free = 0; // TODO: is it possible to determine this value?
-		VEDAcontext ctx;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(vedaDeviceTotalMem(total, ctx->device()));
-		CVEDA(ctx->getFreeMem(free, *total));
-	);
+		auto ctx = veda::Contexts::current();
+		*total	= ctx->device().memorySize();
+		*free	= *total - ctx->memUsed();
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -111,33 +96,26 @@ VEDAresult vedaMemcpyDtoD(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t size, VEDAstream hStream) {
-	VEDAptr dst(dstDevice);
-	VEDAptr src(srcDevice);
+	veda::Ptr dst(dstDevice);
+	veda::Ptr src(srcDevice);
 
 	if(dst.device() == src.device()) {
 		GUARDED(
-			VEDAcontext ctx = 0;
-			CVEDA(vedaCtxGet(&ctx, dst.device()));
-			CVEDA(ctx->memcpyD2D(dstDevice, srcDevice, size, hStream));
-		);
+			auto ctx = veda::Devices::get(dst.device()).ctx();
+			ctx->memcpyD2D(dstDevice, srcDevice, size, hStream);
+		)
 	} else {
 		GUARDED(
 			void* host = malloc(size);
 
-			VEDAcontext ctx;
+			auto srcCtx = veda::Devices::get(src.device()).ctx();
+			srcCtx->memcpyD2H(host, srcDevice, size, 0);
 
-			CVEDA(vedaCtxGet(&ctx, src.device()));
-			CVEDA(vedaCtxPushCurrent(ctx));
-			CVEDA(vedaMemcpyDtoH(host, srcDevice, size));
-			CVEDA(vedaCtxPopCurrent(&ctx));
-
-			CVEDA(vedaCtxGet(&ctx, dst.device()));
-			CVEDA(vedaCtxPushCurrent(ctx));
-			CVEDA(vedaMemcpyHtoD(dstDevice, host, size));
-			CVEDA(vedaCtxPopCurrent(&ctx));
+			auto dstCtx = veda::Devices::get(dst.device()).ctx();
+			dstCtx->memcpyH2D(dstDevice, host, size, 0);
 
 			free(host);
-		);
+		)
 	}
 }
 
@@ -149,12 +127,7 @@ VEDAresult vedaMemcpyDtoH(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCou
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemcpyDtoHAsync(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(srcDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memcpyD2H(dstHost, srcDevice, ByteCount, hStream));
-	);
+	GUARDED(veda::Devices::get(srcDevice).ctx()->memcpyD2H(dstHost, srcDevice, ByteCount, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -165,12 +138,7 @@ VEDAresult vedaMemcpyHtoD(VEDAdeviceptr dstDevice, const void* srcHost, size_t B
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemcpyHtoDAsync(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memcpyH2D(dstDevice, srcHost, ByteCount, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memcpyH2D(dstDevice, srcHost, ByteCount, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -181,12 +149,7 @@ VEDAresult vedaMemsetD16(VEDAdeviceptr dstDevice, uint16_t us, size_t N) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset(dstDevice, us, N, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, us, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -197,12 +160,7 @@ VEDAresult vedaMemsetD2D16(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D16Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, us, Width, Height, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, us, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -213,12 +171,7 @@ VEDAresult vedaMemsetD2D32(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D32Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, ui, Width, Height, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, ui, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -229,12 +182,7 @@ VEDAresult vedaMemsetD2D8(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, 
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D8Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset2D(dstDevice, dstPitch, uc, Width, Height, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, uc, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -245,12 +193,7 @@ VEDAresult vedaMemsetD32(VEDAdeviceptr dstDevice, uint32_t ui, size_t N) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD32Async(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset(dstDevice, ui, N, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, ui, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -261,12 +204,7 @@ VEDAresult vedaMemsetD64(VEDAdeviceptr dstDevice, uint64_t ui, size_t N) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD64Async(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset(dstDevice, ui, N, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, ui, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -277,19 +215,12 @@ VEDAresult vedaMemsetD8(VEDAdeviceptr dstDevice, uint8_t uc, size_t N) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream) {
-	GUARDED(
-		VEDAptr vptr(dstDevice);
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		CVEDA(ctx->memset(dstDevice, uc, N, hStream));
-	);
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, uc, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemReport(void) {
-	GUARDED(
-		CVEDA(vedaCtxMemReport());
-	);
+	GUARDED(veda::Devices::memReport();)
 }
 
 //------------------------------------------------------------------------------

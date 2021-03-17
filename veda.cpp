@@ -1,4 +1,4 @@
-#include "veda_internal.h"
+#include "veda/veda.hpp"
 
 extern "C" {
 //------------------------------------------------------------------------------
@@ -10,28 +10,24 @@ VEDAresult vedaInit(uint32_t Flags) {
 	if(Flags != 0)
 		return VEDA_ERROR_INVALID_VALUE;
 
-	CVEDA(vedaSetInitialized(true));
-	GUARDED(
-		std::set<int> devices;
-		CVEDA(vedaDeviceInitCount(devices));
-		CVEDA(vedaDeviceInitMapping(devices));
-	);
+	TRY(
+		veda::setInitialized(true);
+		veda::Devices::init();
+	)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaExit(void) {
-	CVEDA(vedaSemShutdown());
-	CVEDA(vedaSetInitialized(false));
-	CVEDA(vedaCtxExit());
-	CVEDA(vedaDeviceExit());
-	return VEDA_SUCCESS;
+	TRY(
+		veda::Semaphore::shutdown();
+		veda::setInitialized(false);
+		veda::Devices::shutdown();
+	)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaDriverGetVersion(const char** str) {
-	GUARDED(
-		*str = veo_version_string();
-	);
+	GUARDED(*str = veo_version_string();)
 }
 
 //------------------------------------------------------------------------------
@@ -41,31 +37,35 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs) {
-	GUARDED(
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(ctx->call(f, stream, args, destroyArgs != 0));
-	);
+	GUARDED(veda::Contexts::current()->call(f, stream, args, destroyArgs != 0);)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* userData) {
-	GUARDED(
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(ctx->call(fn, userData, stream));
-	);
+	GUARDED(veda::Contexts::current()->call(fn, userData, stream);)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
+	return vedaMemGetAVEOPointer((veo_ptr*)rawPtr, ptr);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetAVEOPointer(veo_ptr* veoPtr, VEDAdeviceptr ptr) {
 	GUARDED(
-		VEDAptr vptr(ptr);
-		VEDAcontext ctx;
-		CVEDA(vedaCtxGet(&ctx, vptr.device()));
-		size_t size;
-		auto ret = ctx->getPtr((veo_ptr*)rawPtr, &size, ptr);
-		if(ret != VEDA_ERROR_UNKNOWN_PPTR) CVEDA(ret);
+		veda::Ptr vptr(ptr);
+		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
+		*veoPtr = std::get<0>(res);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetHMEMPointer(veo_ptr* hmemPtr, VEDAdeviceptr ptr) {
+	GUARDED(
+		return VEDA_ERROR_TODO;
+		veda::Ptr vptr(ptr);
+		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
+		*hmemPtr = std::get<0>(res);
 	);
 }
 

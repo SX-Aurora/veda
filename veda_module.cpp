@@ -1,27 +1,19 @@
-#include "veda_internal.h"
+#include "veda/veda.hpp"
 
 extern "C" {
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleGetFunction(VEDAfunction* hfunc, VEDAmodule hmod, const char* name) {
-	GUARDED(
-		CVEDA(hmod->ctx()->moduleGetFunction(hfunc, hmod, name));
-	);
+	GUARDED(*hfunc = hmod->getFunction(name);)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleLoad(VEDAmodule* module, const char* fname) {
-	GUARDED(
-		VEDAcontext ctx = 0;
-		CVEDA(vedaCtxGetCurrent(&ctx));
-		CVEDA(ctx->moduleLoad(module, fname));
-	);
+	GUARDED(*module = veda::Contexts::current()->moduleLoad(fname);)
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaModuleUnload(VEDAmodule hmod) {
-	GUARDED(
-		CVEDA(hmod->ctx()->moduleUnload(hmod));
-	);
+	GUARDED(hmod->ctx()->moduleUnload(hmod);)
 }
 
 //------------------------------------------------------------------------------

@@ -3,8 +3,9 @@
 #include <stdint.h>
 #include "veda_enums.h"
 
-typedef int VEDAdevice;
-typedef uint64_t VEDAdeviceptr;
+typedef int		VEDAdevice;
+typedef uint64_t	VEDAdeviceptr;
+typedef uint64_t	veo_ptr;
 
 struct __VEDAmodule;
 struct __VEDAcontext;
