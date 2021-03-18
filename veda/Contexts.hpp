@@ -5,5 +5,6 @@ namespace veda {
 		static	VEDAcontext	current	(void);
 		static	VEDAcontext	pop	(void);
 		static	void		push	(VEDAcontext ctx);
+		static	void		set	(VEDAcontext ctx);
 	};
 }

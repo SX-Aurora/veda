@@ -1,4 +1,4 @@
-#include "veda.h"
+#include "veda.hpp"
 
 namespace veda {
 //------------------------------------------------------------------------------
@@ -21,6 +21,16 @@ VEDAcontext Contexts::pop(void) {
 //------------------------------------------------------------------------------
 void Contexts::push(VEDAcontext ctx) {
 	t_stack.emplace_back(ctx);
+}
+
+//------------------------------------------------------------------------------
+void Contexts::set(VEDAcontext ctx) {
+	if(ctx) {
+		if(t_stack.empty())	t_stack.emplace_back(ctx);
+		else			t_stack.back() = ctx;
+	} else {
+		if(!t_stack.empty())	t_stack.pop_back();
+	}
 }
 
 //------------------------------------------------------------------------------

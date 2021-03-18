@@ -107,13 +107,18 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice,
 	} else {
 		GUARDED(
 			void* host = malloc(size);
+			if(!host)
+				throw VEDA_ERROR_OUT_OF_MEMORY;
+			
+			auto sctx = veda::Devices::get(src.device()).ctx();
+			auto dctx = veda::Devices::get(dst.device()).ctx();
+			
+			sctx->memcpyD2H(host, srcDevice, size, 0);
+			sctx->sync(0);
 
-			auto srcCtx = veda::Devices::get(src.device()).ctx();
-			srcCtx->memcpyD2H(host, srcDevice, size, 0);
-
-			auto dstCtx = veda::Devices::get(dst.device()).ctx();
-			dstCtx->memcpyH2D(dstDevice, host, size, 0);
-
+			dctx->memcpyH2D(dstDevice, host, size, 0);
+			dctx->sync(0);
+			
 			free(host);
 		)
 	}

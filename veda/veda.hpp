@@ -28,6 +28,8 @@ namespace veda {
 	class Module;
 	class Context;
 	class Device;
+	class NUMA;
+	struct Stream;
 }
 
 #include "macros.hpp"
@@ -37,16 +39,9 @@ namespace veda {
 #include "Module.hpp"
 #include "Device.hpp"
 #include "Devices.hpp"
+#include "Stream.hpp"
 #include "Context.hpp"
 #include "Contexts.hpp"
-
-struct __VEDAcontext final : public veda::Context {
-	using veda::Context::Context;
-};
-
-struct __VEDAmodule final : public veda::Module {
-	using veda::Module::Module;
-};
 
 //------------------------------------------------------------------------------
 namespace veda {

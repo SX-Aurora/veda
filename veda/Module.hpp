@@ -7,9 +7,10 @@ namespace veda {
 
 	public:
 				Module		(Context* ctx, const veo_lib lib);
-		virtual		~Module		(void);
+				Module		(const Module&) = delete;
 		Context*	ctx		(void) const;
-		veo_lib		lib		(void) const;
 		VEDAfunction	getFunction	(const char* name);
+		veo_lib		lib		(void) const;
+		virtual		~Module		(void);
 	};
 }

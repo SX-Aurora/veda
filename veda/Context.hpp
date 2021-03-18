@@ -2,21 +2,16 @@
 
 namespace veda {
 	class Context {
-		struct Stream {
-			veo_thr_ctxt*				ctx;
-			std::vector<std::tuple<uint64_t, bool>>	calls;
-		};
-		typedef std::vector<Stream>		Streams;
-
 	public:
 		typedef std::tuple<veo_ptr, size_t>	PtrTuple;
-		typedef std::vector<VEDAfunction>	Kernels;
-		typedef std::map<Ptr::Idx, PtrTuple>	Ptrs;
-		typedef std::map<veo_lib, __VEDAmodule>	Modules;
-
+	
 	private:
-		
+		typedef std::map<Ptr::Idx, PtrTuple>	Ptrs;
+		typedef std::vector<VEDAfunction>	Kernels;
+		typedef std::vector<Stream>		Streams;
+		typedef std::map<veo_lib, Module>	Modules;
 
+		const	VEDAcontext_mode	m_mode;
 			std::mutex		m_mutex;
 			Modules			m_modules;
 			Ptrs			m_ptrs;
@@ -35,18 +30,19 @@ namespace veda {
 
 	public:
 					Context			(Device& device, const VEDAcontext_mode mode);
+					Context			(const Context&) = delete;
 					~Context		(void) noexcept(false);
 		Device&			device			(void);
+		Module*			moduleLoad		(const char* name);
 		PtrTuple		getPtr			(VEDAdeviceptr vptr);
 		PtrTuple		memAllocPitch		(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream);
-		PtrTuple		memPtr			(VEDAdeviceptr vptr, VEDAstream stream);
+		VEDAcontext_mode	mode			(void) const;
 		VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
 		VEDAfunction		kernel			(Kernel kernel) const;
 		VEDAfunction		moduleGetFunction	(Module* mod, const char* name);
-		VEDAmodule		moduleLoad		(const char* name);
 		VEDAresult		query			(VEDAstream stream);
+		int			streamCount		(void) const;
 		size_t			memUsed			(void);
-		size_t			streamCount		(void) const;
 		veo_thr_ctxt*		stream			(const VEDAstream stream);
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
 		void			call			(VEDAhost_function func, void* userData, VEDAstream stream);
@@ -65,7 +61,7 @@ namespace veda {
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h, VEDAstream stream);
-		void			moduleUnload		(VEDAmodule mod);
+		void			moduleUnload		(const Module* mod);
 		void			sync			(VEDAstream stream);
 		void			sync			(void);
 	const	char*			kernelName		(VEDAfunction func) const;

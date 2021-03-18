@@ -1,9 +1,11 @@
-#include "veda/veda.hpp"
+#include "veda.hpp"
 
 namespace veda {
 //------------------------------------------------------------------------------
-Module::Module(Context* ctx, const veo_lib lib) : m_ctx(ctx), m_lib(lib) {
-}
+Module::Module(Context* ctx, const veo_lib lib) :
+	m_ctx(ctx),
+	m_lib(lib)
+{}
 
 //------------------------------------------------------------------------------
 Module::~Module(void) {

@@ -1,4 +1,4 @@
-#include "veda.h"
+#include "veda.hpp"
 
 namespace veda {
 //------------------------------------------------------------------------------
@@ -12,6 +12,12 @@ void	Devices::shutdown	(void) {	s_devices.clear();		}
 void Devices::memReport(void) {
 	for(auto& d : s_devices)
 		d.memReport();
+}
+
+//------------------------------------------------------------------------------
+void Devices::report(void) {
+	for(auto& d : s_devices)
+		d.report();
 }
 
 //------------------------------------------------------------------------------
@@ -101,9 +107,39 @@ void Devices::initMapping(const std::set<int>& devices) {
 		udev_device_unref(ve_udev);
 		udev_unref(udev);
 
-		s_devices.emplace_back((VEDAdevice)s_devices.size(), deviceIdx, (int)(real_device_idx - '0'));
+		auto aveoId	= deviceIdx;
+		auto sensorId	= (int)(real_device_idx - '0');
+		int numaCnt	= 1;
+
+		if(readSensor(sensorId, "partitioning_mode", false))
+			numaCnt = 2;
+
+		for(int numaId = 0; numaId < numaCnt; numaId++) {
+			auto vedaId = (VEDAdevice)s_devices.size();
+			s_devices.emplace_back(vedaId, aveoId, sensorId, numaId);
+		}
 	}
 }
+
+//------------------------------------------------------------------------------
+uint64_t Devices::readSensor(const int sensorId, const char* file, const bool isHex) {
+	if(file == 0)
+		throw VEDA_ERROR_NO_SENSOR_FILE;
+
+	char buffer[128];
+	snprintf(buffer, sizeof(buffer), "/sys/class/ve/ve%i/%s", sensorId, file);
+
+	uint64_t value = 0;
+	std::ifstream f(buffer, std::ios::binary);
+	if(!f.good())
+		throw VEDA_ERROR_CANT_READ_SENSOR_FILE;
+	if(isHex)	f >> std::hex >> value;
+	else		f >> value;
+	f.close();
+
+	return value;
+}
+
 
 //------------------------------------------------------------------------------
 }

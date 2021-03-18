@@ -3,20 +3,33 @@
 #include <stdint.h>
 #include "veda_enums.h"
 
-typedef int		VEDAdevice;
-typedef uint64_t	VEDAdeviceptr;
-typedef uint64_t	veo_ptr;
-
-struct __VEDAmodule;
-struct __VEDAcontext;
 struct veo_args;
+typedef struct veo_args*	VEDAargs;
+typedef uint64_t		veo_ptr;
 
-typedef uint64_t VEDAfunction;
-typedef struct __VEDAcontext* VEDAcontext;
-typedef struct __VEDAmodule* VEDAmodule;
-typedef int VEDAstream;
-typedef struct veo_args* VEDAargs;
-
+typedef int			VEDAdevice;
+typedef int			VEDAstream;
+typedef uint64_t		VEDAdeviceptr;
+typedef uint64_t		VEDAfunction;
 typedef uint64_t (*VEDAhost_function)(void*);
 typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
+
+#ifdef __cplusplus
+	namespace veda {
+		class Module;
+		class Context;
+		class Function;
+	}
+
+	typedef veda::Context*	VEDAcontext;
+	typedef veda::Module*	VEDAmodule;
+#else
+	struct __VEDAfunction;
+	struct __VEDAcontext;
+	struct __VEDAmodule;
+	typedef __VEDAcontext*	VEDAcontext;
+	typedef __VEDAmodule*	VEDAmodule;
+#endif
+
+
 
