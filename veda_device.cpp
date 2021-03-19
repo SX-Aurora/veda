@@ -10,6 +10,25 @@ VEDAresult	vedaDevicePrimaryCtxRelease	(VEDAdevice dev)					{	return VEDA_SUCCES
 VEDAresult	vedaDevicePrimaryCtxSetFlags	(VEDAdevice dev, uint32_t flags)			{	return VEDA_SUCCESS;						}
 
 //------------------------------------------------------------------------------
+VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB) {
+	GUARDED(
+		*distance = 0.0f;
+
+		auto& A = veda::Devices::get(devA);
+		auto& B = veda::Devices::get(devB);
+		
+		if(A.vedaId() == B.vedaId()) {
+			*distance = 0.0f;
+		} else if(A.aveoId() == B.aveoId()) {
+			ASSERT(A.numaId() != B.numaId());
+			*distance = 0.5f;
+		} else {
+			*distance = 1.0f;
+		}
+	)
+}
+
+//------------------------------------------------------------------------------
 VEDAresult vedaDeviceGet(VEDAdevice* device, int ordinal) {
 	GUARDED(
 		veda::Devices::get(ordinal);

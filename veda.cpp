@@ -46,28 +46,4 @@ VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* use
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
-	return vedaMemGetAVEOPointer((veo_ptr*)rawPtr, ptr);
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaMemGetAVEOPointer(veo_ptr* veoPtr, VEDAdeviceptr ptr) {
-	GUARDED(
-		veda::Ptr vptr(ptr);
-		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
-		*veoPtr = std::get<0>(res);
-	)
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaMemGetHMEMPointer(veo_ptr* hmemPtr, VEDAdeviceptr ptr) {
-	GUARDED(
-		return VEDA_ERROR_TODO;
-		veda::Ptr vptr(ptr);
-		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
-		*hmemPtr = std::get<0>(res);
-	);
-}
-
-//------------------------------------------------------------------------------
 } // extern "C"

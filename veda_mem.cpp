@@ -1,4 +1,5 @@
 #include "veda/veda.hpp"
+#include <veo_hmem_macros.h>
 
 extern "C" {
 //------------------------------------------------------------------------------
@@ -106,12 +107,14 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice,
 		)
 	} else {
 		GUARDED(
+			auto sctx = veda::Devices::get(src.device()).ctx();
+			auto dctx = veda::Devices::get(dst.device()).ctx();
+
+		#if 1
 			void* host = malloc(size);
 			if(!host)
 				throw VEDA_ERROR_OUT_OF_MEMORY;
 			
-			auto sctx = veda::Devices::get(src.device()).ctx();
-			auto dctx = veda::Devices::get(dst.device()).ctx();
 			
 			sctx->memcpyD2H(host, srcDevice, size, 0);
 			sctx->sync(0);
@@ -120,6 +123,11 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice,
 			dctx->sync(0);
 			
 			free(host);
+		#else // TODO: enable once veo_hmemcpy supports DtoD copies
+			auto hsrc = std::get<0>(sctx->getPtr(srcDevice)) | sctx->hmemId();
+			auto hdst = std::get<0>(dctx->getPtr(dstDevice)) | dctx->hmemId();
+			TVEO(veo_hmemcpy((void*)hdst, (void*)hsrc, size));
+		#endif
 		)
 	}
 }
@@ -226,6 +234,25 @@ VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDA
 //------------------------------------------------------------------------------
 VEDAresult vedaMemReport(void) {
 	GUARDED(veda::Devices::memReport();)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
+	GUARDED(
+		veda::Ptr vptr(ptr);
+		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
+		*rawPtr = (void*)std::get<0>(res);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr ptr) {
+	GUARDED(
+		veda::Ptr vptr(ptr);
+		auto ctx = veda::Devices::get(vptr.device()).ctx();
+		auto res = ctx->getPtr(ptr);
+		*hmemPtr = (void*)(std::get<0>(res) | ctx->hmemId());
+	);
 }
 
 //------------------------------------------------------------------------------

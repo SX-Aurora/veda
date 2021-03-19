@@ -1,7 +1,11 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
 PROJECT(VEDA VERSION 0.10.0 LANGUAGES C CXX)
-#SET(CMAKE_BUILD_TYPE RELEASE)
+SET(VEDA_VERSION "${PROJECT_VERSION}rc1")
+
+IF(NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE RELEASE CACHE STRING "" FORCE)
+ENDIF()
 
 ## CMake Stuff -----------------------------------------------------------------
 IF(NOT ${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
@@ -9,7 +13,7 @@ IF(NOT ${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
 ENDIF()
 
 SET(VEDA_LATEST_PREFIX "/usr/local/ve/veda")
-SET(VEDA_INSTALL_PREFIX "${VEDA_LATEST_PREFIX}-${PROJECT_VERSION}")
+SET(VEDA_INSTALL_PREFIX "${VEDA_LATEST_PREFIX}-${VEDA_VERSION}")
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	SET(CMAKE_INSTALL_PREFIX ${VEDA_INSTALL_PREFIX} CACHE PATH "CMAKE install path" FORCE)
@@ -35,7 +39,7 @@ ENDIF()
 ## Download/Build AVEO ---------------------------------------------------------
 SET(AVEO_REPO "https://github.com/SX-Aurora/aveo")
 SET(AVEO_PATH ${CMAKE_CURRENT_BINARY_DIR}/aveo)
-SET(AVEO_GIT_TAG "v0.9.15")
+SET(AVEO_GIT_TAG "d5a1ee4") #"v0.9.15"
 SET(AVEO_NFORT "/opt/nec/ve/bin/nfort" CACHE STRING "NFORT Version used to compile AVEO")
 
 CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/aveo.patch.in" "${CMAKE_CURRENT_BINARY_DIR}/aveo.patch" @ONLY)
@@ -62,7 +66,7 @@ IF(DOWNLOAD_AVEO)
 ENDIF()
 
 # CMake Variables
-SET(AVEO_INCLUDE	"${AVEO_PATH}/src/src/") # don't use the install path, as AVEO gets always rebuild
+SET(AVEO_INCLUDE	"${AVEO_PATH}/src/src/")
 SET(AVEO_LIBRARY	"${AVEO_PATH}/src/install/lib64/libveo.a")
 SET(AVEO_URPC_LIBRARY	"${AVEO_PATH}/src/install/lib64/liburpcVH.a")
 SET(AVEO_AVEORUN	"${AVEO_PATH}/src/install/libexec/aveorun")
@@ -168,9 +172,9 @@ ENDIF()
 
 ## Build RPM -------------------------------------------------------------------
 CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/rpm_post.sh.in ${CMAKE_CURRENT_BINARY_DIR}/rpm_post.sh)
-SET(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+SET(CPACK_PACKAGE_VERSION ${VEDA_VERSION})
 SET(CPACK_GENERATOR "RPM")
-SET(CPACK_PACKAGE_NAME "veda-${PROJECT_VERSION}")
+SET(CPACK_PACKAGE_NAME "veda-${VEDA_VERSION}")
 SET(CPACK_PACKAGE_RELEASE 1)
 SET(CPACK_PACKAGE_CONTACT "Nicolas Weber")
 SET(CPACK_PACKAGE_VENDOR "NEC Laboratories Europe")

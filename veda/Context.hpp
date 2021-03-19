@@ -19,6 +19,7 @@ namespace veda {
 			Streams			m_streams;
 			Device&			m_device;
 			veo_proc_handle*	m_handle;
+			veo_ptr			m_hmemId;
 			VEDAmodule		m_lib;
 			Ptr::Idx		m_memidx;
 
@@ -43,6 +44,7 @@ namespace veda {
 		VEDAresult		query			(VEDAstream stream);
 		int			streamCount		(void) const;
 		size_t			memUsed			(void);
+		veo_ptr			hmemId			(void) const;
 		veo_thr_ctxt*		stream			(const VEDAstream stream);
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
 		void			call			(VEDAhost_function func, void* userData, VEDAstream stream);

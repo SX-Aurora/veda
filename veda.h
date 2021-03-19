@@ -46,6 +46,7 @@ VEDAresult	vedaCtxPushCurrent		(VEDAcontext ctx);
 VEDAresult	vedaCtxSetCurrent		(VEDAcontext ctx);
 VEDAresult	vedaCtxStreamCnt		(int* cnt);
 VEDAresult	vedaCtxSynchronize		(void);
+VEDAresult	vedaDeviceDistance		(float* distance, VEDAdevice devA, VEDAdevice devB);
 VEDAresult	vedaDeviceGet			(VEDAdevice* device, int ordinal);
 VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev);
 VEDAresult	vedaDeviceGetCount		(int* count);
@@ -79,8 +80,7 @@ VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdevic
 VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetInfo			(size_t* free, size_t* total);
 VEDAresult	vedaMemGetRawPointer		(void** rawPtr, VEDAdeviceptr vptr);
-VEDAresult	vedaMemGetAVEOPointer		(veo_ptr* veoPtr, VEDAdeviceptr vptr);
-VEDAresult	vedaMemGetHMEMPointer		(veo_ptr* hmemPtr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemGetHMEMPointer		(void** hmemPtr, VEDAdeviceptr vptr);
 VEDAresult	vedaMemReport			(void);
 VEDAresult	vedaMemcpy			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
 VEDAresult	vedaMemcpyAsync			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
