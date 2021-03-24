@@ -18,17 +18,15 @@ typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
 	namespace veda {
 		class Module;
 		class Context;
-		class Function;
 	}
 
-	typedef veda::Context*	VEDAcontext;
-	typedef veda::Module*	VEDAmodule;
+	typedef veda::Context*		VEDAcontext;
+	typedef veda::Module*		VEDAmodule;
 #else
-	struct __VEDAfunction;
 	struct __VEDAcontext;
 	struct __VEDAmodule;
-	typedef __VEDAcontext*	VEDAcontext;
-	typedef __VEDAmodule*	VEDAmodule;
+	typedef struct __VEDAcontext*	VEDAcontext;
+	typedef struct __VEDAmodule*	VEDAmodule;
 #endif
 
 
