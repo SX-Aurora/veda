@@ -20,6 +20,6 @@ TARGET_LINK_LIBRARIES(vera_test1 vera)
 ADD_EXECUTABLE(vera_test2 ${CMAKE_CURRENT_LIST_DIR}/vera_2.cpp)
 TARGET_LINK_LIBRARIES(vera_test2 vera)
 
-INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 vera_test1 vera_test2 RUNTIME DESTINATION tests)
+INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 vera_test1 vera_test2 RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
 
 ADD_SUBDIRECTORY(ve)

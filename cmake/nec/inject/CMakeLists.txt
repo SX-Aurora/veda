@@ -8,4 +8,4 @@ INSTALL(FILES
 	${CMAKE_CURRENT_LIST_DIR}/CMakeTestCCompiler.cmake
 	${CMAKE_CURRENT_LIST_DIR}/CMakeTestCXXCompiler.cmake
 	${CMAKE_CURRENT_LIST_DIR}/CMakeTestFortranCompiler.cmake
-	DESTINATION cmake/nec/inject)
+	DESTINATION ${VEDA_INSTALL_PATH}/cmake/nec/inject)
