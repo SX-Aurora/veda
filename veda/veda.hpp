@@ -56,4 +56,4 @@ inline	void		checkModule	(VEDAmodule mod) 	{	if(dynamic_cast<VEDAmodule> (mod) =
 //------------------------------------------------------------------------------
 }
 
-#include "Guard.h" // requires veda::functions
+#include "Guard.hpp" // requires veda::functions
