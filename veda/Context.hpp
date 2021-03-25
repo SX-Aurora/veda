@@ -19,7 +19,6 @@ namespace veda {
 			Streams			m_streams;
 			Device&			m_device;
 			veo_proc_handle*	m_handle;
-			veo_ptr			m_hmemId;
 			VEDAmodule		m_lib;
 			Ptr::Idx		m_memidx;
 

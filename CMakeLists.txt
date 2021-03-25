@@ -39,7 +39,7 @@ ENDIF()
 ## Download/Build AVEO ---------------------------------------------------------
 SET(AVEO_REPO "https://github.com/SX-Aurora/aveo")
 SET(AVEO_PATH ${CMAKE_CURRENT_BINARY_DIR}/aveo)
-SET(AVEO_GIT_TAG "d5a1ee4") #"v0.9.15"
+SET(AVEO_GIT_TAG "f062233") #"v0.9.15"
 SET(AVEO_NFORT "/opt/nec/ve/bin/nfort" CACHE STRING "NFORT Version used to compile AVEO")
 
 CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/aveo.patch.in" "${CMAKE_CURRENT_BINARY_DIR}/aveo.patch" @ONLY)

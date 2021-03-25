@@ -10,17 +10,3 @@ index 01d395c..a166f9b 100644
  NAR = /opt/nec/ve/bin/nar
  GCC = gcc
  GPP = g++
-
-diff --git a/src/libaveoVH.map b/src/libaveoVH.map
-index 3fa4619..465c864 100644
---- a/src/libaveoVH.map
-+++ b/src/libaveoVH.map
-@@ -54,6 +54,8 @@ VERSION_1 {
-     veo_context_sync;
-     veo_is_ve_addr;
-     veo_get_hmem_addr;
-+    veo_version_string;
-+    _ZN3veo10ProcHandle17getProcIdentifierEv;
-   local:
-     *;
- };

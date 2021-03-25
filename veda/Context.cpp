@@ -1,12 +1,6 @@
 #include "veda.hpp"
 #include <veo_hmem_macros.h>
 
-namespace veo {
-	struct ProcHandle {
-		int getProcIdentifier(void);
-	};
-}
-
 #define LOCK() std::lock_guard<std::mutex> lock(m_mutex)
 
 namespace veda {
@@ -38,14 +32,12 @@ static inline void vedaCtxCall(Context* ctx, VEDAstream stream, bool checkResult
 Device& 		Context::device		(void)		{	return m_device;		}
 VEDAcontext_mode	Context::mode		(void) const	{	return m_mode;			}
 int			Context::streamCount	(void) const	{	return (int)m_streams.size();	}
-veo_ptr			Context::hmemId		(void) const	{	return m_hmemId;		}
 
 //------------------------------------------------------------------------------
 Context::Context(Device& device, const VEDAcontext_mode mode) :
 	m_mode	(mode),
 	m_device(device),
 	m_handle(0),
-	m_hmemId(0),
 	m_lib	(0),
 	m_memidx(1)
 {
@@ -74,9 +66,6 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 
 	m_handle = createProc();
 	ASSERT(m_handle);
-
-	// Get HMEM Identifier -------------------------------------------------
-	m_hmemId = SET_VE_FLAG(SET_PROC_IDENT(0, ((veo::ProcHandle*)m_handle)->getProcIdentifier()));
 
 	// Load STDLib ---------------------------------------------------------
 	m_kernels.resize(VEDA_KERNEL_CNT);
@@ -114,6 +103,13 @@ Context::~Context(void) noexcept(false) {
 	m_streams.clear();	// don't need to be destroyed
 	m_modules.clear();	// don't need to be destroyed
 	m_kernels.clear();	// don't need to be destroyed
+}
+
+//------------------------------------------------------------------------------
+veo_ptr Context::hmemId(void) const {
+	int procId = veo_proc_identifier(m_handle);
+	ASSERT(procId >= 0);
+	return SET_VE_FLAG(SET_PROC_IDENT(0, procId));
 }
 
 //------------------------------------------------------------------------------
