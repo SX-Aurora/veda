@@ -1,4 +1,4 @@
-{
+LIBVERA_0 {
 	global: *vera*;
 	local: *;
 };

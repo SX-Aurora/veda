@@ -247,8 +247,9 @@ VEDAdeviceptr Context::newVPTR(veo_ptr** ptr, const size_t size) {
 	if(m_ptrs.size() == VEDA_CNT_IDX)
 		throw VEDA_ERROR_OUT_OF_MEMORY; // no VPTRs left
 
-	while(m_ptrs.find(m_memidx) != m_ptrs.end())
+	while(m_ptrs.find(m_memidx) != m_ptrs.end()) {
 		incMemIdx();
+	}
 
 	auto idx = m_memidx;
 	auto it = m_ptrs.emplace(MAP_EMPLACE(idx, 0, size)).first;

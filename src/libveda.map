@@ -1,4 +1,4 @@
-{
+LIBVEDA_0 {
 	global: veda*;
 	local: *;
 };

@@ -1,3 +1,5 @@
+__all__ = ['VEDAdevice_attribute']
+
 import numpy as np
 import ctypes
 import os
@@ -5,35 +7,34 @@ import enum
 
 #-------------------------------------------------------------------------------
 class VEDAdevice_attribute(enum.Enum):
-	VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE
-	VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE
-	VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT
-	VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE
-	VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE
-	VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE
-	VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE
-	VEDA_DEVICE_ATTRIBUTE_ABI_VERSION
-	VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO
-	VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION
+	VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE				= 0
+	VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE				= 1
+	VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT			= 2
+	VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE				= 3
+	VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE				= 4
+	VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE				= 5
+	VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE				= 6
+	VEDA_DEVICE_ATTRIBUTE_ABI_VERSION				= 7
+	VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO	= 8
+	VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION				= 9
 
 #-------------------------------------------------------------------------------
 path	= os.path.dirname(__file__)
-path	= os.path.abspath(os.path.abspath(path) + "/")
-lib	= ctypes.cdll.LoadLibrary(os.path.join(path, 'lib64/libveda.so'))
-
+path	= os.path.abspath(os.path.abspath(path) + "/lib64")
+lib	= ctypes.cdll.LoadLibrary(os.path.join(path, 'libveda.so.0')) # TODO: use VEDA_API_VERSION from CMake!
+"""
 # TODO: do function bodies
 lib.sol_device_used_memory.argtypes	= [ctypes.c_int, ctypes.c_int]
 lib.sol_device_used_memory.restype	= ctypes.c_size_t
 
 #-------------------------------------------------------------------------------
 def check(err):
-	if err == 0:
-		return
-	name = ctypes.c_char_p()
-	msg  = ctypes.c_char_p()
-	lib.vedaGetErrorName(err, name.byref())
-	lib.vedaGetErrorString(err, msg.byref())
-	raise Exception('[VEDA#{}] {}: {}'.format(err, name, msg))
+	if err != 0:
+		name = ctypes.c_char_p()
+		msg  = ctypes.c_char_p()
+		lib.vedaGetErrorName(err, name.byref())
+		lib.vedaGetErrorString(err, msg.byref())
+		raise Exception('[VEDA#{}] {}: {}'.format(err, name, msg))
 
 #-------------------------------------------------------------------------------
 lib.vedaInit(0)
@@ -351,4 +352,4 @@ func	= lib.func("myFunc")
 
 func.set_stream(0) # if necessary
 func(arg, arg, arg, arg)
-
+"""

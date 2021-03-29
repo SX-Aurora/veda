@@ -18,7 +18,7 @@
 #define VEDA_SHIFT_DEVICE		59
 #define VEDA_SHIFT_IDX			37
 #define VEDA_SHIFT_OFFSET		0
-#define VEDA_CNT_IDX			0x7FFFFE
+#define VEDA_CNT_IDX			0x3FFFFF
 
 #define VEDA_GET_DEVICE(vptr)			(VEDAdevice)	(((uint64_t)vptr & VEDA_BITS_DEVICE) >> VEDA_SHIFT_DEVICE)
 #define VEDA_GET_IDX(vptr)			(VEDAidx)	(((uint64_t)vptr & VEDA_BITS_IDX   ) >> VEDA_SHIFT_IDX   )
