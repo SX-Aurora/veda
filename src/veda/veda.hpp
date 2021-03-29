@@ -35,7 +35,6 @@ namespace veda {
 #include "macros.hpp"
 #include "Semaphore.hpp"
 #include "Kernel.hpp"
-#include "Ptr.hpp"
 #include "Module.hpp"
 #include "Device.hpp"
 #include "Devices.hpp"

@@ -5,9 +5,10 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
-| v0.10.0r3 | Added AVEO symlinks. Fixed wrong include. |
-| v0.10.0r2 | Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static. |
-| v0.10.0r1 | Fixed 0°C core temperatures. Added NUMA support. Each NUMA node becomes a separate VEDAdevice. Added ```vedaDeviceDistance(float**, VEDAdevice, VEDAdevice)``` to determine the relationship between two VEDAdevices (0.0 == same device, 0.5 == same physical device but different NUMA node, 1.0 == different physical device). Added ```vedaMemGetHMEMPointer(void**, VEDAdeviceptr)``` to translate VEDA pointer to HMEM pointer. |
+| v0.10.0rc4 | Increased VEDA offset limit to 128GB. Added VEDAdeviceptr->X functions in C++. Added ```vedaArgsSetRaw``` to automatically translate ```VEDAdeviceptr``` to ```void*```.|
+| v0.10.0rc3 | Added AVEO symlinks. Fixed wrong include. |
+| v0.10.0rc2 | Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static. |
+| v0.10.0rc1 | Fixed 0°C core temperatures. Added NUMA support. Each NUMA node becomes a separate VEDAdevice. Added ```vedaDeviceDistance(float**, VEDAdevice, VEDAdevice)``` to determine the relationship between two VEDAdevices (0.0 == same device, 0.5 == same physical device but different NUMA node, 1.0 == different physical device). Added ```vedaMemGetHMEMPointer(void**, VEDAdeviceptr)``` to translate VEDA pointer to HMEM pointer. |
 | v0.9.5.2 | Bugfixes |
 | v0.9.5.1 | Bugfixes |
 | v0.9.5 | Bugfixes |

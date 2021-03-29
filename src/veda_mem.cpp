@@ -4,8 +4,7 @@
 extern "C" {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemGetDevice(VEDAdevice* dev, VEDAdeviceptr ptr) {
-	veda::Ptr vptr(ptr);
-	*dev = vptr.device();
+	*dev = ptr->device();
 	return VEDA_SUCCESS;
 }
 
@@ -60,11 +59,10 @@ VEDAresult vedaMemFreeHost(void* ptr) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr) {
+VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
-		veda::Ptr vptr(ptr);
-		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
-		*base = vptr.base();
+		auto res = veda::Devices::get(vptr->device()).ctx()->getPtr(vptr);
+		*base = vptr->base();
 		*size = std::get<1>(res);
 	)
 }
@@ -96,38 +94,29 @@ VEDAresult vedaMemcpyDtoD(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t size, VEDAstream hStream) {
-	veda::Ptr dst(dstDevice);
-	veda::Ptr src(srcDevice);
-
-	if(dst.device() == src.device()) {
+VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t size, VEDAstream hStream) {
+	if(dst->device() == src->device()) {
 		GUARDED(
-			auto ctx = veda::Devices::get(dst.device()).ctx();
-			ctx->memcpyD2D(dstDevice, srcDevice, size, hStream);
+			auto ctx = veda::Devices::get(dst->device()).ctx();
+			ctx->memcpyD2D(dst, src, size, hStream);
 		)
 	} else {
 		GUARDED(
-			auto sctx = veda::Devices::get(src.device()).ctx();
-			auto dctx = veda::Devices::get(dst.device()).ctx();
+			auto sctx = veda::Devices::get(src->device()).ctx();
+			auto dctx = veda::Devices::get(dst->device()).ctx();
 
-		#if 1
 			void* host = malloc(size);
 			if(!host)
 				throw VEDA_ERROR_OUT_OF_MEMORY;
 			
 			
-			sctx->memcpyD2H(host, srcDevice, size, 0);
+			sctx->memcpyD2H(host, src, size, 0);
 			sctx->sync(0);
 
-			dctx->memcpyH2D(dstDevice, host, size, 0);
+			dctx->memcpyH2D(dst, host, size, 0);
 			dctx->sync(0);
 			
 			free(host);
-		#else // TODO: enable once veo_hmemcpy supports DtoD copies
-			auto hsrc = std::get<0>(sctx->getPtr(srcDevice)) | sctx->hmemId();
-			auto hdst = std::get<0>(dctx->getPtr(dstDevice)) | dctx->hmemId();
-			TVEO(veo_hmemcpy((void*)hdst, (void*)hsrc, size));
-		#endif
 		)
 	}
 }
@@ -237,20 +226,18 @@ VEDAresult vedaMemReport(void) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr ptr) {
+VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr vptr) {
 	GUARDED(
-		veda::Ptr vptr(ptr);
-		auto res = veda::Devices::get(vptr.device()).ctx()->getPtr(ptr);
+		auto res = veda::Devices::get(vptr->device()).ctx()->getPtr(vptr);
 		*rawPtr = (void*)std::get<0>(res);
 	)
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr ptr) {
+VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr) {
 	GUARDED(
-		veda::Ptr vptr(ptr);
-		auto ctx = veda::Devices::get(vptr.device()).ctx();
-		auto res = ctx->getPtr(ptr);
+		auto ctx = veda::Devices::get(vptr->device()).ctx();
+		auto res = ctx->getPtr(vptr);
 		*hmemPtr = (void*)(std::get<0>(res) | ctx->hmemId());
 	);
 }

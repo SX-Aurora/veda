@@ -21,9 +21,8 @@ void Devices::report(void) {
 }
 
 //------------------------------------------------------------------------------
-Device& Devices::get(const VEDAdeviceptr ptr) {
-	Ptr vptr(ptr);
-	return get(vptr.device());
+Device& Devices::get(const VEDAdeviceptr vptr) {
+	return get(vptr->device());
 }
 
 //------------------------------------------------------------------------------

@@ -31,10 +31,9 @@ int main(int argc, char** argv) {
 		CHECK(vedaCtxCreate(&ctx, 0, dev));
 		printf("vedaCtxCreate(%p, %i, %i)\n", ctx, 0, dev);
 
-
 		char name[128];
 		CHECK(vedaDeviceGetName(name, sizeof(name), dev));
-		printf("veDeviceGetName(\"%s\", %i, %i)\n", name, sizeof(name), dev);
+		printf("vedaDeviceGetName(\"%s\", %i, %i)\n", name, sizeof(name), dev);
 
 		int cores;
 		CHECK(vedaDeviceGetAttribute(&cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev));
@@ -122,7 +121,8 @@ int main(int argc, char** argv) {
 
 		VEDAdeviceptr ptr2;
 		CHECK(vedaMemAllocAsync(&ptr2, 0, 0));
-		CHECK(vedaLaunchKernel(func, 0, ptr, ptr2, cnt));
+		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr2, 0, 0);
+		CHECK(vedaLaunchKernel(func, 0, (int*)*ptr, ptr2, cnt));
 		printf("vedaLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, ptr, ptr2, cnt);
 
 		CHECK(vedaCtxSynchronize());

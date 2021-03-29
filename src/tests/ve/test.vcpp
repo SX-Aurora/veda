@@ -4,18 +4,19 @@
 #include <thread>
 #include <functional>
 
-extern "C" VEDAresult ve_test(VEDAdeviceptr vptr, VEDAdeviceptr newPtr, const size_t cnt) {
-	int* out;
-	CVEDA(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
+#define CHECK(err) if(err != VEDA_SUCCESS) {\
+		const char* str = 0;\
+		vedaGetErrorName(err, &str);\
+		printf("%s @ %s (%i)\n", str, __FILE__, __LINE__);\
+	}
 
-	int* in;
-	CVEDA(vedaMemPtr(&in, vptr));
+extern "C" void ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
+	int* out;
+	CHECK(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
 
 	#pragma _NEC ivdep
 	for(size_t i = 0; i < cnt; i++)
 		out[i] = cnt - 1 - i;
-	
-	return VEDA_SUCCESS;
 }
 
 extern "C" void ve_hello_world(int stream) {

@@ -8,11 +8,6 @@
 #include <stddef.h>
 #include <assert.h>
 
-#ifdef __cplusplus
-#include <type_traits>
-extern "C" {
-#endif
-
 //------------------------------------------------------------------------------
 // Pure C interface
 //------------------------------------------------------------------------------
@@ -20,6 +15,11 @@ extern "C" {
 #include "veda_types.h"
 #include "veda_macros.h"
 #include "veda_version.h"
+
+#ifdef __cplusplus
+#include <type_traits>
+extern "C" {
+#endif
 
 VEDAresult	vedaArgsCreate			(VEDAargs* args);
 VEDAresult	vedaArgsDestroy			(VEDAargs args);
@@ -30,6 +30,7 @@ VEDAresult	vedaArgsSetI32			(VEDAargs args, const int idx, const int32_t value);
 VEDAresult	vedaArgsSetI64			(VEDAargs args, const int idx, const int64_t value);
 VEDAresult	vedaArgsSetI8			(VEDAargs args, const int idx, const int8_t value);
 VEDAresult	vedaArgsSetPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
+VEDAresult	vedaArgsSetRaw			(VEDAargs args, const int idx, const VEDAdeviceptr value);
 VEDAresult	vedaArgsSetStack		(VEDAargs args, const int idx, void* ptr, VEDAargs_intent intent, const size_t size);
 VEDAresult	vedaArgsSetU16			(VEDAargs args, const int idx, const uint16_t value);
 VEDAresult	vedaArgsSetU32			(VEDAargs args, const int idx, const uint32_t value);
@@ -166,6 +167,21 @@ inline VEDAresult vedaLaunchKernel(VEDAfunction func, VEDAstream stream, Args...
 	VEDAargs args = 0;
 	CVEDA(vedaArgsCreate(&args));
 	return __vedaLaunchKernel(func, stream, args, 0, vargs...);
+}
+
+template<typename T>
+inline __VEDAdeviceptr::operator T (void) const {
+	return static_cast<T>(raw());
+}
+
+inline void* __VEDAdeviceptr::raw(void) const {
+	void* ptr = 0;
+	return vedaMemGetRawPointer(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
+}
+
+inline void* __VEDAdeviceptr::hmem(void) const {
+	void* ptr = 0;
+	return vedaMemGetHMEMPointer(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
 }
 
 #endif

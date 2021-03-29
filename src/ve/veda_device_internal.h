@@ -3,7 +3,6 @@
 #include "veda_device.h"
 #include "veda_kernels.h"
 #include <unordered_map>
-#include <veda/Ptr.hpp>
 #include <cstring>
 #include <cstdlib>
 

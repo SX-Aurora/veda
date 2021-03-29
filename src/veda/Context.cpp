@@ -93,8 +93,8 @@ Context::~Context(void) noexcept(false) {
 		auto idx	= it.first;
 		auto& size	= std::get<1>(it.second);
 
-		Ptr vptr(device().vedaId(), idx);
-		printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr.vptr(), size);
+		auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
+		printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, size);
 	}
 
 	if(m_handle)
@@ -129,10 +129,10 @@ void Context::memReport(void) {
 
 	printf("# VE#%i %.2f/%.2fGB\n", device(), used/(1024.0*1024.0*1024.0), total/(1024.0*1024.0*1024.0));
 	for(auto& it : m_ptrs) {
-		Ptr vptr(device().vedaId(), it.first);
+		auto vptr = VEDA_SET_PTR(device().vedaId(), it.first, 0);
 		auto ptr	= std::get<0>(it.second);
 		auto size	= std::get<1>(it.second);
-		printf("%p/%p %lluB\n", vptr.vptr(), ptr, size);
+		printf("%p/%p %lluB\n", vptr, ptr, size);
 	}
 }
 
@@ -236,7 +236,7 @@ void Context::moduleUnload(const Module* mod) {
 //------------------------------------------------------------------------------
 void Context::incMemIdx(void) {
 	m_memidx++;
-	m_memidx = m_memidx & 0x00FFFFFF;
+	m_memidx = m_memidx & VEDA_CNT_IDX;
 	if(m_memidx == 0)
 		m_memidx = 1;
 }
@@ -244,32 +244,31 @@ void Context::incMemIdx(void) {
 //------------------------------------------------------------------------------
 VEDAdeviceptr Context::newVPTR(veo_ptr** ptr, const size_t size) {
 	LOCK();
-	if(m_ptrs.size() == 0xFFFFFF)
+	if(m_ptrs.size() == VEDA_CNT_IDX)
 		throw VEDA_ERROR_OUT_OF_MEMORY; // no VPTRs left
 
 	while(m_ptrs.find(m_memidx) != m_ptrs.end())
 		incMemIdx();
 
-	Ptr pptr(device().vedaId(), m_memidx);
-	auto it = m_ptrs.emplace(MAP_EMPLACE(pptr.idx(), 0, size)).first;
+	auto idx = m_memidx;
+	auto it = m_ptrs.emplace(MAP_EMPLACE(idx, 0, size)).first;
 	*ptr = &std::get<0>(it->second);
+
 	incMemIdx();
-	return pptr;
+	return VEDA_SET_PTR(device().vedaId(), idx, 0);
 }
 
 //------------------------------------------------------------------------------
 void Context::free(VEDAdeviceptr vptr) {
-	Ptr pptr(vptr);
-	ASSERT(pptr.device() == device().vedaId());
-	if(m_ptrs.erase(pptr.idx()) == 0)
+	ASSERT(vptr->device() == device().vedaId());
+	if(m_ptrs.erase(vptr->idx()) == 0)
 		throw VEDA_ERROR_UNKNOWN_VPTR;
 }
 
 //------------------------------------------------------------------------------
 Context::PtrTuple Context::getBasePtr(VEDAdeviceptr vptr) {
-	Ptr pptr(vptr);
-	ASSERT(pptr.device() == device().vedaId());
-	auto it = m_ptrs.find(pptr.idx());
+	ASSERT(vptr->device() == device().vedaId());
+	auto it = m_ptrs.find(vptr->idx());
 	if(it == m_ptrs.end())
 		throw VEDA_ERROR_UNKNOWN_VPTR;
 	if(std::get<0>(it->second) == 0)
@@ -290,7 +289,7 @@ void Context::syncPtrs(void) {
 			// if size is == 0, then no malloc call had been issued, so we need to fetch the info
 			// is size is != 0, then we only need to wait till the malloc reports back the ptr
 			if(size == 0) {
-				Ptr vptr(device().vedaId(), idx);
+				auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
 				vedaCtxCall(this, 0, false, kernel(VEDA_KERNEL_MEM_PTR), 
 					VEDAstack(&ptr,  VEDA_ARGS_INTENT_OUT, sizeof(veo_ptr)),
 					VEDAstack(&size, VEDA_ARGS_INTENT_OUT, sizeof(size_t)), 
@@ -315,13 +314,13 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 }
 
 //------------------------------------------------------------------------------
-Context::PtrTuple Context::memAllocPitch(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream) {
+Context::VPtrTuple Context::memAllocPitch(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream) {
 	return std::make_tuple(memAlloc(w_bytes * h, stream), w_bytes);
 }
 
 //------------------------------------------------------------------------------
 void Context::memFree(VEDAdeviceptr vptr, VEDAstream stream) {
-	if(Ptr(vptr).offset() != 0)
+	if(vptr->offset() != 0)
 		throw VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 
 	// get physical pointer
@@ -338,8 +337,7 @@ Context::PtrTuple Context::getPtr(VEDAdeviceptr vptr) {
 	if(std::get<0>(res) == 0)
 		return res;
 
-	Ptr pptr(vptr); // apply offset
-	std::get<0>(res) += pptr.offset();
+	std::get<0>(res) += vptr->offset();
 	
 	return res;
 }

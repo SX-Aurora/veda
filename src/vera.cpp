@@ -122,11 +122,11 @@ veraError_t veraSetValidDevices(int* device_arr, int len) {
 veraError_t veraPointerGetAttributes(veraPointerAttributes* attributes, const void* ptr) {
 	CVEDA(veraInit());
 	
-	veda::Ptr vptr((VEDAdeviceptr)ptr);
-	attributes->device			= vptr.device();
+	auto vptr = (VEDAdeviceptr)ptr;
+	attributes->device		= vptr->device();
 	attributes->hostPointer		= 0;
-	attributes->type			= veraMemoryTypeDevice;
-	CVEDA(vedaMemGetRawPointer(&attributes->devicePointer, vptr.vptr()));
+	attributes->type		= veraMemoryTypeDevice;
+	CVEDA(vedaMemGetRawPointer(&attributes->devicePointer, vptr));
 	return VEDA_SUCCESS;
 }
 

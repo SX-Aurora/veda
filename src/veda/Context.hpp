@@ -3,10 +3,11 @@
 namespace veda {
 	class Context {
 	public:
-		typedef std::tuple<veo_ptr, size_t>	PtrTuple;
+		typedef std::tuple<veo_ptr, size_t>		PtrTuple;
+		typedef std::tuple<VEDAdeviceptr, size_t>	VPtrTuple;
 	
 	private:
-		typedef std::map<Ptr::Idx, PtrTuple>	Ptrs;
+		typedef std::map<VEDAidx, PtrTuple>	Ptrs;
 		typedef std::vector<VEDAfunction>	Kernels;
 		typedef std::vector<Stream>		Streams;
 		typedef std::map<veo_lib, Module>	Modules;
@@ -20,7 +21,7 @@ namespace veda {
 			Device&			m_device;
 			veo_proc_handle*	m_handle;
 			VEDAmodule		m_lib;
-			Ptr::Idx		m_memidx;
+			VEDAidx			m_memidx;
 
 		VEDAdeviceptr	newVPTR			(veo_ptr** ptr, const size_t size);
 		PtrTuple	getBasePtr		(VEDAdeviceptr vptr);
@@ -35,7 +36,7 @@ namespace veda {
 		Device&			device			(void);
 		Module*			moduleLoad		(const char* name);
 		PtrTuple		getPtr			(VEDAdeviceptr vptr);
-		PtrTuple		memAllocPitch		(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream);
+		VPtrTuple		memAllocPitch		(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream);
 		VEDAcontext_mode	mode			(void) const;
 		VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
 		VEDAfunction		kernel			(Kernel kernel) const;
