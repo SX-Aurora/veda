@@ -82,10 +82,8 @@ void Devices::initMapping(const std::set<int>& devices) {
 
 	// Parse real device ids
 	char device[] = "/dev/veslotX";
+	int vedaIdx = 0;
 	for(int deviceIdx : devices) {
-		if(!visible.empty() && visible.find(deviceIdx) == visible.end())
-			continue;
-
 		assert(deviceIdx < 10); // otherwise this will fail
 		device[strlen(device) - 1] = '0' + (char)deviceIdx;
 
@@ -114,6 +112,9 @@ void Devices::initMapping(const std::set<int>& devices) {
 			numaCnt = 2;
 
 		for(int numaId = 0; numaId < numaCnt; numaId++) {
+			if(visible.find(vedaIdx++) == visible.end())
+				continue;
+				
 			auto vedaId = (VEDAdevice)s_devices.size();
 			s_devices.emplace_back(vedaId, aveoId, sensorId, numaId);
 		}
