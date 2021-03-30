@@ -7,10 +7,13 @@ static inline veda_memset2d(VEDAdeviceptr vdst, const size_t pitch, const T valu
 	size_t cnt = _h * pitch + _w;
 	if((vdst->offset() + cnt * sizeof(T)) > res.size)
 		return VEDA_ERROR_OUT_OF_BOUNDS;
-	#pragma omp parallel for
-	for(size_t h = 0; h < _h; h++)
-		for(size_t w = 0; w < _w; w++)
-			res.ptr[h * pitch + w] = value;
+	
+	veda_omp(_h, [&](const size_t min, const size_t max) {
+		#pragma _NEC novector
+		for(size_t h = min; h < max; h++)
+			for(size_t w = 0; w < _w; w++)
+				res.ptr[h * pitch + w] = value;
+	});
 	return VEDA_SUCCESS;
 }
 
@@ -20,9 +23,11 @@ static inline veda_memset(VEDAdeviceptr vdst, const T value, const size_t cnt) {
 	auto res = vdst->ptrSize<T>();
 	if((vdst->offset() + cnt * sizeof(T)) > res.size)
 		return VEDA_ERROR_OUT_OF_BOUNDS;
-	// TODO: OMP
-	for(size_t i = 0; i < cnt; i++)
-		res.ptr[i] = value;
+
+	veda_omp_simd(cnt, [&](const size_t min, const size_t max) {
+		for(size_t i = min; i < max; i++)
+			res.ptr[i] = value;
+	});
 	return VEDA_SUCCESS;
 }
 

@@ -2,6 +2,7 @@
 
 #include "veda_device.h"
 #include "veda_kernels.h"
+#include "veda_device_omp.h"
 #include <unordered_map>
 #include <cstring>
 #include <cstdlib>
