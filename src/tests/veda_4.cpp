@@ -28,13 +28,10 @@ int main(int argc, char** argv) {
 		VEDAdeviceptr vptr;
 		CHECK(vedaMemAlloc(&vptr, 128));
 
-		void* raw;
-		void* hmem;
+		auto res  = vptr->ptrSize();
+		auto hmem = vptr->hmem();
 
-		CHECK(vedaMemGetRawPointer(&raw, vptr));
-		CHECK(vedaMemGetHMEMPointer(&hmem, vptr));
-
-		printf("VPTR: 0x%016llx, Raw: 0x%016llx, HMEM: 0x%016llx\n", vptr, raw, hmem);
+		printf("VPTR: 0x%016llx, Raw: 0x%016llx, HMEM: 0x%016llx, Size: %lluB\n", vptr, res.ptr, hmem, res.size);
 
 		CHECK(vedaMemFree(vptr));
 	}

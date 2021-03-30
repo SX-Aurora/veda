@@ -75,7 +75,7 @@ VEDAresult vedaArgsSetU64(VEDAargs args, const int idx, const uint64_t value) {
 VEDAresult vedaArgsSetRaw(VEDAargs args, const int idx, const VEDAdeviceptr value) {
 	if(!args)	return VEDA_ERROR_INVALID_ARGS;
 	void* ptr;
-	CVEDA(vedaMemGetRawPointer(&ptr, value));
+	CVEDA(vedaMemPtr(&ptr, value));
 	CVEO(veo_args_set_u64(args, idx, (uint64_t)ptr));
 	return VEDA_SUCCESS;
 }

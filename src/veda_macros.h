@@ -27,3 +27,5 @@
 #define VEDA_SET_DEVICE(vptr, device)		(VEDAdeviceptr)((uint64_t)vptr | (((uint64_t)device << VEDA_SHIFT_DEVICE))	& VEDA_BITS_DEVICE)
 #define VEDA_SET_IDX(vptr, idx)			(VEDAdeviceptr)((uint64_t)vptr | (((uint64_t)idx    << VEDA_SHIFT_IDX))		& VEDA_BITS_IDX   )
 #define VEDA_SET_PTR(device, idx, offset)	VEDA_SET_IDX(VEDA_SET_DEVICE(offset & VEDA_BITS_OFFSET, device), idx)
+
+#define VEDA_DEPRECATED(func) func __attribute__ ((deprecated))

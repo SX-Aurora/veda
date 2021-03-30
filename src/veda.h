@@ -80,9 +80,12 @@ VEDAresult	vedaMemFreeHost			(void* ptr);
 VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetInfo			(size_t* free, size_t* total);
-VEDAresult	vedaMemGetRawPointer		(void** rawPtr, VEDAdeviceptr vptr);
-VEDAresult	vedaMemGetHMEMPointer		(void** hmemPtr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemHMEM			(void** ptr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemHMEMSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
+VEDAresult	vedaMemPtr			(void** ptr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemPtrSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
 VEDAresult	vedaMemReport			(void);
+VEDAresult	vedaMemSize			(size_t* size, VEDAdeviceptr ptr);
 VEDAresult	vedaMemcpy			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
 VEDAresult	vedaMemcpyAsync			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
 VEDAresult	vedaMemcpyDtoD			(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount);
@@ -113,8 +116,13 @@ VEDAresult	vedaStreamGetFlags		(VEDAstream hStream, uint32_t* flags);
 VEDAresult	vedaStreamQuery			(VEDAstream hStream);
 VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
 
+VEDA_DEPRECATED(VEDAresult vedaMemGetRawPointer	(void** rawPtr, VEDAdeviceptr vptr));	// USE vedaMemPtr instead
+VEDA_DEPRECATED(VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr));	// USE vedaMemHMEM instead
+
 #ifdef __cplusplus
 }
+
+#include <veda_ptr.h>
 
 //------------------------------------------------------------------------------
 // Advanced C++ interface
@@ -169,19 +177,9 @@ inline VEDAresult vedaLaunchKernel(VEDAfunction func, VEDAstream stream, Args...
 	return __vedaLaunchKernel(func, stream, args, 0, vargs...);
 }
 
-template<typename T>
-inline __VEDAdeviceptr::operator T (void) const {
-	return static_cast<T>(raw());
-}
-
-inline void* __VEDAdeviceptr::raw(void) const {
-	void* ptr = 0;
-	return vedaMemGetRawPointer(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
-}
-
 inline void* __VEDAdeviceptr::hmem(void) const {
 	void* ptr = 0;
-	return vedaMemGetHMEMPointer(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
+	return vedaMemHMEM(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
 }
 
 #endif

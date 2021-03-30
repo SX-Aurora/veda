@@ -372,7 +372,12 @@ void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size,
 
 //------------------------------------------------------------------------------
 void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAstream _stream) {
-	auto ptr = std::get<0>(getPtr(src)); ASSERT(ptr);
+	auto res	= getPtr(src);
+	auto ptr	= std::get<0>(res); ASSERT(ptr);
+	auto size	= std::get<1>(res); ASSERT(size);
+	if((bytes + src->offset()) > size)
+		throw VEDA_ERROR_OUT_OF_BOUNDS;
+
 	LOCK();
 	auto str	= stream(_stream);
 	uint64_t req	= CREQ(veo_async_read_mem(str, dst, ptr, bytes));
@@ -381,7 +386,12 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 
 //------------------------------------------------------------------------------
 void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, VEDAstream _stream) {
-	auto ptr = std::get<0>(getPtr(dst)); ASSERT(ptr);
+	auto res	= getPtr(dst);
+	auto ptr	= std::get<0>(res); ASSERT(ptr);
+	auto size	= std::get<1>(res); ASSERT(size);
+	if((bytes + dst->offset()) > size)
+		throw VEDA_ERROR_OUT_OF_BOUNDS;
+
 	LOCK();
 	auto str	= stream(_stream);
 	uint64_t req	= CREQ(veo_async_write_mem(str, ptr, src, bytes));
@@ -391,23 +401,23 @@ void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, 
 //------------------------------------------------------------------------------
 // Memset
 //------------------------------------------------------------------------------
-void Context::memset(VEDAdeviceptr dst, const uint8_t value, const size_t size, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U8), dst, value, size);
+void Context::memset(VEDAdeviceptr dst, const uint8_t value, const size_t cnt, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U8), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
-void Context::memset(VEDAdeviceptr dst, const uint16_t value, const size_t size, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U16), dst, value, size);
+void Context::memset(VEDAdeviceptr dst, const uint16_t value, const size_t cnt, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U16), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
-void Context::memset(VEDAdeviceptr dst, const uint32_t value, const size_t size, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32), dst, value, size);
+void Context::memset(VEDAdeviceptr dst, const uint32_t value, const size_t cnt, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
-void Context::memset(VEDAdeviceptr dst, const uint64_t value, const size_t size, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U64), dst, value, size);
+void Context::memset(VEDAdeviceptr dst, const uint64_t value, const size_t cnt, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U64), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------

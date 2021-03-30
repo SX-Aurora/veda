@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.10.0rc5 | Added boundary checks for Memcopy and MemSet |
 | v0.10.0rc4 | Increased VEDA offset limit to 128GB. Added VEDAdeviceptr->X functions in C++. Added ```vedaArgsSetRaw``` to automatically translate ```VEDAdeviceptr``` to ```void*```. Fixed VEDA_VISIBLE_DEVICES to obey NUMA mode. |
 | v0.10.0rc3 | Added AVEO symlinks. Fixed wrong include. |
 | v0.10.0rc2 | Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static. |

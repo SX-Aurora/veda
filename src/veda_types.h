@@ -3,9 +3,6 @@
 #include <stdint.h>
 #include "veda_enums.h"
 #include "veda_macros.h"
-#if __cplusplus
-#include <type_traits>
-#endif
 
 struct veo_args;
 typedef struct veo_args*	VEDAargs;
@@ -26,18 +23,26 @@ struct __VEDAdeviceptr {
 	char* _;
 
 #if __cplusplus
-	public:
-		__VEDAdeviceptr(void) = delete;
+	template<typename T>
+	struct Tuple {
+		T* const	ptr;
+		const size_t	size;
+		inline Tuple(T* _ptr, const size_t _size) : ptr(_ptr), size(_size) {}
+	};
 
-		inline	VEDAdevice	device	(void) const	{	return VEDA_GET_DEVICE((uint64_t)this);						}
-		inline	VEDAidx		idx	(void) const	{	return VEDA_GET_IDX((uint64_t)this);						}
-		inline	size_t		offset	(void) const	{	return VEDA_GET_OFFSET((uint64_t)this);						}
-		inline	VEDAdeviceptr	base	(void) const	{	return (VEDAdeviceptr)VEDA_SET_DEVICE(device(), VEDA_SET_IDX(0, idx()));	}
+							__VEDAdeviceptr	(void) = delete;
+					Tuple<void>	ptrSize		(void) const;
+					VEDAdevice	device		(void) const;
+					VEDAdeviceptr	base		(void) const;
+					VEDAidx		idx		(void) const;
+					size_t		offset		(void) const;
+					size_t		size		(void) const;
+					void*		ptr		(void) const;
+		template<typename T>	Tuple<T>	ptrSize		(void) const;
+		template<typename T>	operator	T		(void) const;
 		
 	#ifndef __NEC__
-		void*	raw	(void) const;
-		void*	hmem	(void) const;
-		template<typename T> operator T (void) const;
+					void*		hmem		(void) const;
 	#endif
 #endif
 };

@@ -126,7 +126,7 @@ veraError_t veraPointerGetAttributes(veraPointerAttributes* attributes, const vo
 	attributes->device		= vptr->device();
 	attributes->hostPointer		= 0;
 	attributes->type		= veraMemoryTypeDevice;
-	CVEDA(vedaMemGetRawPointer(&attributes->devicePointer, vptr));
+	CVEDA(vedaMemPtr(&attributes->devicePointer, vptr));
 	return VEDA_SUCCESS;
 }
 

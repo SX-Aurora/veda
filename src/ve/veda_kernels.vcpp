@@ -1,109 +1,57 @@
 #include "veda_device_internal.h"
 
+//------------------------------------------------------------------------------
+template<typename T>
+static inline veda_memset2d(VEDAdeviceptr vdst, const size_t pitch, const T value, const size_t _w, const size_t _h) {
+	auto res = vdst->ptrSize<T>();
+	size_t cnt = _h * pitch + _w;
+	if((vdst->offset() + cnt * sizeof(T)) > res.size)
+		return VEDA_ERROR_OUT_OF_BOUNDS;
+	#pragma omp parallel for
+	for(size_t h = 0; h < _h; h++)
+		for(size_t w = 0; w < _w; w++)
+			res.ptr[h * pitch + w] = value;
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+static inline veda_memset(VEDAdeviceptr vdst, const T value, const size_t cnt) {
+	auto res = vdst->ptrSize<T>();
+	if((vdst->offset() + cnt * sizeof(T)) > res.size)
+		return VEDA_ERROR_OUT_OF_BOUNDS;
+	// TODO: OMP
+	for(size_t i = 0; i < cnt; i++)
+		res.ptr[i] = value;
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 extern "C" {
 //------------------------------------------------------------------------------
-VEDAresult veda_memcpy_d2d(VEDAdeviceptr __dst, VEDAdeviceptr __src, const size_t size) {
-	void* dst, *src;
-	CVEDA(vedaMemPtr(&dst, __dst));
-	CVEDA(vedaMemPtr(&src, __src));
+VEDAresult veda_memcpy_d2d(VEDAdeviceptr vdst, VEDAdeviceptr vsrc, const size_t size) {
+	void* dst = 0, *src = 0;
+	size_t dstSize = 0, srcSize = 0;
+	CVEDA(vedaMemPtrSize(&dst, &dstSize, vdst));
+	CVEDA(vedaMemPtrSize(&src, &srcSize, vsrc));
+	if((vdst->offset() + size) > dstSize)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	if((vsrc->offset() + size) > srcSize)	return VEDA_ERROR_OUT_OF_BOUNDS;
 	// TODO: OMP
 	memcpy(dst, src, size);
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
-VEDAresult veda_memset_u8(VEDAdeviceptr __dst, const uint8_t value, const size_t size) {
-	uint8_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-	// TODO: OMP
-	// TODO: we can set 4 at the same time!
-	for(size_t i = 0; i < size; i++)
-		dst[i] = value;
-	return VEDA_SUCCESS;
-}
+VEDAresult veda_memset_u8 (VEDAdeviceptr vdst, const uint8_t  value, const size_t cnt)	{	veda_memset(vdst, value, cnt);	}
+VEDAresult veda_memset_u16(VEDAdeviceptr vdst, const uint16_t value, const size_t cnt)	{	veda_memset(vdst, value, cnt);	}
+VEDAresult veda_memset_u32(VEDAdeviceptr vdst, const uint32_t value, const size_t cnt)	{	veda_memset(vdst, value, cnt);	}
+VEDAresult veda_memset_u64(VEDAdeviceptr vdst, const uint64_t value, const size_t cnt)	{	veda_memset(vdst, value, cnt);	}
 
 //------------------------------------------------------------------------------
-VEDAresult veda_memset_u16(VEDAdeviceptr __dst, const uint16_t value, const size_t size) {
-	uint16_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-	// TODO: OMP
-	// TODO: we can set 4 at the same time!
-	for(size_t i = 0; i < size; i++)
-		dst[i] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u32(VEDAdeviceptr __dst, const uint32_t value, const size_t size) {
-	uint32_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-	// TODO: OMP
-	#pragma _NEC ivdep
-	for(size_t i = 0; i < size; i++)
-		dst[i] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u64(VEDAdeviceptr __dst, const uint64_t value, const size_t size) {
-	uint64_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-	// TODO: OMP
-	#pragma _NEC ivdep
-	for(size_t i = 0; i < size; i++)
-		dst[i] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u8_2d(VEDAdeviceptr __dst, const size_t pitch, const uint8_t value, const size_t _w, const size_t _h) {
-	uint8_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-
-	#pragma omp parallel for
-	for(size_t h = 0; h < _h; h++)
-		for(size_t w = 0; w < _w; w++)
-			dst[h * pitch + w] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u16_2d(VEDAdeviceptr __dst, const size_t pitch, const uint16_t value, const size_t _w, const size_t _h) {
-	uint16_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-
-	#pragma omp parallel for
-	for(size_t h = 0; h < _h; h++)
-		for(size_t w = 0; w < _w; w++)
-			dst[h * pitch + w] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u32_2d(VEDAdeviceptr __dst, const size_t pitch, const uint32_t value, const size_t _w, const size_t _h) {
-	uint32_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-
-	#pragma omp parallel for
-	for(size_t h = 0; h < _h; h++)
-		#pragma _NEC ivdep
-		for(size_t w = 0; w < _w; w++)
-			dst[h * pitch + w] = value;
-	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult veda_memset_u64_2d(VEDAdeviceptr __dst, const size_t pitch, const uint64_t value, const size_t _w, const size_t _h) {
-	uint64_t* dst;
-	CVEDA(vedaMemPtr(&dst, __dst));
-
-	#pragma omp parallel for
-	for(size_t h = 0; h < _h; h++)
-		#pragma _NEC ivdep
-		for(size_t w = 0; w < _w; w++)
-			dst[h * pitch + w] = value;
-	return VEDA_SUCCESS;
-}
+VEDAresult veda_memset_u8_2d (VEDAdeviceptr vdst, const size_t pitch, const uint8_t  value, const size_t _w, const size_t _h)	{	veda_memset2d(vdst, pitch, value, _w, _h);	}
+VEDAresult veda_memset_u16_2d(VEDAdeviceptr vdst, const size_t pitch, const uint16_t value, const size_t _w, const size_t _h)	{	veda_memset2d(vdst, pitch, value, _w, _h);	}
+VEDAresult veda_memset_u32_2d(VEDAdeviceptr vdst, const size_t pitch, const uint32_t value, const size_t _w, const size_t _h)	{	veda_memset2d(vdst, pitch, value, _w, _h);	}
+VEDAresult veda_memset_u64_2d(VEDAdeviceptr vdst, const size_t pitch, const uint64_t value, const size_t _w, const size_t _h)	{	veda_memset2d(vdst, pitch, value, _w, _h);	}
 
 //------------------------------------------------------------------------------
 VEDAresult veda_mem_alloc(void** ptr, VEDAdeviceptr vptr, const size_t size) {
@@ -111,7 +59,6 @@ VEDAresult veda_mem_alloc(void** ptr, VEDAdeviceptr vptr, const size_t size) {
 }
 
 //------------------------------------------------------------------------------
-extern "C" VEDAresult vedaMemFree(VEDAdeviceptr vptr);
 VEDAresult veda_mem_free(VEDAdeviceptr vptr) {
 	return vedaMemFree(vptr);
 }

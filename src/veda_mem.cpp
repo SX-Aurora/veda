@@ -226,20 +226,57 @@ VEDAresult vedaMemReport(void) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr vptr) {
+VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto res = veda::Devices::get(vptr->device()).ctx()->getPtr(vptr);
-		*rawPtr = (void*)std::get<0>(res);
+		*ptr = (void*)std::get<0>(res);
 	)
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr) {
+VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
+	GUARDED(
+		auto res = veda::Devices::get(vptr->device()).ctx()->getPtr(vptr);
+		*ptr	= (void*)std::get<0>(res);
+		*size	= std::get<1>(res);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
+	GUARDED(
+		auto res = veda::Devices::get(vptr->device()).ctx()->getPtr(vptr);
+		*size	= std::get<1>(res);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemHMEM(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto ctx = veda::Devices::get(vptr->device()).ctx();
 		auto res = ctx->getPtr(vptr);
-		*hmemPtr = (void*)(std::get<0>(res) | ctx->hmemId());
+		*ptr = (void*)(std::get<0>(res) | ctx->hmemId());
 	);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemHMEMSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
+	GUARDED(
+		auto ctx = veda::Devices::get(vptr->device()).ctx();
+		auto res = ctx->getPtr(vptr);
+		*ptr	= (void*)(std::get<0>(res) | ctx->hmemId());
+		*size	= std::get<1>(res);
+	);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr vptr) {
+	return vedaMemPtr(rawPtr, vptr);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr) {
+	return vedaMemHMEM(hmemPtr, vptr);
 }
 
 //------------------------------------------------------------------------------

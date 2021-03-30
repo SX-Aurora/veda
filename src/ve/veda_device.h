@@ -27,8 +27,10 @@ VEDAresult	vedaGetErrorString	(VEDAresult error, const char** pStr);
 }
 
 template<typename T>
-VEDAresult vedaMemPtr(T** ptr, VEDAdeviceptr vptr) {
+VEDA_DEPRECATED(inline VEDAresult vedaMemPtr(T** ptr, VEDAdeviceptr vptr)) {
 	return vedaMemPtr((void**)ptr, vptr);
 }
+
+#include <veda_ptr.h>
 
 #endif
