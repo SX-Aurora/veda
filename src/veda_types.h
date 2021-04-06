@@ -55,6 +55,33 @@ struct __VEDAdeviceptr {
 
 	typedef veda::Context*		VEDAcontext;
 	typedef veda::Module*		VEDAmodule;
+
+	template<typename T = char>
+	class VEDAmpiptr {
+		VEDAdeviceptr	m_ptr;
+	
+	public:
+		inline			VEDAmpiptr		(VEDAdeviceptr ptr = 0)	: m_ptr(ptr)	{							}
+		inline			VEDAmpiptr		(const VEDAmpiptr<T>& o): m_ptr(o.m_ptr){							}
+		inline			operator VEDAdeviceptr	(void) const				{	return m_ptr;					}
+		inline			operator VEDAdeviceptr*	(void) 					{	return &m_ptr;					}
+		inline			operator void*		(void) const				{	return m_ptr->hmem();				}
+		inline	VEDAmpiptr<T>	operator&		(void) const				{	return *this;					}
+		inline	VEDAmpiptr<T>	operator*		(void) const				{	return *this;					}
+		inline	VEDAmpiptr<T>	operator+		(const size_t offset) const		{	return {m_ptr + offset * sizeof(T)};		}
+		inline	VEDAmpiptr<T>	operator[]		(const size_t offset) const		{	return {m_ptr + offset * sizeof(T)};		}
+		inline	VEDAmpiptr<T>&	operator++		(int)					{	return *this += 1;				}
+		inline	VEDAmpiptr<T>&	operator++		(void)					{	return *this += 1;				}
+		inline	VEDAmpiptr<T>&	operator+=		(const size_t offset)			{	m_ptr += offset * sizeof(T); return *this;	}
+		inline	VEDAmpiptr<T>&	operator--		(int)					{	return *this -= 1;				}
+		inline	VEDAmpiptr<T>&	operator--		(void)					{	return *this -= 1;				}
+		inline	VEDAmpiptr<T>&	operator-=		(const size_t offset)			{	m_ptr -= offset * sizeof(T); return *this;	}
+
+		template<typename TT>
+		inline operator VEDAmpiptr<TT>(void) const {
+			return VEDAmpiptr<TT>(m_ptr);
+		}
+	};
 #else
 	struct __VEDAcontext;
 	struct __VEDAmodule;

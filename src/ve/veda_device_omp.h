@@ -4,7 +4,7 @@
 #error "veda_device_omp.h only supports C++!"
 #endif
 
-#include "veda_device.h"
+#include <cstdint>
 #include <omp.h>
 #include <type_traits>
 #include <functional>
@@ -62,12 +62,13 @@ inline void veda_omp(const T cnt, F func) {
 
 //------------------------------------------------------------------------------
 template<typename T, typename F>
-inline void veda_omp_simd(const T cnt, F func) {
+inline void veda_omp_simd(const T cnt, F func, T vl = 0) {
 	T nthreads = omp_get_max_threads();
 
-	T vl = 512;
-	if(sizeof(T) == 8)
-		vl = 256;
+	if(vl == 0) {
+		if(sizeof(T) == 8)	vl = 256;
+		else			vl = 512;
+	}
 
 	if(nthreads > T(1) && cnt > vl) {
 		#pragma omp parallel

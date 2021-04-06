@@ -17,12 +17,15 @@ TARGET_LINK_LIBRARIES(veda_test5 veda)
 ADD_EXECUTABLE(veda_test6 ${CMAKE_CURRENT_LIST_DIR}/veda_6.c)
 TARGET_LINK_LIBRARIES(veda_test6 veda)
 
+ADD_EXECUTABLE(veda_mpi ${CMAKE_CURRENT_LIST_DIR}/veda_mpi.cpp)
+TARGET_LINK_LIBRARIES(veda_mpi veda)
+
 ADD_EXECUTABLE(vera_test1 ${CMAKE_CURRENT_LIST_DIR}/vera_1.cpp)
 TARGET_LINK_LIBRARIES(vera_test1 vera)
 
 ADD_EXECUTABLE(vera_test2 ${CMAKE_CURRENT_LIST_DIR}/vera_2.cpp)
 TARGET_LINK_LIBRARIES(vera_test2 vera)
 
-INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 vera_test1 vera_test2 RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
+INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 veda_mpi vera_test1 vera_test2 RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
 
 ADD_SUBDIRECTORY(ve)

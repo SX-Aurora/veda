@@ -1,4 +1,5 @@
 #include "veda/veda.hpp"
+#include <veo_hmem_macros.h>
 
 extern "C" {
 //------------------------------------------------------------------------------
@@ -72,7 +73,15 @@ VEDAresult vedaArgsSetU64(VEDAargs args, const int idx, const uint64_t value) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaArgsSetRaw(VEDAargs args, const int idx, const VEDAdeviceptr value) {
+VEDAresult vedaArgsSetHMEM(VEDAargs args, const int idx, const void* value) {
+	if(!args)		return VEDA_ERROR_INVALID_ARGS;
+	if(!IS_VE(value))	return VEDA_ERROR_INVALID_VALUE;
+	CVEO(veo_args_set_u64(args, idx, VIRT_ADDR_VE(value)));
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaArgsSetPtr(VEDAargs args, const int idx, const VEDAdeviceptr value) {
 	if(!args)	return VEDA_ERROR_INVALID_ARGS;
 	void* ptr;
 	CVEDA(vedaMemPtr(&ptr, value));
@@ -81,7 +90,7 @@ VEDAresult vedaArgsSetRaw(VEDAargs args, const int idx, const VEDAdeviceptr valu
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaArgsSetPtr(VEDAargs args, const int idx, const VEDAdeviceptr value) {
+VEDAresult vedaArgsSetVPtr(VEDAargs args, const int idx, const VEDAdeviceptr value) {
 	if(!args)	return VEDA_ERROR_INVALID_ARGS;
 	CVEO(veo_args_set_u64(args, idx, (uint64_t)value));
 	return VEDA_SUCCESS;

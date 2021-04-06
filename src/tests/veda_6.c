@@ -124,8 +124,8 @@ int main(int argc, char** argv) {
 		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr2, 0, 0);
 		VEDAargs args;
 		CHECK(vedaArgsCreate(&args));
-		CHECK(vedaArgsSetRaw(args, 0, ptr));
-		CHECK(vedaArgsSetPtr(args, 1, ptr2));
+		CHECK(vedaArgsSetPtr(args, 0, ptr));
+		CHECK(vedaArgsSetVPtr(args, 1, ptr2));
 		CHECK(vedaArgsSetU64(args, 2, cnt));
 		CHECK(vedaLaunchKernel(func, 0, args));
 		printf("vedaLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, ptr, ptr2, cnt);

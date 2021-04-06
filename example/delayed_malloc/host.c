@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
 
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
-	VEDA(vedaArgsSetPtr(args, 0, host_allocated));
-	VEDA(vedaArgsSetPtr(args, 1, device_allocated));
+	VEDA(vedaArgsSetVPtr(args, 0, host_allocated));
+	VEDA(vedaArgsSetVPtr(args, 1, device_allocated));
 	VEDA(vedaArgsSetU64(args, 2, size));
 	VEDA(vedaLaunchKernelEx(func, 0, args, 1));
 	VEDA(vedaMemcpyDtoHAsync(workload, device_allocated, size, 0));
