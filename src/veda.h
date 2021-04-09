@@ -54,7 +54,12 @@ VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAde
 VEDAresult	vedaDeviceGetCount		(int* count);
 VEDAresult	vedaDeviceGetName 		(char* name, int len, VEDAdevice dev);
 VEDAresult	vedaDeviceGetPower		(float* power, VEDAdevice dev);
+VEDAresult	vedaDeviceGetCurrent		(float* current, VEDAdevice dev);
+VEDAresult	vedaDeviceGetVoltage		(float* voltage, VEDAdevice dev);
 VEDAresult	vedaDeviceGetTemp		(float* tempC, const int coreIdx, VEDAdevice dev);
+VEDAresult	vedaDeviceGetPhysicalId		(int* id, VEDAdevice dev);
+VEDAresult	vedaDeviceGetAVEOId		(int* id, VEDAdevice dev);
+VEDAresult	vedaDeviceGetNUMAId		(int* id, VEDAdevice dev);
 VEDAresult	vedaDevicePrimaryCtxGetState	(VEDAdevice dev, uint32_t* flags, int* active);
 VEDAresult	vedaDevicePrimaryCtxRelease	(VEDAdevice dev);
 VEDAresult	vedaDevicePrimaryCtxReset	(VEDAdevice dev);
@@ -137,23 +142,27 @@ struct VEDAstack {
 		ptr(_ptr), intent(_intent), size(_size) {}
 };
 
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAdeviceptr value) {
+	return vedaArgsSetVPtr(args, idx, value);
+}
+
 template<typename T>
-typename std::enable_if<(sizeof(T) == 1), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+inline typename std::enable_if<(sizeof(T) == 1), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	return vedaArgsSetU8(args, idx, *reinterpret_cast<const uint8_t*>(&value));
 }
 
 template<typename T>
-typename std::enable_if<(sizeof(T) == 2), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+inline typename std::enable_if<(sizeof(T) == 2), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	return vedaArgsSetU16(args, idx, *reinterpret_cast<const uint16_t*>(&value));
 }
 
 template<typename T>
-typename std::enable_if<(sizeof(T) == 4), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+inline typename std::enable_if<(sizeof(T) == 4), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	return vedaArgsSetU32(args, idx, *reinterpret_cast<const uint32_t*>(&value));
 }
 
 template<typename T>
-typename std::enable_if<(sizeof(T) == 8), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+inline typename std::enable_if<(sizeof(T) == 8), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	return vedaArgsSetU64(args, idx, *reinterpret_cast<const uint64_t*>(&value));
 }
 
@@ -176,11 +185,6 @@ inline VEDAresult vedaLaunchKernel(VEDAfunction func, VEDAstream stream, Args...
 	VEDAargs args = 0;
 	CVEDA(vedaArgsCreate(&args));
 	return __vedaLaunchKernel(func, stream, args, 0, vargs...);
-}
-
-inline void* __VEDAdeviceptr::hmem(void) const {
-	void* ptr = 0;
-	return vedaMemHMEM(&ptr, this) != VEDA_SUCCESS ? 0 : ptr;
 }
 
 #endif

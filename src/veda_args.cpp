@@ -83,17 +83,13 @@ VEDAresult vedaArgsSetHMEM(VEDAargs args, const int idx, const void* value) {
 //------------------------------------------------------------------------------
 VEDAresult vedaArgsSetPtr(VEDAargs args, const int idx, const VEDAdeviceptr value) {
 	if(!args)	return VEDA_ERROR_INVALID_ARGS;
-	void* ptr;
-	CVEDA(vedaMemPtr(&ptr, value));
-	CVEO(veo_args_set_u64(args, idx, (uint64_t)ptr));
+	CVEO(veo_args_set_u64(args, idx, (uint64_t)VEDAptr<>(value).ptr()));
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaArgsSetVPtr(VEDAargs args, const int idx, const VEDAdeviceptr value) {
-	if(!args)	return VEDA_ERROR_INVALID_ARGS;
-	CVEO(veo_args_set_u64(args, idx, (uint64_t)value));
-	return VEDA_SUCCESS;
+	return vedaArgsSetU64(args, idx, (uint64_t)value);
 }
 
 //------------------------------------------------------------------------------

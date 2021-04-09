@@ -22,7 +22,7 @@ void Devices::report(void) {
 
 //------------------------------------------------------------------------------
 Device& Devices::get(const VEDAdeviceptr vptr) {
-	return get(vptr->device());
+	return get(VEDA_GET_DEVICE(vptr));
 }
 
 //------------------------------------------------------------------------------

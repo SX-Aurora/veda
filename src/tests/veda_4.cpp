@@ -25,13 +25,13 @@ int main(int argc, char** argv) {
 		VEDAcontext ctx;
 		CHECK(vedaCtxCreate(&ctx, 0, dev));
 
-		VEDAdeviceptr vptr;
+		VEDAptr<char> vptr;
 		CHECK(vedaMemAlloc(&vptr, 128));
 
-		auto res  = vptr->ptrSize();
-		auto hmem = vptr->hmem();
+		auto res  = vptr.ptrSize();
+		auto hmem = vptr.hmem();
 
-		printf("VPTR: 0x%016llx, Raw: 0x%016llx, HMEM: 0x%016llx, Size: %lluB\n", vptr, res.ptr, hmem, res.size);
+		printf("VPTR: 0x%016llx, Raw: 0x%016llx, HMEM: 0x%016llx, Size: %lluB\n", (VEDAdeviceptr)vptr, res.ptr, hmem, res.size);
 
 		CHECK(vedaMemFree(vptr));
 	}

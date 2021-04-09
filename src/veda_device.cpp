@@ -8,6 +8,9 @@ VEDAresult	vedaDeviceGetCount		(int* count)						{	GUARDED(*count = veda::Device
 VEDAresult	vedaDeviceTotalMem		(size_t* bytes, VEDAdevice dev)				{	GUARDED(*bytes = veda::Devices::get(dev).memorySize();)		}
 VEDAresult	vedaDevicePrimaryCtxRelease	(VEDAdevice dev)					{	return VEDA_SUCCESS;						}
 VEDAresult	vedaDevicePrimaryCtxSetFlags	(VEDAdevice dev, uint32_t flags)			{	return VEDA_SUCCESS;						}
+VEDAresult	vedaDeviceGetPhysicalId		(int* id, VEDAdevice dev)				{	GUARDED(*id = veda::Devices::get(dev).sensorId();)		}
+VEDAresult	vedaDeviceGetAVEOId		(int* id, VEDAdevice dev)				{	GUARDED(*id = veda::Devices::get(dev).aveoId();)		}
+VEDAresult	vedaDeviceGetNUMAId		(int* id, VEDAdevice dev)				{	GUARDED(*id = veda::Devices::get(dev).numaId();)		}
 
 //------------------------------------------------------------------------------
 VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB) {
@@ -45,6 +48,10 @@ VEDAresult vedaDeviceGetPower(float* watts, VEDAdevice dev) {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaDeviceGetCurrent(float* current, VEDAdevice dev) { GUARDED(*current = veda::Devices::get(dev).powerCurrent();)	}
+VEDAresult vedaDeviceGetVoltage(float* voltage, VEDAdevice dev) { GUARDED(*voltage = veda::Devices::get(dev).powerVoltage();)	}
+
+//------------------------------------------------------------------------------
 VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev) {
 	GUARDED(
 		if(attrib == VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO) {
@@ -60,6 +67,7 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 					case VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE:		return device.cacheL1d();
 					case VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE:		return device.cacheL1i();
 					case VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE:		return device.cacheL2();
+					case VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE:		return device.cacheLLC();
 					case VEDA_DEVICE_ATTRIBUTE_ABI_VERSION:			return device.versionAbi();
 					case VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION:		return device.versionFirmware();
 				}

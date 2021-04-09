@@ -17,14 +17,15 @@ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size_t size) {
 	assert(size);
 	assert(_vptr);
 
-	if(vptr->idx() == 0)
+	auto idx = VEDA_GET_IDX(vptr);
+	if(idx == 0)
 		return VEDA_ERROR_UNKNOWN_VPTR;
-	if(vptr->offset())
+	if(VEDA_GET_OFFSET(vptr))
 		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 	*ptr = malloc(size);
 	if(*ptr == 0)		
 		return VEDA_ERROR_OUT_OF_MEMORY;
-	if(!veda_ptrs.emplace(MAP_EMPLACE(vptr->idx(), *ptr, size)).second)
+	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, *ptr, size)).second)
 		return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
 	return VEDA_SUCCESS;
 }
@@ -38,9 +39,9 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 	LOCK();
-	if(vptr->offset())
+	if(VEDA_GET_OFFSET(vptr))
 		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
-	auto it = veda_ptrs.find(vptr->idx());
+	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
 		auto ptr = std::get<0>(it->second);
 		if(!ptr)
@@ -59,9 +60,9 @@ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 	LOCK();
 	*ptr = 0;
 
-	auto it = veda_ptrs.find(vptr->idx());
+	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		*ptr = ((char*)std::get<0>(it->second)) + vptr->offset();
+		*ptr = ((char*)std::get<0>(it->second)) + VEDA_GET_OFFSET(vptr);
 		return VEDA_SUCCESS;
 	}
 	return VEDA_ERROR_UNKNOWN_VPTR;
@@ -73,9 +74,9 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 	*ptr = 0;
 	*size = 0;
 
-	auto it = veda_ptrs.find(vptr->idx());
+	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		*ptr = ((char*)std::get<0>(it->second)) + vptr->offset();
+		*ptr = ((char*)std::get<0>(it->second)) + VEDA_GET_OFFSET(vptr);
 		*size = std::get<1>(it->second);
 		return VEDA_SUCCESS;
 	}
@@ -86,7 +87,7 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 	LOCK();
 
-	auto it = veda_ptrs.find(vptr->idx());
+	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
 		*size = std::get<1>(it->second);
 		return VEDA_SUCCESS;

@@ -117,8 +117,8 @@ int main(int argc, char** argv) {
 
 		void* ptr2;
 		CHECK(veraMallocAsync(&ptr2, 0, 0));
-		CHECK(veraLaunchKernel(func, 0, (int*)(*(VEDAdeviceptr)ptr), ptr2, cnt));
-		printf("veraLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, (int*)(*(VEDAdeviceptr)ptr), ptr2, cnt);
+		CHECK(veraLaunchKernel(func, 0, VEDAptr<int>(VERA2VEDA(ptr)).ptr(), ptr2, cnt));
+		printf("veraLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, VEDAptr<int>(VERA2VEDA(ptr)).ptr(), ptr2, cnt);
 
 		CHECK(veraMemcpyAsync(host, ptr2, size, veraMemcpyDeviceToHost, 0));
 		printf("veraMemcpyAsync(%p, %p, %llu, %i)\n", host, ptr2, size, 0);

@@ -5,8 +5,9 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
-| v0.10.0rc5 | Added boundary checks for Memcopy and MemSet. Added ```vedaArgsSetHMEM```. Added ```veda_device_omp.h``` parallelization primitives for C++. Added experimental ```VEDAmpiptr``` for easier usage with VE-MPI. |
-| v0.10.0rc4 | Increased VEDA offset limit to 128GB. Added VEDAdeviceptr->X functions in C++. Renamed ```vedaArgsSetPtr``` to ```vedaArgsSetVPtr```. Added ```vedaArgsSetPtr``` to automatically translate ```VEDAdeviceptr``` to ```void*```. Fixed VEDA_VISIBLE_DEVICES to obey NUMA mode. |
+| v0.10.0 | Renamed and improved ```VEDAmpiptr``` to ```VEDAptr<typename>```. Removed ```VEDAdeviceptr->X``` functions, as they are now part of ```VEDAptr```. Added ```veda-smi``` executable. |
+| v0.10.0rc5 | Added boundary checks for Memcopy and MemSet. Added ```vedaArgsSetHMEM```. Added ```veda_device_omp.h``` parallelization primitives for C++. Added experimental ```VEDAmpiptr``` for easier usage with VE-MPI. Added/corrected some of the sensor readings, i.e. LLC Cache, Total Device Memory, ... |
+| v0.10.0rc4 | Increased VEDA offset limit to 128GB. Added ```VEDAdeviceptr->X``` functions in C++. Renamed ```vedaArgsSetPtr``` to ```vedaArgsSetVPtr```. Added ```vedaArgsSetPtr``` to automatically translate ```VEDAdeviceptr``` to ```void*```. Fixed VEDA_VISIBLE_DEVICES to obey NUMA mode. |
 | v0.10.0rc3 | Added AVEO symlinks. Fixed wrong include. |
 | v0.10.0rc2 | Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static. |
 | v0.10.0rc1 | Fixed 0°C core temperatures. Added NUMA support. Each NUMA node becomes a separate VEDAdevice. Added ```vedaDeviceDistance(float**, VEDAdevice, VEDAdevice)``` to determine the relationship between two VEDAdevices (0.0 == same device, 0.5 == same physical device but different NUMA node, 1.0 == different physical device). Added ```vedaMemGetHMEMPointer(void**, VEDAdeviceptr)``` to translate VEDA pointer to HMEM pointer. |
@@ -128,6 +129,79 @@ In CUDA streams can be used to create different execution queues, to overlap com
 1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different stream. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
 
 Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal number of cores that get use for either mode. If the env var is not set, VEDA uses all available cores of the hardware.
+
+### Advanced VEDA C++ Ptr
+When you use C++, you can use the ```VEDAptr<typename>``` that gives you more directly control over the ```VEDAdeviceptr```, i.e. you can use ```vptr.size()```, ```vptr.device()```, ... . The ```typename``` is used to automatically determine the correct offsets when executing ```vptr += offset;```.
+
+### VEDA-NEC MPI integration
+The VEO-aware NEC MPI ( https://www.hpc.nec/forums/topic?id=pgmcA8 ) enables to much easier implement hybrid VE applications. For this, so called HMEM pointers have been introduced in VEO. Starting with v0.10 VEDA also supports HMEM pointers via the functions ```vedaGetHMEM(void*, VEDAdeviceptr)``` or ```VEDAptr<> vptr; vptr.hmem()``` (C++ only). To make it more comfortable to use you can directly pass ```VEDAptr<typename>``` instances to the ```mpi_*``` method, as shown in this example:
+
+```cpp
+VEDAptr<float> vptr;
+vedaMemAlloc(&vptr, size);
+vedaMemcpyHtoD(vptr, hptr, size);
+mpi_send(vptr, ...);
+```
+
+### NUMA Support
+VEDA supports VE NUMA nodes since v0.10. To enable NUMA on your system you need to execute (set ```-N ?``` to specific device index):
+```bash
+VCMD="sudo /opt/nec/ve/bin/vecmd -N ?"
+$VCMD vconfig set partitioning_mode on
+$VCMD state set off
+$VCMD state set mnt
+$VCMD reset card
+```
+
+VEDA then recognizes each NUMA node as a separate device, i.e. with 2 physical devices in NUMA mode, VEDA would show 4 devices. You can use ```VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB)``` to determine the relationship of two VEDAdevices.
+
+```
+distance == 0.0; // same device
+distance == 0.5; // same physical device, different NUMA node
+distance == 1.0; // differeny physical device
+```
+
+### VEDA-smi
+The executable ```veda-smi``` displays available VEDA devices in your system. It uses the ```VEDA_VISIBLE_DEVICES``` env var and therefore only shows the devices that your VEDA application would be able to use. Use ```VEDA_VISIBLE_DEVICES= veda-smi``` to ensure that you see all installed devices.
+
+```
+╔ veda-smi ═════════════════════════════════════════════════════════════════════╗
+║ VEDA Version: 0.10.0     AVEO Version: 0.9.15                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌── #0  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+  ┌ Physical: 1.0
+  ├ AVEO:     0.0
+  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Firmware: 5399
+  ├ Memory:   49152 MiB
+  ├ Cache:    LLC: 8192kB, L2: 256kB, L1d: 32kB, L1i: 32kB
+  ├ Temp:     56.4°C 56.4°C 57.0°C 56.1°C
+  └ Power:    18.0W (11.9V, 1.5A)
+└───────────────────────────────────────────────────────────────────────────────┘
+
+┌── #1  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+  ┌ Physical: 1.1
+  ├ AVEO:     0.1
+  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Firmware: 5399
+  ├ Memory:   49152 MiB
+  ├ Cache:    LLC: 8192kB, L2: 256kB, L1d: 32kB, L1i: 32kB
+  ├ Temp:     56.1°C 56.4°C 55.9°C 56.0°C
+  └ Power:    18.0W (11.9V, 1.5A)
+└───────────────────────────────────────────────────────────────────────────────┘
+
+┌── #2  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+  ┌ Physical: 0.0
+  ├ AVEO:     1.0
+  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Firmware: 5399
+  ├ Memory:   49152 MiB
+  ├ Cache:    LLC: 16384kB, L2: 256kB, L1d: 32kB, L1i: 32kB
+  ├ Temp:     53.8°C 53.5°C 54.1°C 53.8°C 53.8°C 54.1°C 53.2°C 53.5°C
+  └ Power:    36.3W (11.9V, 3.1A)
+└───────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Limitations/Known Problems:
 1. VEDA only supports one ```VEDAcontext``` per device.

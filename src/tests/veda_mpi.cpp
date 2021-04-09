@@ -15,8 +15,8 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
-void mpi_something(void* ptr, VEDAdeviceptr vptr, VEDAmpiptr<float> mpi) {
-	printf("VOID*: %p, VPTR: %p, VE: %p, HMEM: %p\n", ptr, vptr, vptr->ptr(), vptr->hmem());
+void mpi_something(void* ptr, VEDAptr<double> vptr) {
+	printf("VOID*: %p, VPTR: %p, VE: %p, HMEM: %p\n", ptr, (VEDAdeviceptr)vptr, vptr.ptr(), vptr.hmem());
 }
 
 int main(int argc, char** argv) {
@@ -25,20 +25,20 @@ int main(int argc, char** argv) {
 	VEDAcontext ctx;
 	CHECK(vedaCtxCreate(&ctx, 0, 0));
 	
-	VEDAmpiptr<float> mpi;
-	CHECK(vedaMemAlloc(mpi, 128));
+	VEDAptr<char> mpi;
+	CHECK(vedaMemAlloc(&mpi, 128));
 
-	mpi_something(mpi, mpi, mpi);
-	mpi_something(mpi, mpi, mpi);
+	mpi_something(mpi, mpi);
+	mpi_something(mpi, mpi);
 
 	auto copy = mpi;
-	mpi_something(copy, copy, copy);
+	mpi_something(copy, copy);
 
 	auto off = &mpi[25];
-	mpi_something(off, off, off);
+	mpi_something(off, off);
 	
-	auto off2 = mpi + 0xDEADBEEF / sizeof(float);
-	mpi_something(off2, off2, off2);
+	auto off2 = mpi + 0xDEADBEEF;
+	mpi_something(off2, off2);
 
 	CHECK(vedaMemFree(mpi));
 

@@ -23,11 +23,11 @@ namespace veda {
 			VEDAmodule		m_lib;
 			VEDAidx			m_memidx;
 
-		VEDAdeviceptr	newVPTR			(veo_ptr** ptr, const size_t size);
-		PtrTuple	getBasePtr		(VEDAdeviceptr vptr);
-		void		free			(VEDAdeviceptr vptr);
-		void		incMemIdx		(void);
-		void		syncPtrs		(void);
+		VEDAdeviceptr		newVPTR			(veo_ptr** ptr, const size_t size);
+		PtrTuple		getBasePtr		(VEDAdeviceptr vptr);
+		void			free			(VEDAdeviceptr vptr);
+		void			incMemIdx		(void);
+		void			syncPtrs		(void);
 
 	public:
 					Context			(Device& device, const VEDAcontext_mode mode);

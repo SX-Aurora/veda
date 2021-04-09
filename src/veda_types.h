@@ -16,36 +16,69 @@ typedef uint64_t		VEDAfunction;
 typedef uint64_t (*VEDAhost_function)(void*);
 typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
 
-struct __VEDAdeviceptr;
-typedef const struct __VEDAdeviceptr* VEDAdeviceptr;
-
-struct __VEDAdeviceptr {
-	char* _;
+typedef int8_t* VEDAdeviceptr;
 
 #if __cplusplus
-	template<typename T>
-	struct Tuple {
-		T* const	ptr;
-		const size_t	size;
-		inline Tuple(T* _ptr, const size_t _size) : ptr(_ptr), size(_size) {}
-	};
+	template<typename T = char>
+	class VEDAptr {
+		VEDAdeviceptr m_ptr;
 
-							__VEDAdeviceptr	(void) = delete;
-					Tuple<void>	ptrSize		(void) const;
-					VEDAdevice	device		(void) const;
-					VEDAdeviceptr	base		(void) const;
-					VEDAidx		idx		(void) const;
-					size_t		offset		(void) const;
-					size_t		size		(void) const;
-					void*		ptr		(void) const;
-		template<typename T>	Tuple<T>	ptrSize		(void) const;
-		template<typename T>	operator	T		(void) const;
-		
+	public:
+		struct Tuple {
+			T* const	ptr;
+			const size_t	size;
+			inline Tuple(T* _ptr, const size_t _size) : ptr(_ptr), size(_size) {}
+		};
+
+		class Ref {
+			const VEDAdeviceptr m_ptr;
+
+		public:
+			inline 			Ref		(const VEDAdeviceptr ptr) : m_ptr(ptr)	{			}
+			inline VEDAptr<T>	operator&	(void) const				{ return {m_ptr};	}
+		};
+
+		class Ptr {
+			VEDAptr<T>& m_ref;
+		public:
+			inline		Ptr			(VEDAptr<T>& ref) : m_ref(ref)	{			}
+			inline operator const VEDAdeviceptr*	(void) const			{ return &m_ref.m_ptr;	}
+			inline operator VEDAdeviceptr*		(void)				{ return &m_ref.m_ptr;	}
+		};
+
+		inline			VEDAptr			(const VEDAdeviceptr ptr = 0)	: m_ptr(ptr)	{									}
+		inline			VEDAptr			(const VEDAptr<T>& o)		: m_ptr(o.m_ptr){									}
+		inline			operator VEDAdeviceptr	(void) const					{	return m_ptr;							}
+		inline	Ptr		operator&		(void) 						{	return {*this};							}
+		inline	Ref		operator*		(void) const					{	return {m_ptr};							}
+		inline	Ref		operator[]		(const size_t offset) const			{	return m_ptr + offset * sizeof(T);				}
+		inline	VEDAdevice	device			(void) const					{	return VEDA_GET_DEVICE(m_ptr);					}
+		inline	VEDAidx		idx			(void) const					{	return VEDA_GET_IDX(m_ptr);					}
+		inline	VEDAptr<T>	base			(void) const					{	return (VEDAdeviceptr)((uint64_t)m_ptr & ~VEDA_BITS_OFFSET);	}
+		inline	VEDAptr<T>	operator+		(const size_t offset) const			{	return m_ptr + offset * sizeof(T);				}
+		inline	VEDAptr<T>	operator++		(int)						{	auto o = m_ptr; m_ptr += sizeof(T); return o;			}
+		inline	VEDAptr<T>	operator--		(int)						{	auto o = m_ptr; m_ptr -= sizeof(T); return o;			}
+		inline	VEDAptr<T>&	operator++		(void)						{	return *this += 1;						}
+		inline	VEDAptr<T>&	operator+=		(const size_t offset)				{	m_ptr += offset * sizeof(T); return *this;			}
+		inline	VEDAptr<T>&	operator--		(void)						{	return *this -= 1;						}
+		inline	VEDAptr<T>&	operator-=		(const size_t offset)				{	m_ptr -= offset * sizeof(T); return *this;			}
+		inline	size_t		offset			(void) const					{	return VEDA_GET_OFFSET(m_ptr);					}
+
+			Tuple		ptrSize			(void) const;
+			size_t		size			(void) const;
+			T*		ptr			(void) const;
+
+		template<typename TT>
+		inline operator VEDAptr<TT> (void) const {
+			return m_ptr;
+		}
+
 	#ifndef __NEC__
-					void*		hmem		(void) const;
+				operator void*		(void) const;
+		void*		hmem			(void) const;
 	#endif
+	};
 #endif
-};
 
 #ifdef __cplusplus
 	namespace veda {
@@ -55,33 +88,6 @@ struct __VEDAdeviceptr {
 
 	typedef veda::Context*		VEDAcontext;
 	typedef veda::Module*		VEDAmodule;
-
-	template<typename T = char>
-	class VEDAmpiptr {
-		VEDAdeviceptr	m_ptr;
-	
-	public:
-		inline			VEDAmpiptr		(VEDAdeviceptr ptr = 0)	: m_ptr(ptr)	{							}
-		inline			VEDAmpiptr		(const VEDAmpiptr<T>& o): m_ptr(o.m_ptr){							}
-		inline			operator VEDAdeviceptr	(void) const				{	return m_ptr;					}
-		inline			operator VEDAdeviceptr*	(void) 					{	return &m_ptr;					}
-		inline			operator void*		(void) const				{	return m_ptr->hmem();				}
-		inline	VEDAmpiptr<T>	operator&		(void) const				{	return *this;					}
-		inline	VEDAmpiptr<T>	operator*		(void) const				{	return *this;					}
-		inline	VEDAmpiptr<T>	operator+		(const size_t offset) const		{	return {m_ptr + offset * sizeof(T)};		}
-		inline	VEDAmpiptr<T>	operator[]		(const size_t offset) const		{	return {m_ptr + offset * sizeof(T)};		}
-		inline	VEDAmpiptr<T>&	operator++		(int)					{	return *this += 1;				}
-		inline	VEDAmpiptr<T>&	operator++		(void)					{	return *this += 1;				}
-		inline	VEDAmpiptr<T>&	operator+=		(const size_t offset)			{	m_ptr += offset * sizeof(T); return *this;	}
-		inline	VEDAmpiptr<T>&	operator--		(int)					{	return *this -= 1;				}
-		inline	VEDAmpiptr<T>&	operator--		(void)					{	return *this -= 1;				}
-		inline	VEDAmpiptr<T>&	operator-=		(const size_t offset)			{	m_ptr -= offset * sizeof(T); return *this;	}
-
-		template<typename TT>
-		inline operator VEDAmpiptr<TT>(void) const {
-			return VEDAmpiptr<TT>(m_ptr);
-		}
-	};
 #else
 	struct __VEDAcontext;
 	struct __VEDAmodule;

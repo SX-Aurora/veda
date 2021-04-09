@@ -47,9 +47,9 @@ veraError_t veraMemcpy(void* dst, const void* src, size_t count, veraMemcpyKind 
 	
 	switch(kind) {
 		case veraMemcpyHostToHost:	memcpy(dst, src, count); return VEDA_SUCCESS;
-		case veraMemcpyHostToDevice:	return vedaMemcpyHtoD((VEDAdeviceptr)dst, src, count);
-		case veraMemcpyDeviceToHost:	return vedaMemcpyDtoH(dst, (VEDAdeviceptr)src, count);
-		case veraMemcpyDeviceToDevice:	return vedaMemcpyDtoD((VEDAdeviceptr)dst, (VEDAdeviceptr)src, count);
+		case veraMemcpyHostToDevice:	return vedaMemcpyHtoD(VERA2VEDA(dst), src, count);
+		case veraMemcpyDeviceToHost:	return vedaMemcpyDtoH(dst, VERA2VEDA(src), count);
+		case veraMemcpyDeviceToDevice:	return vedaMemcpyDtoD(VERA2VEDA(dst), VERA2VEDA(src), count);
 		case veraMemcpyDefault:
 			;
 	}
@@ -63,9 +63,9 @@ veraError_t veraMemcpyAsync(void* dst, const void* src, size_t count, veraMemcpy
 
 	switch(kind) {
 		case veraMemcpyHostToHost:		memcpy(dst, src, count); return VEDA_SUCCESS;
-		case veraMemcpyHostToDevice:		return vedaMemcpyHtoDAsync((VEDAdeviceptr)dst, src, count, stream);
-		case veraMemcpyDeviceToHost:		return vedaMemcpyDtoHAsync(dst, (VEDAdeviceptr)src, count, stream);
-		case veraMemcpyDeviceToDevice:		return vedaMemcpyDtoDAsync((VEDAdeviceptr)dst, (VEDAdeviceptr)src, count, stream);
+		case veraMemcpyHostToDevice:		return vedaMemcpyHtoDAsync(VERA2VEDA(dst), src, count, stream);
+		case veraMemcpyDeviceToHost:		return vedaMemcpyDtoHAsync(dst, VERA2VEDA(src), count, stream);
+		case veraMemcpyDeviceToDevice:		return vedaMemcpyDtoDAsync(VERA2VEDA(dst), VERA2VEDA(src), count, stream);
 		case veraMemcpyDefault:
 			;
 	};
@@ -122,8 +122,8 @@ veraError_t veraSetValidDevices(int* device_arr, int len) {
 veraError_t veraPointerGetAttributes(veraPointerAttributes* attributes, const void* ptr) {
 	CVEDA(veraInit());
 	
-	auto vptr = (VEDAdeviceptr)ptr;
-	attributes->device		= vptr->device();
+	auto vptr = VERA2VEDA(ptr);
+	attributes->device		= VEDA_GET_DEVICE(vptr);
 	attributes->hostPointer		= 0;
 	attributes->type		= veraMemoryTypeDevice;
 	CVEDA(vedaMemPtr(&attributes->devicePointer, vptr));

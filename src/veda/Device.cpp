@@ -2,25 +2,26 @@
 
 namespace veda {
 //------------------------------------------------------------------------------
-Context*	Device::ctx		(void) const					{	return m_ctx;						}
-VEDAdevice	Device::vedaId		(void) const					{	return m_vedaId;					}
-bool		Device::isNUMA		(void) const					{	return m_isNUMA;					}
-float		Device::powerCurrent	(void) const					{	return readSensor<float>("sensor_12")/1000.0f;		}
-float		Device::powerVoltage	(void) const					{	return readSensor<float>("sensor_8")/1000000.0f;	}
-int		Device::aveoId		(void) const					{	return m_aveoId;					}
-int		Device::cacheL1d	(void) const					{	return m_cacheL1d;					}
-int		Device::cacheL1i	(void) const					{	return m_cacheL1i;					}
-int		Device::cacheL2		(void) const					{	return m_cacheL2;					}
-int		Device::clockBase	(void) const					{	return m_clockBase;					}
-int		Device::clockMemory	(void) const					{	return m_clockMemory;					}
-int		Device::clockRate	(void) const					{	return m_clockRate;					}
-int		Device::cores		(void) const					{	return (int)m_cores.size();				}
-int		Device::memorySize	(void) const					{	return m_memorySize;					}
-int		Device::numaId		(void) const					{	return m_numaId;					}
-int		Device::sensorId	(void) const					{	return m_sensorId;					}
-int		Device::versionAbi	(void) const					{	return m_versionAbi;					}
-int		Device::versionFirmware	(void) const					{	return m_versionFirmware;				}
-uint64_t	Device::readSensor	(const char* file, const bool isHex) const	{	return Devices::readSensor(sensorId(), file, isHex);	}
+Context*	Device::ctx		(void) const					{	return m_ctx;								}
+VEDAdevice	Device::vedaId		(void) const					{	return m_vedaId;							}
+bool		Device::isNUMA		(void) const					{	return m_isNUMA;							}
+float		Device::powerCurrent	(void) const					{	return readSensor<float>("sensor_12")/1000.0f / (isNUMA() ? 2 : 1);	}
+float		Device::powerVoltage	(void) const					{	return readSensor<float>("sensor_8")/1000000.0f;			}
+int		Device::aveoId		(void) const					{	return m_aveoId;							}
+int		Device::cacheL1d	(void) const					{	return m_cacheL1d;							}
+int		Device::cacheL1i	(void) const					{	return m_cacheL1i;							}
+int		Device::cacheL2		(void) const					{	return m_cacheL2;							}
+int		Device::cacheLLC	(void) const					{	return m_cacheLLC;							}
+int		Device::clockBase	(void) const					{	return m_clockBase;							}
+int		Device::clockMemory	(void) const					{	return m_clockMemory;							}
+int		Device::clockRate	(void) const					{	return m_clockRate;							}
+int		Device::cores		(void) const					{	return (int)m_cores.size();						}
+int		Device::numaId		(void) const					{	return m_numaId;							}
+int		Device::sensorId	(void) const					{	return m_sensorId;							}
+int		Device::versionAbi	(void) const					{	return m_versionAbi;							}
+int		Device::versionFirmware	(void) const					{	return m_versionFirmware;						}
+size_t		Device::memorySize	(void) const					{	return m_memorySize;							}
+uint64_t	Device::readSensor	(const char* file, const bool isHex) const	{	return Devices::readSensor(sensorId(), file, isHex);			}
 
 //------------------------------------------------------------------------------
 Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, const int numaId) :
@@ -36,6 +37,7 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	m_cacheL1d		(readSensor<int>	("cache_l1d")),
 	m_cacheL1i		(readSensor<int>	("cache_l1i")),
 	m_cacheL2		(readSensor<int>	("cache_l2")),
+	m_cacheLLC		(readSensor<int>	("cache_llc") / (isNUMA() ? 2 : 1)),
 	m_versionAbi		(readSensor<int>	("abi_version")),
 	m_versionFirmware	(readSensor<int>	("fw_version")),
 	m_ctx			(0)

@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		VEDAdeviceptr ptr;
+		VEDAptr<int> ptr;
 		CHECK(vedaMemAllocAsync(&ptr, size, 0));
 		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr, size, 0);
 
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
 		VEDAdeviceptr ptr2;
 		CHECK(vedaMemAllocAsync(&ptr2, 0, 0));
 		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr2, 0, 0);
-		CHECK(vedaLaunchKernel(func, 0, (int*)*ptr, ptr2, cnt));
+		CHECK(vedaLaunchKernel(func, 0, ptr.ptr(), ptr2, cnt));
 		printf("vedaLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, ptr, ptr2, cnt);
 
 		CHECK(vedaCtxSynchronize());

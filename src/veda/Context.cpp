@@ -261,15 +261,15 @@ VEDAdeviceptr Context::newVPTR(veo_ptr** ptr, const size_t size) {
 
 //------------------------------------------------------------------------------
 void Context::free(VEDAdeviceptr vptr) {
-	ASSERT(vptr->device() == device().vedaId());
-	if(m_ptrs.erase(vptr->idx()) == 0)
+	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
+	if(m_ptrs.erase(VEDA_GET_IDX(vptr)) == 0)
 		throw VEDA_ERROR_UNKNOWN_VPTR;
 }
 
 //------------------------------------------------------------------------------
 Context::PtrTuple Context::getBasePtr(VEDAdeviceptr vptr) {
-	ASSERT(vptr->device() == device().vedaId());
-	auto it = m_ptrs.find(vptr->idx());
+	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
+	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it == m_ptrs.end())
 		throw VEDA_ERROR_UNKNOWN_VPTR;
 	if(std::get<0>(it->second) == 0)
@@ -309,7 +309,7 @@ void Context::syncPtrs(void) {
 VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 	veo_ptr* ptr;
 	auto vptr = newVPTR(&ptr, size);
-	if(size)
+	if(size) 
 		vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_ALLOC), VEDAstack(ptr, VEDA_ARGS_INTENT_INOUT, sizeof(veo_ptr)), vptr, size);
 	return vptr;
 }
@@ -321,7 +321,7 @@ Context::VPtrTuple Context::memAllocPitch(const size_t w_bytes, const size_t h, 
 
 //------------------------------------------------------------------------------
 void Context::memFree(VEDAdeviceptr vptr, VEDAstream stream) {
-	if(vptr->offset() != 0)
+	if(VEDA_GET_OFFSET(vptr) != 0)
 		throw VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 
 	// get physical pointer
@@ -338,7 +338,7 @@ Context::PtrTuple Context::getPtr(VEDAdeviceptr vptr) {
 	if(std::get<0>(res) == 0)
 		return res;
 
-	std::get<0>(res) += vptr->offset();
+	std::get<0>(res) += VEDA_GET_OFFSET(vptr);
 	
 	return res;
 }
@@ -375,7 +375,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 	auto res	= getPtr(src);
 	auto ptr	= std::get<0>(res); ASSERT(ptr);
 	auto size	= std::get<1>(res); ASSERT(size);
-	if((bytes + src->offset()) > size)
+	if((bytes + VEDA_GET_OFFSET(src)) > size)
 		throw VEDA_ERROR_OUT_OF_BOUNDS;
 
 	LOCK();
@@ -389,7 +389,7 @@ void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, 
 	auto res	= getPtr(dst);
 	auto ptr	= std::get<0>(res); ASSERT(ptr);
 	auto size	= std::get<1>(res); ASSERT(size);
-	if((bytes + dst->offset()) > size)
+	if((bytes + VEDA_GET_OFFSET(dst)) > size)
 		throw VEDA_ERROR_OUT_OF_BOUNDS;
 
 	LOCK();
