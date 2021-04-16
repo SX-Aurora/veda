@@ -36,6 +36,8 @@ void setInitialized(const bool value) {
 		// Set Paths -----------------------------------------------------------
 		std::string veorun(home);
 		veorun.append("/libexec/aveorun");
+		if(std::getenv("VEDA_FTRACE"))
+			veorun.append("-ftrace");
 		setenv("VEORUN_BIN", veorun.c_str(), 1);
 
 		s_stdLib.append(home);

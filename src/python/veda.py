@@ -21,7 +21,7 @@ class VEDAdevice_attribute(enum.Enum):
 #-------------------------------------------------------------------------------
 path	= os.path.dirname(__file__)
 path	= os.path.abspath(os.path.abspath(path) + "/lib64")
-lib	= ctypes.cdll.LoadLibrary(os.path.join(path, 'libveda.so.0')) # TODO: use VEDA_API_VERSION from CMake!
+lib	= ctypes.cdll.LoadLibrary(os.path.join(path, 'libveda.so.0')) # TODO: use VEDA_VERSION_API from CMake!
 
 lib.vedaArgsCreate.argtypes			= [ctypes.POINTER(ctypes.c_void_p)]
 lib.vedaArgsDestroy.argtypes			= [ctypes.c_void_p]
