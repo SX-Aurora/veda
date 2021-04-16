@@ -15,7 +15,7 @@ extern "C" {
 VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size_t size) {
 	LOCK();
 	assert(size);
-	assert(_vptr);
+	assert(vptr);
 
 	auto idx = VEDA_GET_IDX(vptr);
 	if(idx == 0)
