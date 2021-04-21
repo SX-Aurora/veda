@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.10.3 | Filtering negative values from ```VEDA_VISIBLE_DEVICES```. |
 | v0.10.2 | Correct veda-smi RPATH to work without setting LD_LIBRARY_PATH. |
 | v0.10.1 | Added ```aveorun-ftrace```. Can be activated using ```VEDA_FTRACE=1``` env var. Renamed RPM packages to only include major version in package name, i.e. ```veda-0.10```. |
 | v0.10.0 | Renamed and improved ```VEDAmpiptr``` to ```VEDAptr<typename>```. Removed ```VEDAdeviceptr->X``` functions, as they are now part of ```VEDAptr```. Added ```veda-smi``` executable. |

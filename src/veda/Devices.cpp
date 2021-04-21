@@ -74,8 +74,11 @@ void Devices::initMapping(const std::set<int>& devices) {
 		std::string line;
 		while(ss.good()) {
 			std::getline(ss, line, ',');
-			if(line.size())
-				visible.emplace(std::atoi(line.c_str()));
+			if(line.size()) {
+				auto id = std::atoi(line.c_str());
+				if(id >= 0)
+					visible.emplace(id);
+			}
 			line.clear();
 		}
 	}
