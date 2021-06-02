@@ -175,7 +175,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 ┌── #0  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
   ┌ Physical: 1.0
   ├ AVEO:     0.0
-  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
   ├ Firmware: 5399
   ├ Memory:   49152 MiB
   ├ Cache:    LLC: 8192kB, L2: 256kB, L1d: 32kB, L1i: 32kB
@@ -186,7 +186,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 ┌── #1  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
   ┌ Physical: 1.1
   ├ AVEO:     0.1
-  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
   ├ Firmware: 5399
   ├ Memory:   49152 MiB
   ├ Cache:    LLC: 8192kB, L2: 256kB, L1d: 32kB, L1i: 32kB
@@ -197,7 +197,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 ┌── #2  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
   ┌ Physical: 0.0
   ├ AVEO:     1.0
-  ├ Clock:    current: 1400 GHz, base: 800 GHz, memory: 1600 GHz
+  ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
   ├ Firmware: 5399
   ├ Memory:   49152 MiB
   ├ Cache:    LLC: 16384kB, L2: 256kB, L1d: 32kB, L1i: 32kB

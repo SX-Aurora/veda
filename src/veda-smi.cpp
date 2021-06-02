@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 		printf("┐\n");
 		printf("  ┌ Physical: %1i.%1i\n", physical, numa);
 		printf("  ├ AVEO:     %1i.%1i\n", aveo, numa);
-		printf("  ├ Clock:    current: %i GHz, base: %i GHz, memory: %i GHz\n", clock_rate, clock_base, clock_memory);
+		printf("  ├ Clock:    current: %i MHz, base: %i MHz, memory: %i MHz\n", clock_rate, clock_base, clock_memory);
 		printf("  ├ Firmware: %i\n", firmware);
 		printf("  ├ Memory:   %llu MiB\n", total/1024/1024);
 		printf("  ├ Cache:    LLC: %ikB, L2: %ikB, L1d: %ikB, L1i: %ikB\n", llc, l2, l1d, l1i);
