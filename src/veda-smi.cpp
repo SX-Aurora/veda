@@ -61,6 +61,7 @@ int main(int argc, char** argv) {
 		printf("  ├ AVEO:     %1i.%1i\n", aveo, numa);
 		printf("  ├ Clock:    current: %i MHz, base: %i MHz, memory: %i MHz\n", clock_rate, clock_base, clock_memory);
 		printf("  ├ Firmware: %i\n", firmware);
+		printf("  ├ ABI:      %i\n", abi);
 		printf("  ├ Memory:   %llu MiB\n", total/1024/1024);
 		printf("  ├ Cache:    LLC: %ikB, L2: %ikB, L1d: %ikB, L1i: %ikB\n", llc, l2, l1d, l1i);
 		printf("  ├ Temp:     ");

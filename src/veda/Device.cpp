@@ -16,6 +16,7 @@ int		Device::clockBase	(void) const					{	return m_clockBase;							}
 int		Device::clockMemory	(void) const					{	return m_clockMemory;							}
 int		Device::clockRate	(void) const					{	return m_clockRate;							}
 int		Device::cores		(void) const					{	return (int)m_cores.size();						}
+int		Device::model		(void) const					{	return m_model;								}
 int		Device::numaId		(void) const					{	return m_numaId;							}
 int		Device::sensorId	(void) const					{	return m_sensorId;							}
 int		Device::versionAbi	(void) const					{	return m_versionAbi;							}
@@ -40,6 +41,7 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	m_cacheLLC		(readSensor<int>	("cache_llc") / (isNUMA() ? 2 : 1)),
 	m_versionAbi		(readSensor<int>	("abi_version")),
 	m_versionFirmware	(readSensor<int>	("fw_version")),
+	m_model			(readSensor<int>	("model")),
 	m_ctx			(0)
 {
 	int active = 0;

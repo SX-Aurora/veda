@@ -68,6 +68,7 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 					case VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE:		return device.cacheL1i();
 					case VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE:		return device.cacheL2();
 					case VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE:		return device.cacheLLC();
+					case VEDA_DEVICE_ATTRIBUTE_MODEL:			return device.model();
 					case VEDA_DEVICE_ATTRIBUTE_ABI_VERSION:			return device.versionAbi();
 					case VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION:		return device.versionFirmware();
 				}
@@ -82,10 +83,28 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 //------------------------------------------------------------------------------
 VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 	GUARDED(
-		int abi;
-		CVEDA(vedaDeviceGetAttribute(&abi, VEDA_DEVICE_ATTRIBUTE_ABI_VERSION, dev));
-		snprintf(name, len, "NEC SX-Aurora Tsubasa VE%i", abi);
-		// TODO: get VE10Ae, VE10A etc. special names?
+		auto& device = veda::Devices::get(dev);
+		auto version		= device.model();
+		auto cores		= device.cores();
+		auto memory		= device.memorySize()/1024/1024/1024;
+		auto clock_memory	= device.clockMemory();
+		auto clock_rate		= device.clockRate();
+
+		const char* model = [&] {
+			if(version == 1) {
+				if(memory == 48) {
+					if(clock_rate >= 1500)	return clock_memory < 1700 ? "10A" : "10AE";
+					else			return clock_memory < 1700 ? "10B" : "10BE";
+				} else if(memory == 24) {
+					return clock_memory < 1700 ? "10C" : "10CE";
+				}
+			} else if(version == 2) {
+				if(cores == 5 || cores == 10)	return "20A";
+				if(cores == 4 || cores == 8)	return "20B";
+			}
+			return "?";
+		}();
+		snprintf(name, len, "NEC SX-Aurora Tsubasa VE%s", model);
 	)
 }
 

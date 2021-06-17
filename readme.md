@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.10.4 | Fixed Identification of VE model. |
 | v0.10.3 | Filtering negative values from ```VEDA_VISIBLE_DEVICES```. |
 | v0.10.2 | Correct veda-smi RPATH to work without setting LD_LIBRARY_PATH. |
 | v0.10.1 | Added ```aveorun-ftrace```. Can be activated using ```VEDA_FTRACE=1``` env var. Renamed RPM packages to only include major version in package name, i.e. ```veda-0.10```. |
@@ -172,7 +173,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 ║ VEDA Version: 0.10.0     AVEO Version: 0.9.15                                 ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
-┌── #0  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+┌── #0  NEC SX-Aurora Tsubasa VE10B ────────────────────────────────────────────┐
   ┌ Physical: 1.0
   ├ AVEO:     0.0
   ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
@@ -183,7 +184,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
   └ Power:    18.0W (11.9V, 1.5A)
 └───────────────────────────────────────────────────────────────────────────────┘
 
-┌── #1  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+┌── #1  NEC SX-Aurora Tsubasa VE10B ────────────────────────────────────────────┐
   ┌ Physical: 1.1
   ├ AVEO:     0.1
   ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
@@ -194,7 +195,7 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
   └ Power:    18.0W (11.9V, 1.5A)
 └───────────────────────────────────────────────────────────────────────────────┘
 
-┌── #2  NEC SX-Aurora Tsubasa VE101 ────────────────────────────────────────────┐
+┌── #2  NEC SX-Aurora Tsubasa VE10B ────────────────────────────────────────────┐
   ┌ Physical: 0.0
   ├ AVEO:     1.0
   ├ Clock:    current: 1400 MHz, base: 800 MHz, memory: 1600 MHz
