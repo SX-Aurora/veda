@@ -5,6 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
+| v0.10.5 | added ```veda_omp_simd_reduce```. MemTrace only get printed when env var ```VEDA_MEM_TRACE=1``` is set. VEDA no longer overrides VEORUN_BIN if already been set by user. Added LICENSE to installation target. |
 | v0.10.4 | Fixed Identification of VE model. |
 | v0.10.3 | Filtering negative values from ```VEDA_VISIBLE_DEVICES```. |
 | v0.10.2 | Correct veda-smi RPATH to work without setting LD_LIBRARY_PATH. |

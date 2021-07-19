@@ -89,14 +89,17 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 //------------------------------------------------------------------------------
 Context::~Context(void) noexcept(false) {
 	syncPtrs();
-	for(auto& it : m_ptrs) {
-		auto idx	= it.first;
-		auto& size	= std::get<1>(it.second);
 
-		auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
-		printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, size);
+	auto mem_trace = std::getenv("VEDA_MEM_TRACE");
+	if(mem_trace && std::atoi(mem_trace)) {
+		for(auto& it : m_ptrs) {
+			auto idx	= it.first;
+			auto& size	= std::get<1>(it.second);
+			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
+			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, size);
+		}
 	}
-
+	
 	if(m_handle)
 		TVEO(veo_proc_destroy(m_handle));
 

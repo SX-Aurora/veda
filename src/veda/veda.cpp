@@ -19,12 +19,12 @@ void setInitialized(const bool value) {
 		throw VEDA_ERROR_NOT_INITIALIZED;
 
 	if(value) {
-		// Init OMP Threads ----------------------------------------------------
+		// Init OMP Threads --------------------------------------------
 		auto env = std::getenv("VE_OMP_NUM_THREADS");
 		if(env)
 			s_ompThreads = std::atoi(env);
 
-		// Init StdLib Path ----------------------------------------------------
+		// Init StdLib Path --------------------------------------------
 		// Stolen from: https://stackoverflow.com/questions/33151264/get-dynamic-library-directory-in-c-linux
 		Dl_info dl_info;
 		dladdr((void*)&veda::setInitialized, &dl_info);
@@ -33,18 +33,21 @@ void setInitialized(const bool value) {
 		pos = home.find_last_of('/', pos-1);	assert(pos != std::string::npos);
 		home.replace(pos, std::string::npos, "");
 
-		// Set Paths -----------------------------------------------------------
-		std::string veorun(home);
-		veorun.append("/libexec/aveorun");
-		if(std::getenv("VEDA_FTRACE"))
-			veorun.append("-ftrace");
-		setenv("VEORUN_BIN", veorun.c_str(), 1);
+		// Set Paths ---------------------------------------------------
+		if(!std::getenv("VEORUN_BIN")) {
+			std::string veorun(home);
+			veorun.append("/libexec/aveorun");
+			if(std::getenv("VEDA_FTRACE"))
+				veorun.append("-ftrace");
+			setenv("VEORUN_BIN", veorun.c_str(), 1);
+		}
 
 		s_stdLib.append(home);
 		s_stdLib.append("/libve/libveda.vso");
 
-		// Set VE_LD_LIBRARY_PATH if is not set --------------------------------
-		setenv("VE_LD_LIBRARY_PATH", ".", 0);
+		// Set VE_LD_LIBRARY_PATH if is not set ------------------------
+		if(!std::getenv("VE_LD_LIBRARY_PATH"))
+			setenv("VE_LD_LIBRARY_PATH", ".", 0);
 	}
 
 	// Set Initialized

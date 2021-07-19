@@ -84,3 +84,31 @@ inline void veda_omp_simd(const T cnt, F func, T vl = 0) {
 }
 
 //------------------------------------------------------------------------------
+template<typename T, typename F, typename M, typename R>
+inline M veda_omp_simd_reduce(const T cnt, F func, R reduction, M min, T vl = 0) {
+	T nthreads = omp_get_max_threads();
+
+	if(vl == 0) {
+		if(sizeof(T) == 8)	vl = 256;
+		else				vl = 512;
+	}
+
+	if(nthreads > T(1) && cnt > vl) {
+		M result = min;
+		#pragma omp parallel
+		{
+			T min, max;
+			veda_omp_schedule(min, max, cnt, vl);
+			if(min < max) {
+				auto local = func(min, max);
+				#pragma omp critical
+				result = reduction(result, local);
+			}
+		}
+		return result;
+	}
+	
+	return func(T(0), cnt);
+}
+
+//------------------------------------------------------------------------------
