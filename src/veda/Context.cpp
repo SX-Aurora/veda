@@ -42,8 +42,11 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	m_memidx(1)
 {
 	// Create AVEO proc ----------------------------------------------------
-	int cores	= std::min(device.cores(), veda::ompThreads());
 	int numStreams	= 0;
+	int cores	= device.cores();
+	if(auto omp = veda::ompThreads())
+		cores = std::min(cores, omp);
+
 	if(mode == VEDA_CONTEXT_MODE_OMP) {
 		char buffer[3];
 		snprintf(buffer, sizeof(buffer), "%i", cores);
@@ -57,15 +60,9 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	}
 	ASSERT(numStreams);
 
-	auto createProc = [this](void) {
-		auto handle = veo_proc_create(this->device().aveoId());
-		if(!handle)
-			throw VEDA_ERROR_CANNOT_CREATE_CONTEXT;
-		return handle;	
-	};
-
-	m_handle = createProc();
-	ASSERT(m_handle);
+	m_handle = veo_proc_create(this->device().aveoId());
+	if(!m_handle)
+		throw VEDA_ERROR_CANNOT_CREATE_CONTEXT;
 
 	// Load STDLib ---------------------------------------------------------
 	m_kernels.resize(VEDA_KERNEL_CNT);

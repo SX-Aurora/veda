@@ -35,6 +35,7 @@ namespace veda {
 				~Device		(void);
 		Context*	createCtx	(const VEDAcontext_mode mode);
 		Context*	ctx		(void) const;
+		Context*	unsafeCtx	(void) const;
 		VEDAdevice	vedaId		(void) const;
 		bool		isNUMA		(void) const;
 		float		coreTemp	(const int core) const;

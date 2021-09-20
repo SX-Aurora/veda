@@ -47,7 +47,10 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
-	GUARDED(veda::Devices::get(ptr).ctx()->memFree(ptr, stream);)
+	GUARDED(
+		if(auto ctx = veda::Devices::get(ptr).ctx())
+			ctx->memFree(ptr, stream);
+	)
 }
 
 //------------------------------------------------------------------------------

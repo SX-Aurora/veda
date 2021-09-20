@@ -112,7 +112,7 @@ VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* active) {
 	GUARDED(
 		*flags	= 0;
-		*active = veda::Devices::get(dev).ctx() != 0;
+		*active = veda::Devices::get(dev).unsafeCtx() != 0;
 	)
 }
 
@@ -120,7 +120,7 @@ VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* ac
 VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
 	GUARDED(
 		auto& device = veda::Devices::get(dev);
-		if(auto ctx = device.ctx()) {
+		if(auto ctx = device.unsafeCtx()) {
 			auto mode = ctx->mode();
 			device.destroyCtx();
 			device.createCtx(mode);
@@ -132,7 +132,7 @@ VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
 VEDAresult vedaDevicePrimaryCtxRetain(VEDAcontext* pctx, VEDAdevice dev) {
 	GUARDED(
 		auto& device = veda::Devices::get(dev);
-		if(!device.ctx())
+		if(!device.unsafeCtx())
 			device.createCtx(VEDA_CONTEXT_MODE_OMP);
 		*pctx = device.ctx();
 	)
