@@ -27,3 +27,54 @@ extern "C" void ve_hello_world(int stream) {
 	}
 	printf("Stream %i DONE!\n", stream);
 }
+
+extern "C" void ve_test_memset_d8(VEDAdeviceptr _ptr, const size_t cnt, const uint8_t value) {
+	auto ptr = VEDAptr<uint8_t>(_ptr).ptr();
+	for(size_t i = 0; i < cnt; i++) {
+		if(ptr[i] != value) {
+			printf("FAILED vedaMemsetD8, expected %02X but found %02X\n", (int)value, (int)ptr[i]);
+			return;
+		}
+	}
+}
+
+extern "C" void ve_test_memset_d16(VEDAdeviceptr _ptr, const size_t cnt, const uint16_t value) {
+	auto ptr = VEDAptr<uint16_t>(_ptr).ptr();
+	for(size_t i = 0; i < cnt; i++) {
+		if(ptr[i] != value) {
+			printf("FAILED vedaMemsetD16, expected %04X but found %04X\n", (int)value, (int)ptr[i]);
+			return;
+		}
+	}
+}
+
+extern "C" void ve_test_memset_d32(VEDAdeviceptr _ptr, const size_t cnt, const uint32_t value) {
+	auto ptr = VEDAptr<uint32_t>(_ptr).ptr();
+	for(size_t i = 0; i < cnt; i++) {
+		if(ptr[i] != value) {
+			printf("FAILED vedaMemsetD32, expected %08X but found %08X\n", value, ptr[i]);
+			return;
+		}
+	}
+}
+
+extern "C" void ve_test_memset_d64(VEDAdeviceptr _ptr, const size_t cnt, const uint64_t value) {
+	auto ptr = VEDAptr<uint64_t>(_ptr).ptr();
+	for(size_t i = 0; i < cnt; i++) {
+		if(ptr[i] != value) {
+			printf("FAILED vedaMemsetD64, expected %016llX but found %016llX\n", value, ptr[i]);
+			return;
+		}
+	}
+}
+
+extern "C" void ve_test_memset_d128(VEDAdeviceptr _ptr, const size_t cnt, const uint64_t x, const uint64_t y) {
+	typedef struct { uint64_t x; uint64_t y; } uint128_t;
+	auto ptr = VEDAptr<uint128_t>(_ptr).ptr();
+	for(size_t i = 0; i < cnt; i++) {
+		if(ptr[i].x != x || ptr[i].y != y) {
+			printf("FAILED vedaMemsetD64, expected %016llX+%016llX but found %016llX+%016llX\n", x, y, ptr[i].x, ptr[i].y);
+			return;
+		}
+	}
+}

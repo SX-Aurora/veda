@@ -9,6 +9,8 @@ VEDAresult	veda_memset_u32		(VEDAdeviceptr dst, const uint32_t value, const size
 VEDAresult	veda_memset_u32_2d	(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h);
 VEDAresult	veda_memset_u64		(VEDAdeviceptr dst, const uint64_t value, const size_t size);
 VEDAresult	veda_memset_u64_2d	(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h);
+VEDAresult	veda_memset_u128	(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t size);
+VEDAresult	veda_memset_u128_2d	(VEDAdeviceptr dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h);
 VEDAresult	veda_memset_u8		(VEDAdeviceptr dst, const uint8_t value, const size_t size);
 VEDAresult	veda_memset_u8_2d	(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h);
 

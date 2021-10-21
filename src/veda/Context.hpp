@@ -58,10 +58,12 @@ namespace veda {
 		void			memset			(VEDAdeviceptr dst, const uint16_t value, const size_t size, VEDAstream stream);
 		void			memset			(VEDAdeviceptr dst, const uint32_t value, const size_t size, VEDAstream stream);
 		void			memset			(VEDAdeviceptr dst, const uint64_t value, const size_t size, VEDAstream stream);
+		void			memset			(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t size, VEDAstream stream);
 		void			memset			(VEDAdeviceptr dst, const uint8_t value, const size_t size, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint16_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h, VEDAstream stream);
+		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream stream);
 		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			moduleUnload		(const Module* mod);
 		void			sync			(VEDAstream stream);

@@ -106,12 +106,18 @@ VEDAresult	vedaMemsetD2D16			(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t
 VEDAresult	vedaMemsetD2D16Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height, VEDAstream hStream);
 VEDAresult	vedaMemsetD2D32			(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height);
 VEDAresult	vedaMemsetD2D32Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D64			(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D64Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D128		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D128Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream);
 VEDAresult	vedaMemsetD2D8			(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height);
 VEDAresult	vedaMemsetD2D8Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height, VEDAstream hStream);
 VEDAresult	vedaMemsetD32			(VEDAdeviceptr dstDevice, uint32_t ui, size_t N);
 VEDAresult	vedaMemsetD32Async		(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream);
 VEDAresult	vedaMemsetD64			(VEDAdeviceptr dstDevice, uint64_t ui, size_t N);
 VEDAresult	vedaMemsetD64Async		(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD128			(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N);
+VEDAresult	vedaMemsetD128Async		(VEDAdeviceptr dstDevice, uint64_t x, uint64_t u, size_t N, VEDAstream hStream);
 VEDAresult	vedaMemsetD8			(VEDAdeviceptr dstDevice, uint8_t uc, size_t N);
 VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream);
 VEDAresult	vedaModuleGetFunction		(VEDAfunction* hfunc, VEDAmodule hmod, const char* name);
@@ -121,9 +127,6 @@ VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callba
 VEDAresult	vedaStreamGetFlags		(VEDAstream hStream, uint32_t* flags);
 VEDAresult	vedaStreamQuery			(VEDAstream hStream);
 VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
-
-VEDA_DEPRECATED(VEDAresult vedaMemGetRawPointer	(void** rawPtr, VEDAdeviceptr vptr));	// USE vedaMemPtr instead
-VEDA_DEPRECATED(VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr));	// USE vedaMemHMEM instead
 
 #ifdef __cplusplus
 }

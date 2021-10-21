@@ -150,18 +150,20 @@ veo_thr_ctxt* Context::stream(const VEDAstream stream) {
 //------------------------------------------------------------------------------
 const char* Context::kernelName(const Kernel k) const {
 	switch(k) {
-		case VEDA_KERNEL_MEMSET_U8:	return "veda_memset_u8";
-		case VEDA_KERNEL_MEMSET_U16:	return "veda_memset_u16";
-		case VEDA_KERNEL_MEMSET_U32:	return "veda_memset_u32";
-		case VEDA_KERNEL_MEMSET_U64:	return "veda_memset_u64";
-		case VEDA_KERNEL_MEMSET_U8_2D:	return "veda_memset_u8_2d";
-		case VEDA_KERNEL_MEMSET_U16_2D:	return "veda_memset_u16_2d";
-		case VEDA_KERNEL_MEMSET_U32_2D:	return "veda_memset_u32_2d";
-		case VEDA_KERNEL_MEMSET_U64_2D:	return "veda_memset_u64_2d";
-		case VEDA_KERNEL_MEMCPY_D2D:	return "veda_memcpy_d2d";
-		case VEDA_KERNEL_MEM_ALLOC:	return "veda_mem_alloc";
-		case VEDA_KERNEL_MEM_FREE:	return "veda_mem_free";
-		case VEDA_KERNEL_MEM_PTR:	return "veda_mem_ptr";
+		case VEDA_KERNEL_MEMSET_U8:		return "veda_memset_u8";
+		case VEDA_KERNEL_MEMSET_U16:		return "veda_memset_u16";
+		case VEDA_KERNEL_MEMSET_U32:		return "veda_memset_u32";
+		case VEDA_KERNEL_MEMSET_U64:		return "veda_memset_u64";
+		case VEDA_KERNEL_MEMSET_U128:		return "veda_memset_u128";
+		case VEDA_KERNEL_MEMSET_U8_2D:		return "veda_memset_u8_2d";
+		case VEDA_KERNEL_MEMSET_U16_2D:		return "veda_memset_u16_2d";
+		case VEDA_KERNEL_MEMSET_U32_2D:		return "veda_memset_u32_2d";
+		case VEDA_KERNEL_MEMSET_U64_2D:		return "veda_memset_u64_2d";
+		case VEDA_KERNEL_MEMSET_U128_2D:	return "veda_memset_u128_2d";
+		case VEDA_KERNEL_MEMCPY_D2D:		return "veda_memcpy_d2d";
+		case VEDA_KERNEL_MEM_ALLOC:		return "veda_mem_alloc";
+		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
+		case VEDA_KERNEL_MEM_PTR:		return "veda_mem_ptr";
 	}
 
 	throw VEDA_ERROR_UNKNOWN_KERNEL;
@@ -421,6 +423,11 @@ void Context::memset(VEDAdeviceptr dst, const uint64_t value, const size_t cnt, 
 }
 
 //------------------------------------------------------------------------------
+void Context::memset(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t cnt, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U128), dst, x, y, cnt);
+}
+
+//------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h, VEDAstream stream) {
 	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U8_2D), dst, pitch, value, w, h);
 }
@@ -438,6 +445,11 @@ void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint32_t val
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h, VEDAstream stream) {
 	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U64_2D), dst, pitch, value, w, h);
+}
+
+//------------------------------------------------------------------------------
+void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream stream) {
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U128_2D), dst, pitch, x, y, w, h);
 }
 
 //------------------------------------------------------------------------------

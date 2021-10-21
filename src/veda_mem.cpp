@@ -160,6 +160,39 @@ VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VE
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaMemsetD128(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N) {
+	CVEDA(vedaMemsetD128Async(dstDevice, x, y, N, 0));
+	return vedaCtxSynchronize();
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemsetD128Async(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream) {
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, x, y, N, hStream);)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemsetD2D128(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height) {
+	CVEDA(vedaMemsetD2D128Async(dstDevice, dstPitch, x, y, Width, Height, 0));
+	return vedaCtxSynchronize();
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemsetD2D128Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream) {
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, x, y, Width, Height, hStream);)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemsetD2D64(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t il, size_t Width, size_t Height) {
+	CVEDA(vedaMemsetD2D64Async(dstDevice, dstPitch, il, Width, Height, 0));
+	return vedaCtxSynchronize();
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemsetD2D64Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height, VEDAstream hStream) {
+	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, ul, Width, Height, hStream);)
+}
+
+//------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D16(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height) {
 	CVEDA(vedaMemsetD2D16Async(dstDevice, dstPitch, us, Width, Height, 0));
 	return vedaCtxSynchronize();
@@ -272,16 +305,6 @@ VEDAresult vedaMemHMEMSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 		*ptr	= (void*)(std::get<0>(res) | ctx->hmemId());
 		*size	= std::get<1>(res);
 	);
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaMemGetRawPointer(void** rawPtr, VEDAdeviceptr vptr) {
-	return vedaMemPtr(rawPtr, vptr);
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaMemGetHMEMPointer(void** hmemPtr, VEDAdeviceptr vptr) {
-	return vedaMemHMEM(hmemPtr, vptr);
 }
 
 //------------------------------------------------------------------------------

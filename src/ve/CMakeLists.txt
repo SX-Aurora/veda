@@ -3,6 +3,7 @@ ENABLE_LANGUAGE(VEDA_CXX)
 SET(SRC
 	${CMAKE_CURRENT_LIST_DIR}/veda_device.vcpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_kernels.vcpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_memset.vcpp
 )
 
 ADD_LIBRARY		(veda_device SHARED ${SRC})
