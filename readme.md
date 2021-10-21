@@ -5,7 +5,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 | Version | Comment |
 | --- | --- |
-| v1.0.0 | First stable release. Improved memset performance, especially for D8 and D16 (up to 150x faster now!). Added ```vedaMemsetD128``` and ```vedaMemsetD2D128``` API. Added ```ASL_FFTW_LIBRARIES``` to ASL CMake. |
+| v1.0.0 | First stable release. Improved memset performance, especially for D8 and D16 (up to 150x faster now!). Added ```vedaMemsetD128``` and ```vedaMemsetD2D128``` API. Added ```ASL_FFTW_LIBRARIES``` to ASL CMake. Added device code ```vedaMemset```. Enabled to use ```vedaMemsetD*``` in device code. |
 | v0.10.6 | Maintenance release that fixes SegFaults when context has been destroyed before freeing memory. ```vedaMemFree``` ignores calls if the context for the particular pointer has already been freed. BugFix for ```VEDA_CONTEXT_MODE_SCALAR``` if ```VE_OMP_NUM_THREADS``` is not set. |
 | v0.10.5 | added ```veda_omp_simd_reduce```. MemTrace only get printed when env var ```VEDA_MEM_TRACE=1``` is set. VEDA no longer overrides VEORUN_BIN if already been set by user. Added LICENSE to installation target. |
 | v0.10.4 | Fixed Identification of VE model. |

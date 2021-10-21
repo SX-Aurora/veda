@@ -32,6 +32,7 @@ VEDAresult	vedaMemsetD32		(void* ptr, const uint32_t value, const size_t cnt);
 VEDAresult	vedaMemsetD64		(void* ptr, const uint64_t value, const size_t cnt);
 VEDAresult	vedaMemsetD8		(void* ptr, const uint8_t  value, const size_t cnt);
 VEDAresult	vedaMemSize		(size_t* size, VEDAdeviceptr vptr);
+VEDAresult	vedaMemcpy		(void* dst, const void* src, const size_t bytes);
 
 #ifdef __cplusplus
 }

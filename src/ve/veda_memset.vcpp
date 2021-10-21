@@ -7,6 +7,7 @@ typedef struct { uint64_t x; uint64_t y; } uint128_t;
 constexpr size_t D8_HEURISTIC	= (2 * 1024 * 1024);
 constexpr size_t D64_HEURISTIC	= (2 * 1024 * 1024);
 constexpr size_t D128_HEURISTIC	= (1 * 1024 * 1024);
+constexpr size_t CPY_HEURISTIC	= (2 * 1024 * 1024);
 
 //------------------------------------------------------------------------------
 template<typename T>
@@ -215,6 +216,18 @@ VEDAresult vedaMemsetD2D128(void* _ptr, const size_t pitch, const uint64_t x, co
 			}
 		}
 	});
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemcpy(void* dst, const void* src, const size_t bytes) {
+	if(bytes >= CPY_HEURISTIC) {
+		veda_omp_simd(bytes, [=](const size_t min, const size_t max) {
+			memcpy(((char*)dst) + min, ((char*)src) + min, max - min);
+		});
+	} else {
+		memcpy(dst, src, bytes);
+	}
 	return VEDA_SUCCESS;
 }
 

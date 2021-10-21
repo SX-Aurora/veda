@@ -121,9 +121,34 @@ int main(int argc, char** argv) {
 		}
 	#endif
 	
-		// Performance Tests -------------------------------------------
+		// Memcpy Tests ------------------------------------------------
 		const double MB[] = {0.1, 0.2, 0.4, 0.8, 1, 2, 3, 4, 8, 16, 32, 64, 128, 256};
 
+		for(size_t i = 0; i < sizeof(MB)/sizeof(size_t); i++) {
+			auto bytes = size_t(MB[i] * 1024 * 1024);
+			VEDAdeviceptr A, B;
+			CHECK(vedaMemAllocAsync(&A, bytes, 0));
+			CHECK(vedaMemAllocAsync(&B, bytes, 0));
+
+			double min = DBL_MAX;
+			double max = 0;
+			double sum = 0;
+			for(int i = 0; i < RUNS; i++){
+				auto start = time_ns();
+				CHECK(vedaMemcpyDtoD(A, B, bytes));
+				auto end = time_ns();
+				auto time = (end - start) / 1000.0;
+				min = std::min(min, time);
+				max = std::max(max, time);
+				sum += time;
+			}
+			printf("%-15sbytes: %8.2fMB, cnt: %10llu, min: %8.2f ms, avg: %8.2f, max: %8.2f ms\n", "vedaMemcpyDtoD", bytes/1024.0/1024.0, bytes, min, sum/RUNS, max);\
+
+			CHECK(vedaMemFreeAsync(A, 0));
+			CHECK(vedaMemFreeAsync(B, 0));
+		}
+
+		// Memset Tests ------------------------------------------------
 		for(size_t i = 0; i < sizeof(MB)/sizeof(size_t); i++) {
 			auto bytes = size_t(MB[i] * 1024 * 1024);
 			VEDAdeviceptr ptr;
