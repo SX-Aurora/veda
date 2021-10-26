@@ -3,34 +3,46 @@
 VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NEC SX-Aurora. It is based on [AVEO](https://github.com/sx-aurora/aveo). Most of the functionality is identical to the [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) and [CUDA Runtime API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 
 ## Release Notes
-| Version | Comment |
-| --- | --- |
-| v1.0.0 | First stable release. Improved memset performance, especially for D8 and D16 (up to 150x faster now!). Added ```vedaMemsetD128``` and ```vedaMemsetD2D128``` API. Added ```ASL_FFTW_LIBRARIES``` to ASL CMake. Added device code ```vedaMemset```. Enabled to use ```vedaMemsetD*``` in device code. |
-| v0.10.6 | Maintenance release that fixes SegFaults when context has been destroyed before freeing memory. ```vedaMemFree``` ignores calls if the context for the particular pointer has already been freed. BugFix for ```VEDA_CONTEXT_MODE_SCALAR``` if ```VE_OMP_NUM_THREADS``` is not set. |
-| v0.10.5 | added ```veda_omp_simd_reduce```. MemTrace only get printed when env var ```VEDA_MEM_TRACE=1``` is set. VEDA no longer overrides VEORUN_BIN if already been set by user. Added LICENSE to installation target. |
-| v0.10.4 | Fixed Identification of VE model. |
-| v0.10.3 | Filtering negative values from ```VEDA_VISIBLE_DEVICES```. |
-| v0.10.2 | Correct veda-smi RPATH to work without setting LD_LIBRARY_PATH. |
-| v0.10.1 | Added ```aveorun-ftrace```. Can be activated using ```VEDA_FTRACE=1``` env var. Renamed RPM packages to only include major version in package name, i.e. ```veda-0.10```. |
-| v0.10.0 | Renamed and improved ```VEDAmpiptr``` to ```VEDAptr<typename>```. Removed ```VEDAdeviceptr->X``` functions, as they are now part of ```VEDAptr```. Added ```veda-smi``` executable. |
-| v0.10.0rc5 | Added boundary checks for Memcopy and MemSet. Added ```vedaArgsSetHMEM```. Added ```veda_device_omp.h``` parallelization primitives for C++. Added experimental ```VEDAmpiptr``` for easier usage with VE-MPI. Added/corrected some of the sensor readings, i.e. LLC Cache, Total Device Memory, ... |
-| v0.10.0rc4 | Increased VEDA offset limit to 128GB. Added ```VEDAdeviceptr->X``` functions in C++. Renamed ```vedaArgsSetPtr``` to ```vedaArgsSetVPtr```. Added ```vedaArgsSetPtr``` to automatically translate ```VEDAdeviceptr``` to ```void*```. Fixed VEDA_VISIBLE_DEVICES to obey NUMA mode. |
-| v0.10.0rc3 | Added AVEO symlinks. Fixed wrong include. |
-| v0.10.0rc2 | Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static. |
-| v0.10.0rc1 | Fixed 0°C core temperatures. Added NUMA support. Each NUMA node becomes a separate VEDAdevice. Added ```vedaDeviceDistance(float**, VEDAdevice, VEDAdevice)``` to determine the relationship between two VEDAdevices (0.0 == same device, 0.5 == same physical device but different NUMA node, 1.0 == different physical device). Added ```vedaMemGetHMEMPointer(void**, VEDAdeviceptr)``` to translate VEDA pointer to HMEM pointer. |
-| v0.9.5.2 | Bugfixes |
-| v0.9.5.1 | Bugfixes |
-| v0.9.5 | Bugfixes |
-| v0.9.4 | Bugfixes |
-| v0.9.3 | Bugfixes |
-| v0.9.2 | Added FindMPI. Set all CMake vars as advanced. |
-| v0.9.1 | Added FindBLAS, FindLAPACK, FindASL and FindNCL to CMake. |
-| v0.9 | Enhanced VEDA CMake Scripts, to also support native NCC compilation. |
-| v0.8.1 | updated AVEO. Using VE_NODE_NUMBER as fallback if VEDA_VISIBLE_DEVICES is not set. |
-| v0.8 | Implemented multi-stream support (experimental). Automatic setting of required env vars. |
-| v0.7.1 | Bugfix release |
-| v0.7 | initial VERA release |
-| v0.6 | initial VEDA release |
+<table>
+<tr><th>Version</th><th>Comment</th></tr>
+<tr><td>v1.0.0</td><td>
+First stable release.
+<ul>
+<li>Improved memset performance, especially for D8 and D16 (up to 150x faster now!).</li>
+<li>Added <code>vedaMemsetD128</code> and <code>vedaMemsetD2D128</code> API.</li>
+<li>Added <code>ASL_FFTW_LIBRARIES</code> to ASL CMake.</li>
+<li>Added device code <code>vedaMemset</code>. Enabled to use <code>vedaMemsetD*</code> in device code.</li>
+<li>Added C++ wrapper to allow directly signed integer and floating point values for <code>vedaMemsetD*</code> functions.</li>
+</ul>
+</td></tr>
+
+<tr><td>v0.10.6</td><td>Maintenance release that fixes SegFaults when context has been destroyed before freeing memory. <code>vedaMemFree</code> ignores calls if the context for the particular pointer has already been freed. BugFix for <code>VEDA_CONTEXT_MODE_SCALAR</code> if <code>VE_OMP_NUM_THREADS</code> is not set.</td></tr>
+
+<tr><td>v0.10.5</td><td>added <code>veda_omp_simd_reduce</code>. MemTrace only get printed when env var<code>VEDA_MEM_TRACE=1</code> is set. VEDA no longer overrides VEORUN_BIN if already been set by user. Added LICENSE to installation target.</td></tr>
+<tr><td>v0.10.4</td><td>Fixed Identification of VE model.</td></tr>
+<tr><td>v0.10.3</td><td>Filtering negative values from <code>VEDA_VISIBLE_DEVICES</code>.</td></tr>
+<tr><td>v0.10.2</td><td>Correct veda-smi RPATH to work without setting LD_LIBRARY_PATH.</td></tr>
+<tr><td>v0.10.1</td><td>Added <code>aveorun-ftrace</code>. Can be activated using <code>VEDA_FTRACE=1</code> env var. Renamed RPM packages to only include major version in package name, i.e. <code>veda-0.10</code>.</td></tr>
+<tr><td>v0.10.0</td><td>Renamed and improved <code>VEDAmpiptr</code> to <code>VEDAptr<typename></code>. Removed <code>VEDAdeviceptr->X</code> functions, as they are now part of <code>VEDAptr</code>. Added <code>veda-smi</code> executable.</td></tr>
+<tr><td>v0.10.0rc5</td><td>Added boundary checks for Memcopy and MemSet. Added <code>vedaArgsSetHMEM</code>. Added <code>veda_device_omp.h</code> parallelization primitives for C++. Added experimental <code>VEDAmpiptr</code> for easier usage with VE-MPI. Added/corrected some of the sensor readings, i.e. LLC Cache, Total Device Memory, ...</td></tr>
+<tr><td>v0.10.0rc4</td><td>Increased VEDA offset limit to 128GB. Added <code>VEDAdeviceptr->X</code> functions in C++. Renamed <code>vedaArgsSetPtr</code> to <code>vedaArgsSetVPtr</code>. Added <code>vedaArgsSetPtr</code> to automatically translate <code>VEDAdeviceptr</code> to <code>void*</code>. Fixed VEDA_VISIBLE_DEVICES to obey NUMA mode.</td></tr>
+<tr><td>v0.10.0rc3</td><td>Added AVEO symlinks. Fixed wrong include.</td></tr>
+<tr><td>v0.10.0rc2</td><td>Fixed problem in veda_types.h when compiling with C. Linking against shared AVEO instead of static.</td></tr>
+<tr><td>v0.10.0rc1</td><td>Fixed 0°C core temperatures. Added NUMA support. Each NUMA node becomes a separate VEDAdevice. Added <code>vedaDeviceDistance(float**, VEDAdevice, VEDAdevice)</code> to determine the relationship between two VEDAdevices (0.0 == same device, 0.5 == same physical device but different NUMA node, 1.0 == different physical device). Added <code>vedaMemGetHMEMPointer(void**, VEDAdeviceptr)</code> to translate VEDA pointer to HMEM pointer.</td></tr>
+<tr><td>v0.9.5.2</td><td>Bugfixes</td></tr>
+<tr><td>v0.9.5.1</td><td>Bugfixes</td></tr>
+<tr><td>v0.9.5</td><td>Bugfixes</td></tr>
+<tr><td>v0.9.4</td><td>Bugfixes</td></tr>
+<tr><td>v0.9.3</td><td>Bugfixes</td></tr>
+<tr><td>v0.9.2</td><td>Added FindMPI. Set all CMake vars as advanced.</td></tr>
+<tr><td>v0.9.1</td><td>Added FindBLAS, FindLAPACK, FindASL and FindNCL to CMake.</td></tr>
+<tr><td>v0.9</td><td>Enhanced VEDA CMake Scripts, to also support native NCC compilation.</td></tr>
+<tr><td>v0.8.1</td><td>updated AVEO. Using VE_NODE_NUMBER as fallback if VEDA_VISIBLE_DEVICES is not set.</td></tr>
+<tr><td>v0.8</td><td>Implemented multi-stream support (experimental). Automatic setting of required env vars.</td></tr>
+<tr><td>v0.7.1</td><td>Bugfix release</td></tr>
+<tr><td>v0.7</td><td>initial VERA release</td></tr>
+<tr><td>v0.6</td><td>initial VEDA release</td></tr>
+</table>
 
 ## Differences between VEDA and CUDA Driver API:
 1. [VEDA] Additionally to ```vedaInit(0)``` in the beginning, ```vedaExit()``` needs to be called at the end of the application, to ensure that no dead device processes stay alive.

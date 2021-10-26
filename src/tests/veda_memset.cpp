@@ -100,18 +100,46 @@ int main(int argc, char** argv) {
 			auto n32  = d32  + offsets[i] * sizeof(uint32_t);
 			auto n64  = d64  + offsets[i] * sizeof(uint64_t);
 			auto n128 = d128 + offsets[i] * sizeof(uint64_t) * 2;
+			
+			CHECK(vedaMemsetD8Async		(             n8, x8, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d8, 0, n8, x8, cnt   ));
 
-			CHECK(vedaMemsetD8Async  (n8,   x8,       cnt, 0));
-			CHECK(vedaMemsetD16Async (n16,  x16,      cnt, 0));
-			CHECK(vedaMemsetD32Async (n32,  x32,      cnt, 0));
-			CHECK(vedaMemsetD64Async (n64,  x64,      cnt, 0));
-			CHECK(vedaMemsetD128Async(n128, x64, y64, cnt, 0));
+			CHECK(vedaMemsetD8Async		(             n8, (int8_t)x8, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d8, 0, n8, (int8_t)x8, cnt   ));
+		
+			CHECK(vedaMemsetD16Async	(              n16, x16, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d16, 0, n16, x16, cnt   ));
 
-			CHECK(vedaLaunchKernel(check_d8,   0, n8,   cnt, x8      ));
-			CHECK(vedaLaunchKernel(check_d16,  0, n16,  cnt, x16     ));
-			CHECK(vedaLaunchKernel(check_d32,  0, n32,  cnt, x32     ));
-			CHECK(vedaLaunchKernel(check_d64,  0, n64,  cnt, x64     ));
-			CHECK(vedaLaunchKernel(check_d128, 0, n128, cnt, x64, y64));
+			CHECK(vedaMemsetD16Async	(              n16, (int16_t)x16, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d16, 0, n16, (int16_t)x16, cnt   ));
+
+			CHECK(vedaMemsetD32Async	(              n32,  x32, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d32, 0, n32,  x32, cnt   ));
+
+			CHECK(vedaMemsetD32Async	(              n32, (int32_t)x32, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d32, 0, n32, (int32_t)x32, cnt   ));
+
+			CHECK(vedaMemsetD32Async	(              n32, (float)x32, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d32, 0, n32, (float)x32, cnt   ));
+
+			CHECK(vedaMemsetD64Async	(              n64, x64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d64, 0, n64, x64, cnt));
+
+			CHECK(vedaMemsetD64Async	(              n64, (int64_t)x64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d64, 0, n64, (int64_t)x64, cnt   ));
+
+			CHECK(vedaMemsetD64Async	(              n64, (double)x64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d64, 0, n64, (double)x64, cnt   ));
+
+			CHECK(vedaMemsetD128Async	(              n128, x64, y64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d128,0, n128, x64, y64, cnt   ));
+
+			CHECK(vedaMemsetD128Async	(              n128, (int64_t)x64, (int64_t)y64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d128,0, n128, (int64_t)x64, (int64_t)y64, cnt   ));
+
+			CHECK(vedaMemsetD128Async	(              n128, (double)x64, (double)y64, cnt, 0));
+			CHECK(vedaLaunchKernel		(check_d128,0, n128, (double)x64, (double)y64, cnt   ));
+
 
 			CHECK(vedaMemFreeAsync(d8,   0));
 			CHECK(vedaMemFreeAsync(d16,  0));
