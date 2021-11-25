@@ -7,7 +7,7 @@ thread_local std::list<VEDAcontext> t_stack;
 //------------------------------------------------------------------------------
 VEDAcontext Contexts::current(void) {
 	if(t_stack.empty())
-		throw VEDA_ERROR_UNKNOWN_CONTEXT;
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_CONTEXT);
 	return t_stack.back();
 }
 

@@ -73,7 +73,7 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 					case VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION:		return device.versionFirmware();
 				}
 
-				throw VEDA_ERROR_UNKNOWN_ATTRIBUTE;
+				VEDA_THROW(VEDA_ERROR_UNKNOWN_ATTRIBUTE);
 				return 0;
 			}();
 		}

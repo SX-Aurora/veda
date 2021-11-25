@@ -8,7 +8,7 @@ std::atomic<int>	Semaphore::s_shutdown;
 //------------------------------------------------------------------------------
 void Semaphore::shutdown(void) {
 	if(s_shutdown.load())
-		throw VEDA_ERROR_UNKNOWN;
+		VEDA_THROW(VEDA_ERROR_UNKNOWN);
 	s_shutdown++;
 	// wait until all other requests have been dealt with
 	while(s_count.load() != 0)
@@ -18,7 +18,7 @@ void Semaphore::shutdown(void) {
 //------------------------------------------------------------------------------
 void Semaphore::acquire(void) {
 	if(s_shutdown.load())
-		throw VEDA_ERROR_SHUTTING_DOWN;
+		VEDA_THROW(VEDA_ERROR_SHUTTING_DOWN);
 	s_count++;
 }
 

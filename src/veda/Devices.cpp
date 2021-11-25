@@ -28,7 +28,7 @@ Device& Devices::get(const VEDAdeviceptr vptr) {
 //------------------------------------------------------------------------------
 Device& Devices::get(const VEDAdevice device) {
 	if(device < 0 || device >= s_devices.size())
-		throw VEDA_ERROR_INVALID_DEVICE;
+		VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
 	return s_devices[device];
 }
 
@@ -92,16 +92,16 @@ void Devices::initMapping(const std::set<int>& devices) {
 
 		struct stat sb = {0};
 		if(stat(device, &sb) == -1)
-			throw VEDA_ERROR_INITIALIZING_DEVICE;
+			VEDA_THROW(VEDA_ERROR_INITIALIZING_DEVICE);
 
 		udev* udev = udev_new();
 		auto ve_udev = udev_device_new_from_devnum(udev, 'c', sb.st_rdev);
 		if(!ve_udev)
-			throw VEDA_ERROR_INITIALIZING_DEVICE;
+			VEDA_THROW(VEDA_ERROR_INITIALIZING_DEVICE);
 
 		auto sysfs_path = udev_device_get_syspath(ve_udev);
 		if(!sysfs_path)
-			throw VEDA_ERROR_INITIALIZING_DEVICE;
+			VEDA_THROW(VEDA_ERROR_INITIALIZING_DEVICE);
 
 		char real_device_idx = sysfs_path[strlen(sysfs_path)-1];
 		udev_device_unref(ve_udev);
@@ -127,7 +127,7 @@ void Devices::initMapping(const std::set<int>& devices) {
 //------------------------------------------------------------------------------
 uint64_t Devices::readSensor(const int sensorId, const char* file, const bool isHex) {
 	if(file == 0)
-		throw VEDA_ERROR_NO_SENSOR_FILE;
+		VEDA_THROW(VEDA_ERROR_NO_SENSOR_FILE);
 
 	char buffer[128];
 	snprintf(buffer, sizeof(buffer), "/sys/class/ve/ve%i/%s", sensorId, file);
@@ -135,7 +135,7 @@ uint64_t Devices::readSensor(const int sensorId, const char* file, const bool is
 	uint64_t value = 0;
 	std::ifstream f(buffer, std::ios::binary);
 	if(!f.good())
-		throw VEDA_ERROR_CANT_READ_SENSOR_FILE;
+		VEDA_THROW(VEDA_ERROR_CANT_READ_SENSOR_FILE);
 	if(isHex)	f >> std::hex >> value;
 	else		f >> value;
 	f.close();

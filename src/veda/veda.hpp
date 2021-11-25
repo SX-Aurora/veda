@@ -23,6 +23,7 @@ typedef uint64_t veo_lib;
 #include <dlfcn.h>
 
 #include "../veda.h"
+#include "../veda_internal_types.h"
 
 namespace veda {
 	class Module;
@@ -49,8 +50,8 @@ namespace veda {
 	VEDAresult	VEOtoVEDA	(const int err);
 	void		checkInitialized(void);
 	void		setInitialized	(const bool value);
-inline	void		checkContext	(VEDAcontext ctx)	{	if(dynamic_cast<VEDAcontext>(ctx) == 0)	throw VEDA_ERROR_INVALID_CONTEXT;	}
-inline	void		checkModule	(VEDAmodule mod) 	{	if(dynamic_cast<VEDAmodule> (mod) == 0) throw VEDA_ERROR_INVALID_MODULE;	}
+inline	void		checkContext	(VEDAcontext ctx)	{	if(dynamic_cast<VEDAcontext>(ctx) == 0)	VEDA_THROW(VEDA_ERROR_INVALID_CONTEXT);	}
+inline	void		checkModule	(VEDAmodule mod) 	{	if(dynamic_cast<VEDAmodule> (mod) == 0) VEDA_THROW(VEDA_ERROR_INVALID_MODULE);	}
 
 //------------------------------------------------------------------------------
 }

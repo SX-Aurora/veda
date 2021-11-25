@@ -15,9 +15,10 @@ VEDAresult	veda_memset_u8		(VEDAdeviceptr dst, const uint8_t value, const size_t
 VEDAresult	veda_memset_u8_2d	(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h);
 
 // Malloc/Free -----------------------------------------------------------------
-VEDAresult	veda_mem_alloc		(void** ptr, VEDAdeviceptr vptr, const size_t size);
+VEDAresult	veda_mem_alloc		(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info);
 VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
-VEDAresult	veda_mem_ptr		(void** ptr, size_t* size, VEDAdeviceptr vptr);
+VEDAresult	veda_mem_ptr		(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info);
+VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptrInfo* Ainfo, VEDAdeviceptr B, VEDAdeviceptrInfo* Binfo);
 
 //------------------------------------------------------------------------------
 }

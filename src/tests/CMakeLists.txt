@@ -23,6 +23,10 @@ ADD_EXECUTABLE(veda_test6 ${CMAKE_CURRENT_LIST_DIR}/veda_6.c)
 TARGET_LINK_LIBRARIES(veda_test6 veda)
 SET_TARGET_PROPERTIES(veda_test6 PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
 
+ADD_EXECUTABLE(veda_test7 ${CMAKE_CURRENT_LIST_DIR}/veda_7.cpp)
+TARGET_LINK_LIBRARIES(veda_test7 veda)
+SET_TARGET_PROPERTIES(veda_test7 PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
+
 ADD_EXECUTABLE(veda_memset ${CMAKE_CURRENT_LIST_DIR}/veda_memset.cpp)
 TARGET_LINK_LIBRARIES(veda_memset veda)
 SET_TARGET_PROPERTIES(veda_memset PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
@@ -39,6 +43,6 @@ ADD_EXECUTABLE(vera_test2 ${CMAKE_CURRENT_LIST_DIR}/vera_2.cpp)
 TARGET_LINK_LIBRARIES(vera_test2 vera)
 SET_TARGET_PROPERTIES(vera_test2 PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
 
-INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 veda_mpi vera_test1 vera_test2 veda_memset RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
+INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 veda_test7 veda_mpi vera_test1 vera_test2 veda_memset RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
 
 ADD_SUBDIRECTORY(ve)

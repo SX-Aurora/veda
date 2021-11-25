@@ -56,13 +56,13 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 		setenv("VE_OMP_NUM_THREADS", "1", 1);
 		numStreams = cores;
 	} else {
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	}
 	ASSERT(numStreams);
 
 	m_handle = veo_proc_create(this->device().aveoId());
 	if(!m_handle)
-		throw VEDA_ERROR_CANNOT_CREATE_CONTEXT;
+		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
 
 	// Load STDLib ---------------------------------------------------------
 	m_kernels.resize(VEDA_KERNEL_CNT);
@@ -77,7 +77,7 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 		ASSERT(stream.ctx == 0);
 		stream.ctx = veo_context_open(m_handle);
 		if(stream.ctx == 0)
-			throw VEDA_ERROR_CANNOT_CREATE_STREAM;
+			VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_STREAM);
 		stream.calls.reserve(128);
 		ASSERT(stream.calls.empty());
 	}
@@ -91,8 +91,8 @@ Context::~Context(void) noexcept(false) {
 	if(mem_trace && std::atoi(mem_trace)) {
 		for(auto& it : m_ptrs) {
 			auto idx	= it.first;
-			auto& size	= std::get<1>(it.second);
-			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
+			auto& size	= it.second.size;
+			auto vptr	= (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
 			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, size);
 		}
 	}
@@ -117,23 +117,25 @@ size_t Context::memUsed(void) {
 	syncPtrs();
 	size_t used = 0;
 	for(auto& it : m_ptrs)
-		used += std::get<1>(it.second);
+		used += it.second.size;
 	return used;
 }
 
 //------------------------------------------------------------------------------
 void Context::memReport(void) {
 	syncPtrs();
+	
 	size_t total	= device().memorySize();
 	size_t used	= memUsed();
 
-	printf("# VE#%i %.2f/%.2fGB\n", device(), used/(1024.0*1024.0*1024.0), total/(1024.0*1024.0*1024.0));
+	printf("# VE#%i %.2f/%.2fGB\n", device().vedaId(), used/(1024.0*1024.0*1024.0), total/(1024.0*1024.0*1024.0));
 	for(auto& it : m_ptrs) {
-		auto vptr = VEDA_SET_PTR(device().vedaId(), it.first, 0);
-		auto ptr	= std::get<0>(it.second);
-		auto size	= std::get<1>(it.second);
+		auto vptr	= VEDA_SET_PTR(device().vedaId(), it.first, 0);
+		auto ptr	= it.second.ptr;
+		auto size	= it.second.size;
 		printf("%p/%p %lluB\n", vptr, ptr, size);
 	}
+	printf("\n");
 }
 
 //------------------------------------------------------------------------------
@@ -141,7 +143,7 @@ void Context::memReport(void) {
 //------------------------------------------------------------------------------
 veo_thr_ctxt* Context::stream(const VEDAstream stream) {
 	if(stream < 0 || stream >= m_streams.size() || m_streams[stream].ctx == 0)
-		throw VEDA_ERROR_UNKNOWN_STREAM;
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_STREAM);
 	return m_streams[stream].ctx;
 }
 
@@ -150,23 +152,24 @@ veo_thr_ctxt* Context::stream(const VEDAstream stream) {
 //------------------------------------------------------------------------------
 const char* Context::kernelName(const Kernel k) const {
 	switch(k) {
-		case VEDA_KERNEL_MEMSET_U8:		return "veda_memset_u8";
-		case VEDA_KERNEL_MEMSET_U16:		return "veda_memset_u16";
-		case VEDA_KERNEL_MEMSET_U32:		return "veda_memset_u32";
-		case VEDA_KERNEL_MEMSET_U64:		return "veda_memset_u64";
-		case VEDA_KERNEL_MEMSET_U128:		return "veda_memset_u128";
-		case VEDA_KERNEL_MEMSET_U8_2D:		return "veda_memset_u8_2d";
-		case VEDA_KERNEL_MEMSET_U16_2D:		return "veda_memset_u16_2d";
-		case VEDA_KERNEL_MEMSET_U32_2D:		return "veda_memset_u32_2d";
-		case VEDA_KERNEL_MEMSET_U64_2D:		return "veda_memset_u64_2d";
-		case VEDA_KERNEL_MEMSET_U128_2D:	return "veda_memset_u128_2d";
 		case VEDA_KERNEL_MEMCPY_D2D:		return "veda_memcpy_d2d";
+		case VEDA_KERNEL_MEMSET_U128:		return "veda_memset_u128";
+		case VEDA_KERNEL_MEMSET_U128_2D:	return "veda_memset_u128_2d";
+		case VEDA_KERNEL_MEMSET_U16:		return "veda_memset_u16";
+		case VEDA_KERNEL_MEMSET_U16_2D:		return "veda_memset_u16_2d";
+		case VEDA_KERNEL_MEMSET_U32:		return "veda_memset_u32";
+		case VEDA_KERNEL_MEMSET_U32_2D:		return "veda_memset_u32_2d";
+		case VEDA_KERNEL_MEMSET_U64:		return "veda_memset_u64";
+		case VEDA_KERNEL_MEMSET_U64_2D:		return "veda_memset_u64_2d";
+		case VEDA_KERNEL_MEMSET_U8:		return "veda_memset_u8";
+		case VEDA_KERNEL_MEMSET_U8_2D:		return "veda_memset_u8_2d";
 		case VEDA_KERNEL_MEM_ALLOC:		return "veda_mem_alloc";
 		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
 		case VEDA_KERNEL_MEM_PTR:		return "veda_mem_ptr";
+		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
 	}
 
-	throw VEDA_ERROR_UNKNOWN_KERNEL;
+	VEDA_THROW(VEDA_ERROR_UNKNOWN_KERNEL);
 }
 
 //------------------------------------------------------------------------------
@@ -178,18 +181,19 @@ const char* Context::kernelName(VEDAfunction func) const {
 	}
 
 	switch(idx) {
-		case VEDA_KERNEL_MEMSET_U8:	return "VEDA_KERNEL_MEMSET_U8";
-		case VEDA_KERNEL_MEMSET_U16:	return "VEDA_KERNEL_MEMSET_U16";
-		case VEDA_KERNEL_MEMSET_U32:	return "VEDA_KERNEL_MEMSET_U32";
-		case VEDA_KERNEL_MEMSET_U64:	return "VEDA_KERNEL_MEMSET_U64";
-		case VEDA_KERNEL_MEMSET_U8_2D:	return "VEDA_KERNEL_MEMSET_U8_2D";
-		case VEDA_KERNEL_MEMSET_U16_2D:	return "VEDA_KERNEL_MEMSET_U16_2D";
-		case VEDA_KERNEL_MEMSET_U32_2D:	return "VEDA_KERNEL_MEMSET_U32_2D";
-		case VEDA_KERNEL_MEMSET_U64_2D:	return "VEDA_KERNEL_MEMSET_U64_2D";
 		case VEDA_KERNEL_MEMCPY_D2D:	return "VEDA_KERNEL_MEMCPY_D2D";
+		case VEDA_KERNEL_MEMSET_U16:	return "VEDA_KERNEL_MEMSET_U16";
+		case VEDA_KERNEL_MEMSET_U16_2D:	return "VEDA_KERNEL_MEMSET_U16_2D";
+		case VEDA_KERNEL_MEMSET_U32:	return "VEDA_KERNEL_MEMSET_U32";
+		case VEDA_KERNEL_MEMSET_U32_2D:	return "VEDA_KERNEL_MEMSET_U32_2D";
+		case VEDA_KERNEL_MEMSET_U64:	return "VEDA_KERNEL_MEMSET_U64";
+		case VEDA_KERNEL_MEMSET_U64_2D:	return "VEDA_KERNEL_MEMSET_U64_2D";
+		case VEDA_KERNEL_MEMSET_U8:	return "VEDA_KERNEL_MEMSET_U8";
+		case VEDA_KERNEL_MEMSET_U8_2D:	return "VEDA_KERNEL_MEMSET_U8_2D";
 		case VEDA_KERNEL_MEM_ALLOC:	return "VEDA_KERNEL_MEM_ALLOC";
 		case VEDA_KERNEL_MEM_FREE:	return "VEDA_KERNEL_MEM_FREE";
 		case VEDA_KERNEL_MEM_PTR:	return "VEDA_KERNEL_MEM_PTR";
+		case VEDA_KERNEL_MEM_SWAP:	return "VEDA_KERNEL_MEM_SWAP";
 	}
 
 	return "USER_KERNEL";
@@ -198,7 +202,7 @@ const char* Context::kernelName(VEDAfunction func) const {
 //------------------------------------------------------------------------------
 VEDAfunction Context::kernel(Kernel kernel) const {
 	if(kernel < 0 || kernel >= VEDA_KERNEL_CNT)
-		throw VEDA_ERROR_UNKNOWN_KERNEL;
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_KERNEL);
 	return m_kernels[kernel];
 }
 
@@ -207,22 +211,22 @@ VEDAfunction Context::kernel(Kernel kernel) const {
 //------------------------------------------------------------------------------
 VEDAfunction Context::moduleGetFunction(Module* mod, const char* name) {
 	if(name == 0)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	LOCK();
 	auto func = veo_get_sym(m_handle, mod ? mod->lib() : 0, name);
 	if(func == 0)
-		throw VEDA_ERROR_FUNCTION_NOT_FOUND;
+		VEDA_THROW(VEDA_ERROR_FUNCTION_NOT_FOUND);
 	return func;
 }
 
 //------------------------------------------------------------------------------
 Module* Context::moduleLoad(const char* name) {
 	if(name == 0)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	LOCK();
 	auto lib = veo_load_library(m_handle, name);
 	if(lib == 0)
-		throw VEDA_ERROR_MODULE_NOT_FOUND;
+		VEDA_THROW(VEDA_ERROR_MODULE_NOT_FOUND);
 	return &m_modules.emplace(MAP_EMPLACE(lib, this, lib)).first->second;
 }
 
@@ -244,37 +248,32 @@ void Context::incMemIdx(void) {
 }
 
 //------------------------------------------------------------------------------
-VEDAdeviceptr Context::newVPTR(veo_ptr** ptr, const size_t size) {
-	LOCK();
-	if(m_ptrs.size() == VEDA_CNT_IDX)
-		throw VEDA_ERROR_OUT_OF_MEMORY; // no VPTRs left
-
-	while(m_ptrs.find(m_memidx) != m_ptrs.end()) {
-		incMemIdx();
-	}
-
-	auto idx = m_memidx;
-	auto it = m_ptrs.emplace(MAP_EMPLACE(idx, 0, size)).first;
-	*ptr = &std::get<0>(it->second);
-
-	incMemIdx();
-	return VEDA_SET_PTR(device().vedaId(), idx, 0);
-}
-
-//------------------------------------------------------------------------------
 void Context::free(VEDAdeviceptr vptr) {
-	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
-	if(m_ptrs.erase(VEDA_GET_IDX(vptr)) == 0)
-		throw VEDA_ERROR_UNKNOWN_VPTR;
-}
-
-//------------------------------------------------------------------------------
-Context::PtrTuple Context::getBasePtr(VEDAdeviceptr vptr) {
 	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
 	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it == m_ptrs.end())
-		throw VEDA_ERROR_UNKNOWN_VPTR;
-	if(std::get<0>(it->second) == 0)
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+	
+	if(it->second.inFlight) {
+		printf("%p %llu %i\n", it->second.ptr, it->second.size, it->second.inFlight);
+		sync();
+		printf("%p %llu %i\n", it->second.ptr, it->second.size, it->second.inFlight);
+	}
+	
+	if(it->second.inFlight) // after the sync inFlight should be 0!
+		VEDA_THROW(VEDA_ERROR_UNKNOWN);
+
+	if(m_ptrs.erase(VEDA_GET_IDX(vptr)) == 0)
+		VEDA_THROW(VEDA_ERROR_UNKNOWN);
+}
+
+//------------------------------------------------------------------------------
+const VEDAdeviceptrInfo& Context::getBasePtr(VEDAdeviceptr vptr) {
+	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
+	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
+	if(it == m_ptrs.end())
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+	if(it->second.ptr == 0)
 		syncPtrs();
 	return it->second;
 }
@@ -285,18 +284,16 @@ void Context::syncPtrs(void) {
 
 	for(auto& it : m_ptrs) {
 		auto idx	= it.first;
-		auto& ptr	= std::get<0>(it.second);
-		auto& size	= std::get<1>(it.second);
+		auto& data	= it.second;
 
-		if(ptr == 0) {
+		if(data.ptr == 0) {
 			// if size is == 0, then no malloc call had been issued, so we need to fetch the info
 			// is size is != 0, then we only need to wait till the malloc reports back the ptr
-			if(size == 0) {
+			if(data.size == 0) {
+				data.inFlight = 1;
 				auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
 				vedaCtxCall(this, 0, false, kernel(VEDA_KERNEL_MEM_PTR), 
-					VEDAstack(&ptr,  VEDA_ARGS_INTENT_OUT, sizeof(veo_ptr)),
-					VEDAstack(&size, VEDA_ARGS_INTENT_OUT, sizeof(size_t)), 
-					vptr);
+					vptr, VEDAstack(&data, VEDA_ARGS_INTENT_OUT, sizeof(VEDAdeviceptrInfo)));
 			}
 			syn = true;
 		}
@@ -309,10 +306,29 @@ void Context::syncPtrs(void) {
 
 //------------------------------------------------------------------------------
 VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
-	veo_ptr* ptr;
-	auto vptr = newVPTR(&ptr, size);
-	if(size) 
-		vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_ALLOC), VEDAstack(ptr, VEDA_ARGS_INTENT_INOUT, sizeof(veo_ptr)), vptr, size);
+	VEDAdeviceptrInfo* info	= 0;
+	VEDAdeviceptr vptr	= 0;
+
+	{
+		LOCK();
+		if(m_ptrs.size() == VEDA_CNT_IDX)
+			VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY); // no VPTRs left
+
+		while(m_ptrs.find(m_memidx) != m_ptrs.end())
+			incMemIdx();
+
+		auto idx = m_memidx;
+		info = &m_ptrs.emplace(MAP_EMPLACE(idx, (void*)0, size)).first->second;
+
+		incMemIdx();
+		vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
+	}
+
+	if(size) {
+		info->inFlight = 1;
+		vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_ALLOC), vptr, VEDAstack(info, VEDA_ARGS_INTENT_INOUT, sizeof(VEDAdeviceptrInfo)));
+	}
+
 	return vptr;
 }
 
@@ -322,26 +338,41 @@ Context::VPtrTuple Context::memAllocPitch(const size_t w_bytes, const size_t h, 
 }
 
 //------------------------------------------------------------------------------
+void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
+	auto get = [this](VEDAdeviceptr x) -> VEDAdeviceptrInfo& {
+		auto it = m_ptrs.find(VEDA_GET_IDX(x));
+		if(it == m_ptrs.end())
+			VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+		return it->second;
+	};
+
+	auto& Ait = get(A); Ait.inFlight = 1;
+	auto& Bit = get(B); Bit.inFlight = 1;
+
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_SWAP),
+		A, VEDAstack(&Ait, VEDA_ARGS_INTENT_OUT, sizeof(VEDAdeviceptrInfo)),
+		B, VEDAstack(&Bit, VEDA_ARGS_INTENT_OUT, sizeof(VEDAdeviceptrInfo))
+	);
+}
+
+//------------------------------------------------------------------------------
 void Context::memFree(VEDAdeviceptr vptr, VEDAstream stream) {
 	if(VEDA_GET_OFFSET(vptr) != 0)
-		throw VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+		VEDA_THROW(VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED);
 
 	// get physical pointer
 	auto res = getPtr(vptr);
-	if(std::get<0>(res))
+	if(res.ptr)
 		vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_FREE), vptr);
 	free(vptr);
 }
 
 //------------------------------------------------------------------------------
-Context::PtrTuple Context::getPtr(VEDAdeviceptr vptr) {
-	// does the host already know this ptr?
+VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr) {
 	auto res = getBasePtr(vptr);
-	if(std::get<0>(res) == 0)
+	if(res.ptr == 0)
 		return res;
-
-	std::get<0>(res) += VEDA_GET_OFFSET(vptr);
-	
+	res.ptr = ((char*)res.ptr) + VEDA_GET_OFFSET(vptr);	
 	return res;
 }
 
@@ -375,28 +406,28 @@ void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size,
 //------------------------------------------------------------------------------
 void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAstream _stream) {
 	auto res	= getPtr(src);
-	auto ptr	= std::get<0>(res); ASSERT(ptr);
-	auto size	= std::get<1>(res); ASSERT(size);
+	auto ptr	= res.ptr;	ASSERT(ptr);
+	auto size	= res.size;	ASSERT(size);
 	if((bytes + VEDA_GET_OFFSET(src)) > size)
-		throw VEDA_ERROR_OUT_OF_BOUNDS;
+		VEDA_THROW(VEDA_ERROR_OUT_OF_BOUNDS);
 
 	LOCK();
 	auto str	= stream(_stream);
-	uint64_t req	= CREQ(veo_async_read_mem(str, dst, ptr, bytes));
+	uint64_t req	= CREQ(veo_async_read_mem(str, dst, (veo_ptr)ptr, bytes));
 	m_streams[_stream].calls.emplace_back(req, false);
 }
 
 //------------------------------------------------------------------------------
 void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, VEDAstream _stream) {
 	auto res	= getPtr(dst);
-	auto ptr	= std::get<0>(res); ASSERT(ptr);
-	auto size	= std::get<1>(res); ASSERT(size);
+	auto ptr	= res.ptr;	ASSERT(ptr);
+	auto size	= res.size;	ASSERT(size);
 	if((bytes + VEDA_GET_OFFSET(dst)) > size)
-		throw VEDA_ERROR_OUT_OF_BOUNDS;
+		VEDA_THROW(VEDA_ERROR_OUT_OF_BOUNDS);
 
 	LOCK();
 	auto str	= stream(_stream);
-	uint64_t req	= CREQ(veo_async_write_mem(str, ptr, src, bytes));
+	uint64_t req	= CREQ(veo_async_write_mem(str, (veo_ptr)ptr, src, bytes));
 	m_streams[_stream].calls.emplace_back(req, false);
 }
 
@@ -476,7 +507,7 @@ void Context::sync(VEDAstream _stream) {
 		VEDAresult _res = (VEDAresult)res;
 
 		if(checkResult && _res != VEDA_SUCCESS)
-			throw _res;
+			VEDA_THROW(_res);
 	}
 	
 	calls.clear();

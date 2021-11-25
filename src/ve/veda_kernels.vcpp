@@ -84,8 +84,9 @@ VEDAresult veda_memset_u128_2d(VEDAdeviceptr vdst, const size_t pitch, const uin
 }
 
 //------------------------------------------------------------------------------
-VEDAresult veda_mem_alloc(void** ptr, VEDAdeviceptr vptr, const size_t size) {
-	return vedaMemAllocPtr(ptr, vptr, size);
+VEDAresult veda_mem_alloc(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info) {
+	info->inFlight = 0;
+	return vedaMemAllocPtr(&info->ptr, vptr, info->size);
 }
 
 //------------------------------------------------------------------------------
@@ -94,8 +95,14 @@ VEDAresult veda_mem_free(VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult veda_mem_ptr(void** ptr, size_t* size, VEDAdeviceptr vptr) {
-	return vedaMemPtrSize(ptr, size, vptr);
+VEDAresult veda_mem_ptr(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info) {
+	info->inFlight = 0;
+	return vedaMemPtrSize(&info->ptr, &info->size, vptr);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_swap(VEDAdeviceptr A, VEDAdeviceptrInfo* Ainfo, VEDAdeviceptr B, VEDAdeviceptrInfo* Binfo) {
+	return vedaMemSwapPtrSize(A, Ainfo, B, Binfo);
 }
 
 //------------------------------------------------------------------------------

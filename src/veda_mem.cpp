@@ -3,6 +3,23 @@
 
 extern "C" {
 //------------------------------------------------------------------------------
+VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
+	CVEDA(vedaMemSwapAsync(A, B, 0));
+	return vedaCtxSynchronize();
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemSwapAsync(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
+	GUARDED(
+		auto ctxA = veda::Devices::get(A).ctx();
+		auto ctxB = veda::Devices::get(B).ctx();
+		if(ctxA != ctxB)
+			return VEDA_ERROR_INVALID_CONTEXT;
+		ctxA->memSwap(A, B, stream);
+	)
+}
+
+//------------------------------------------------------------------------------
 VEDAresult vedaMemGetDevice(VEDAdevice* dev, VEDAdeviceptr ptr) {
 	*dev = VEDAptr<>(ptr).device();
 	return VEDA_SUCCESS;
@@ -66,7 +83,7 @@ VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdevicep
 	GUARDED(
 		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
 		*base = VEDAptr<>(vptr).base();
-		*size = std::get<1>(res);
+		*size = res.size;
 	)
 }
 
@@ -113,7 +130,7 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t size
 
 			void* host = malloc(size);
 			if(!host)
-				throw VEDA_ERROR_OUT_OF_MEMORY;
+				VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
 			
 			sctx->memcpyD2H(host, src, size, 0);
 			sctx->sync(0);
@@ -267,7 +284,7 @@ VEDAresult vedaMemReport(void) {
 VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
-		*ptr = (void*)std::get<0>(res);
+		*ptr = (void*)res.ptr;
 	)
 }
 
@@ -275,8 +292,8 @@ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
-		*ptr	= (void*)std::get<0>(res);
-		*size	= std::get<1>(res);
+		*ptr	= (void*)res.ptr;
+		*size	= res.size;
 	)
 }
 
@@ -284,7 +301,7 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
-		*size	= std::get<1>(res);
+		*size	= res.size;
 	)
 }
 
@@ -293,7 +310,7 @@ VEDAresult vedaMemHMEM(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto ctx = veda::Devices::get(vptr).ctx();
 		auto res = ctx->getPtr(vptr);
-		*ptr = (void*)(std::get<0>(res) | ctx->hmemId());
+		*ptr = (void*)((veo_ptr)res.ptr | ctx->hmemId());
 	);
 }
 
@@ -302,8 +319,8 @@ VEDAresult vedaMemHMEMSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
 		auto ctx = veda::Devices::get(vptr).ctx();
 		auto res = ctx->getPtr(vptr);
-		*ptr	= (void*)(std::get<0>(res) | ctx->hmemId());
-		*size	= std::get<1>(res);
+		*ptr	= (void*)((veo_ptr)res.ptr | ctx->hmemId());
+		*size	= res.size;
 	);
 }
 

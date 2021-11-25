@@ -69,7 +69,7 @@ Device::~Device(void) {
 //------------------------------------------------------------------------------
 Context* Device::ctx(void) const {
 	if(!m_ctx)
-		throw VEDA_ERROR_UNKNOWN_CONTEXT;
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_CONTEXT);
 	return m_ctx;
 }
 
@@ -88,7 +88,7 @@ void Device::destroyCtx(void) {
 //------------------------------------------------------------------------------
 Context* Device::createCtx(const VEDAcontext_mode mode) {
 	if(m_ctx)
-		throw VEDA_ERROR_CANNOT_CREATE_CONTEXT;
+		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
 	m_ctx = new Context(*this, mode);
 	return m_ctx;
 }
@@ -96,7 +96,7 @@ Context* Device::createCtx(const VEDAcontext_mode mode) {
 //------------------------------------------------------------------------------
 float Device::coreTemp(const int coreIdx) const {
 	if(coreIdx < 0 || coreIdx >= cores())
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	
 	auto sensor  = m_cores[coreIdx] + 14; // offseted by 14
 	char buffer[16];

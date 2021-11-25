@@ -10,7 +10,7 @@ void check(VEDAresult err, const char* file, const int line) {
 		const char* name = 0;
 		vedaGetErrorName(err, &name);
 		printf("Error: %i %s @ %s (%i)\n", err, name, file, line);
-		assert(false);
+		assert(0);
 		exit(1);
 	}
 }

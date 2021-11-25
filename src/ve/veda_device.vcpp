@@ -4,7 +4,7 @@
 
 #define LOCK() std::lock_guard<std::mutex> __lock(veda_mutex)
 
-static std::unordered_map<int, std::tuple<void*, size_t>> veda_ptrs;
+static std::unordered_map<int, VEDAdeviceptrInfo> veda_ptrs;
 static std::mutex veda_mutex;
 
 extern "C" {
@@ -43,7 +43,7 @@ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		auto ptr = std::get<0>(it->second);
+		auto ptr = it->second.ptr;
 		if(!ptr)
 			return VEDA_ERROR_UNKNOWN_PPTR;
 		
@@ -62,7 +62,7 @@ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		*ptr = ((char*)std::get<0>(it->second)) + VEDA_GET_OFFSET(vptr);
+		*ptr = ((char*)it->second.ptr) + VEDA_GET_OFFSET(vptr);
 		return VEDA_SUCCESS;
 	}
 	return VEDA_ERROR_UNKNOWN_VPTR;
@@ -76,8 +76,8 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		*ptr = ((char*)std::get<0>(it->second)) + VEDA_GET_OFFSET(vptr);
-		*size = std::get<1>(it->second);
+		*ptr = ((char*)it->second.ptr) + VEDA_GET_OFFSET(vptr);
+		*size = it->second.size;
 		return VEDA_SUCCESS;
 	}
 	return VEDA_ERROR_UNKNOWN_VPTR;
@@ -89,10 +89,46 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
 	if(it != veda_ptrs.end()) {
-		*size = std::get<1>(it->second);
+		*size = it->second.size;
 		return VEDA_SUCCESS;
 	}
 	return VEDA_ERROR_UNKNOWN_VPTR;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemSwapPtrSize(VEDAdeviceptr A, VEDAdeviceptrInfo* Ainfo, VEDAdeviceptr B, VEDAdeviceptrInfo* Binfo) {
+	LOCK();
+
+	bool deleteA = false, deleteB = false;
+
+	auto Aidx = VEDA_GET_IDX(A);
+	auto Ait = veda_ptrs.find(Aidx);
+	if(Ait == veda_ptrs.end()) {
+		Ait = std::get<0>(veda_ptrs.emplace(MAP_EMPLACE(Aidx)));
+		deleteB = true;
+	}
+
+	auto Bidx = VEDA_GET_IDX(B);
+	auto Bit = veda_ptrs.find(Bidx);
+	if(Bit == veda_ptrs.end()) {
+		Bit = std::get<0>(veda_ptrs.emplace(MAP_EMPLACE(Bidx)));
+		deleteA = true;
+	}
+
+	std::swap(Ait->second, Bit->second);
+
+	if(Ainfo) 	*Ainfo = Ait->second;
+	if(Binfo) 	*Binfo = Bit->second;
+
+	if(deleteA)	veda_ptrs.erase(Ait);
+	if(deleteB)	veda_ptrs.erase(Bit);
+
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
+	return vedaMemSwapPtrSize(A, 0, B, 0);
 }
 
 //------------------------------------------------------------------------------

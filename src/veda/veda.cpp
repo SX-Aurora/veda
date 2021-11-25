@@ -7,16 +7,16 @@ static int		s_ompThreads	= 0;
 static std::string	s_stdLib;
 
 //------------------------------------------------------------------------------
-const char*	stdLib		(void) {	return s_stdLib.c_str();				}
-int		ompThreads	(void) {	return s_ompThreads;					}
-void		checkInitialized(void) {	if(!s_initialized) throw VEDA_ERROR_NOT_INITIALIZED;	}
+const char*	stdLib		(void) {	return s_stdLib.c_str();					}
+int		ompThreads	(void) {	return s_ompThreads;						}
+void		checkInitialized(void) {	if(!s_initialized) VEDA_THROW(VEDA_ERROR_NOT_INITIALIZED);	}
 
 //------------------------------------------------------------------------------
 void setInitialized(const bool value) {
 	if(value && s_initialized)
-		throw VEDA_ERROR_ALREADY_INITIALIZED;
+		VEDA_THROW(VEDA_ERROR_ALREADY_INITIALIZED);
 	else if(!value && !s_initialized)
-		throw VEDA_ERROR_NOT_INITIALIZED;
+		VEDA_THROW(VEDA_ERROR_NOT_INITIALIZED);
 
 	if(value) {
 		// Init OMP Threads --------------------------------------------
