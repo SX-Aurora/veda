@@ -2,7 +2,7 @@
 #include <mutex>
 #include <thread>
 
-#define LOCK() std::lock_guard<std::mutex> __lock(veda_mutex)
+#define LOCK() std::lock_guard<std::mutex> __lock__(veda_mutex)
 
 static std::unordered_map<int, VEDAdeviceptrInfo> veda_ptrs;
 static std::mutex veda_mutex;
@@ -96,39 +96,27 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemSwapPtrSize(VEDAdeviceptr A, VEDAdeviceptrInfo* Ainfo, VEDAdeviceptr B, VEDAdeviceptrInfo* Binfo) {
+VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
 	LOCK();
 
-	bool deleteA = false, deleteB = false;
-
-	auto Aidx = VEDA_GET_IDX(A);
+	auto Aidx = VEDA_GET_IDX(A), Bidx = VEDA_GET_IDX(B);
 	auto Ait = veda_ptrs.find(Aidx);
-	if(Ait == veda_ptrs.end()) {
-		Ait = std::get<0>(veda_ptrs.emplace(MAP_EMPLACE(Aidx)));
-		deleteB = true;
-	}
-
-	auto Bidx = VEDA_GET_IDX(B);
 	auto Bit = veda_ptrs.find(Bidx);
-	if(Bit == veda_ptrs.end()) {
-		Bit = std::get<0>(veda_ptrs.emplace(MAP_EMPLACE(Bidx)));
-		deleteA = true;
+	auto end = veda_ptrs.end();
+
+	if(Ait != end && Bit != end) {
+		std::swap(Ait->second, Bit->second);
+	} else if(Ait != end) {
+		veda_ptrs.emplace(MAP_EMPLACE(Bidx, Ait->second));
+		veda_ptrs.erase(Ait);
+	} else if(Bit != end) {
+		veda_ptrs.emplace(MAP_EMPLACE(Aidx, Bit->second));
+		veda_ptrs.erase(Bit);
+	} else {
+		// nothing to do as both have not been allocated
 	}
-
-	std::swap(Ait->second, Bit->second);
-
-	if(Ainfo) 	*Ainfo = Ait->second;
-	if(Binfo) 	*Binfo = Bit->second;
-
-	if(deleteA)	veda_ptrs.erase(Ait);
-	if(deleteB)	veda_ptrs.erase(Bit);
 
 	return VEDA_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
-	return vedaMemSwapPtrSize(A, 0, B, 0);
 }
 
 //------------------------------------------------------------------------------

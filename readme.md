@@ -5,6 +5,12 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+<tr><td>v1.1.0</td><td>
+<ul>
+<li>added <code>vedaMemSwap</code> function to swap the underlying memory buffer between two <code>VEDAdeviceptr</code>.</li>
+</ul>
+</td></tr>
+
 <tr><td>v1.0.0</td><td>
 First stable release.
 <ul>

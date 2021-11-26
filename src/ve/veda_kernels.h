@@ -18,7 +18,7 @@ VEDAresult	veda_memset_u8_2d	(VEDAdeviceptr dst, const size_t pitch, const uint8
 VEDAresult	veda_mem_alloc		(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info);
 VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
 VEDAresult	veda_mem_ptr		(VEDAdeviceptr vptr, VEDAdeviceptrInfo* info);
-VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptrInfo* Ainfo, VEDAdeviceptr B, VEDAdeviceptrInfo* Binfo);
+VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptr B);
 
 //------------------------------------------------------------------------------
 }

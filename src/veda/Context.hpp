@@ -6,13 +6,16 @@ namespace veda {
 		typedef std::tuple<VEDAdeviceptr, size_t> VPtrTuple;
 	
 	private:
-		typedef std::map	<VEDAidx, VEDAdeviceptrInfo>	Ptrs;
+		typedef std::map	<VEDAidx, VEDAdeviceptrInfo*>	Ptrs;
 		typedef std::vector	<VEDAfunction>			Kernels;
 		typedef std::vector	<Stream>			Streams;
 		typedef std::map	<veo_lib, Module>		Modules;
 
+			std::mutex		mutex_streams;
+			std::mutex		mutex_ptrs;
+			std::mutex		mutex_modules;
+
 		const	VEDAcontext_mode	m_mode;
-			std::mutex		m_mutex;
 			Modules			m_modules;
 			Ptrs			m_ptrs;
 			Kernels			m_kernels;
@@ -23,8 +26,6 @@ namespace veda {
 			VEDAidx			m_memidx;
 			bool			m_memOperationInFlight;
 
-	const 	VEDAdeviceptrInfo&	getBasePtr		(VEDAdeviceptr vptr);
-		void			free			(VEDAdeviceptr vptr);
 		void			incMemIdx		(void);
 		void			syncPtrs		(void);
 
@@ -44,7 +45,7 @@ namespace veda {
 		int			streamCount		(void) const;
 		size_t			memUsed			(void);
 		veo_ptr			hmemId			(void) const;
-		veo_thr_ctxt*		stream			(const VEDAstream stream);
+		Stream&			stream			(const VEDAstream stream);
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
 		void			call			(VEDAhost_function func, void* userData, VEDAstream stream);
 		void			destroy			(void);
