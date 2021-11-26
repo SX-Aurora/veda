@@ -94,6 +94,7 @@ Context::~Context(void) noexcept(false) {
 			auto idx  = it.first;
 			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
 			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, it.second->size);
+			delete it.second;
 		}
 	}
 	
