@@ -250,7 +250,7 @@ VEDA has an own CMake find script. This supports 3 modes. The script uses the co
 This mode is necessary for VEDA offloading applications. It enables to compile host and device code within the same CMake project. For this it is necessary to use different file extensions for the VE code. All ```*.vc``` files get compiled using NCC, ```*.vcpp``` using NC++ and ```*.vf``` with NFORT.
 
 ```cmake
-SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake)
+SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake /opt/nec/ve/share/veda/cmake)
 FIND_PACKAGE(VE)
 ENABLE_LANGUAGE(VEDA_C VEDA_CXX)
 
@@ -263,7 +263,7 @@ TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
 This mode enables to compile VE native applications.
 
 ```cmake
-SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake)
+SET(CMAKE_MODULE_PATH /usr/local/ve/veda/cmake /opt/nec/ve/share/veda/cmake)
 FIND_PACKAGE(VE)
 ENABLE_LANGUAGE(VE_C VE_CXX)
 ADD_EXECUTABLE(myApp mycode.c mycode.cpp)

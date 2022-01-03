@@ -10,7 +10,7 @@ make
 
 ## How to run:
 ```bash
-VE_LD_LIBRARY_PATH=/usr/local/ve/veda/lib:. ./delayed_malloc
+VE_LD_LIBRARY_PATH=/usr/local/ve/veda/lib:/opt/nec/ve/veos/lib64:. ./delayed_malloc
 ```
 
 ## Expected output:
