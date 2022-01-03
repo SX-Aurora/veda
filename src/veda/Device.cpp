@@ -6,7 +6,9 @@ Context*	Device::unsafeCtx	(void) const					{	return m_ctx;								}
 VEDAdevice	Device::vedaId		(void) const					{	return m_vedaId;							}
 bool		Device::isNUMA		(void) const					{	return m_isNUMA;							}
 float		Device::powerCurrent	(void) const					{	return readSensor<float>("sensor_12")/1000.0f / (isNUMA() ? 2 : 1);	}
+float		Device::powerCurrentEdge(void) const					{	return readSensor<float>("sensor_13")/1000.0f / (isNUMA() ? 2 : 1);	}
 float		Device::powerVoltage	(void) const					{	return readSensor<float>("sensor_8")/1000000.0f;			}
+float		Device::powerVoltageEdge(void) const					{	return readSensor<float>("sensor_9")/1000000.0f;			}
 int		Device::aveoId		(void) const					{	return m_aveoId;							}
 int		Device::cacheL1d	(void) const					{	return m_cacheL1d;							}
 int		Device::cacheL1i	(void) const					{	return m_cacheL1i;							}

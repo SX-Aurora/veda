@@ -6,7 +6,7 @@ SET(SRC
 
 ADD_LIBRARY		(veda_test_ve SHARED ${SRC})
 TARGET_COMPILE_OPTIONS	(veda_test_ve PRIVATE -fopenmp)
-TARGET_LINK_OPTIONS	(veda_test_ve PRIVATE -Wl,-zdefs -fopenmp)
+SET_TARGET_PROPERTIES	(veda_test_ve PROPERTIES LINK_FLAGS "-Wl,-zdefs -fopenmp")
 TARGET_LINK_LIBRARIES	(veda_test_ve veda_device)
 SET_TARGET_PROPERTIES	(veda_test_ve PROPERTIES OUTPUT_NAME "veda_test")
 INSTALL			(TARGETS veda_test_ve LIBRARY DESTINATION ${VEDA_INSTALL_PATH}/tests)

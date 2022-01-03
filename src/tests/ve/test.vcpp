@@ -28,6 +28,10 @@ extern "C" void ve_hello_world(int stream) {
 	printf("Stream %i DONE!\n", stream);
 }
 
+extern "C" int ve_hello_world_fault(int stream) {
+	return -1;
+}
+
 struct uint128_t {
 	uint64_t x;
 	uint64_t y;

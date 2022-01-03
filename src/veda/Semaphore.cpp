@@ -6,6 +6,12 @@ std::atomic<uint32_t>	Semaphore::s_count;
 std::atomic<int>	Semaphore::s_shutdown;
 
 //------------------------------------------------------------------------------
+void Semaphore::init(void) {
+	s_shutdown	= 0;
+	s_count		= 0;
+}
+
+//------------------------------------------------------------------------------
 void Semaphore::shutdown(void) {
 	if(s_shutdown.load())
 		VEDA_THROW(VEDA_ERROR_UNKNOWN);

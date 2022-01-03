@@ -46,3 +46,4 @@ SET_TARGET_PROPERTIES(vera_test2 PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../li
 INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 veda_test7 veda_mpi vera_test1 vera_test2 veda_memset RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
 
 ADD_SUBDIRECTORY(ve)
+ADD_SUBDIRECTORY(FT)

@@ -22,6 +22,8 @@ void Devices::report(void) {
 
 //------------------------------------------------------------------------------
 Device& Devices::get(const VEDAdeviceptr vptr) {
+	if(!vptr)
+		throw VEDA_ERROR_INVALID_VALUE;
 	return get(VEDA_GET_DEVICE(vptr));
 }
 

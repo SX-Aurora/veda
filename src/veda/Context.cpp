@@ -1,5 +1,4 @@
 #include "veda.hpp"
-#include <veo_hmem_macros.h>
 
 #define LOCK(X) std::lock_guard<std::mutex> __lock__(X)
 
@@ -35,11 +34,12 @@ int			Context::streamCount	(void) const	{	return (int)m_streams.size();	}
 
 //------------------------------------------------------------------------------
 Context::Context(Device& device, const VEDAcontext_mode mode) :
-	m_mode	(mode),
-	m_device(device),
-	m_handle(0),
-	m_lib	(0),
-	m_memidx(1)
+	m_mode		(mode),
+	m_device	(device),
+	m_handle	(0),
+	m_lib		(0),
+	m_memidx	(1),
+	m_refCount	(0)
 {
 	// Create AVEO proc ----------------------------------------------------
 	int numStreams	= 0;
@@ -47,6 +47,7 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	if(auto omp = veda::ompThreads())
 		cores = std::min(cores, omp);
 
+	// Calculate the number of VEDA SM based on the VEDA context mode.
 	if(mode == VEDA_CONTEXT_MODE_OMP) {
 		char buffer[3];
 		snprintf(buffer, sizeof(buffer), "%i", cores);
@@ -60,6 +61,7 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	}
 	ASSERT(numStreams);
 
+	// VE process is created and started on the VE device.
 	m_handle = veo_proc_create(this->device().aveoId());
 	if(!m_handle)
 		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
@@ -67,6 +69,7 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	// Load STDLib ---------------------------------------------------------
 	m_kernels.resize(VEDA_KERNEL_CNT);
 
+	// Load the VEDA kernel module on the VE device memory.
 	m_lib = moduleLoad(veda::stdLib());
 	for(int i = 0; i < VEDA_KERNEL_CNT; i++)
 		m_kernels[i] = moduleGetFunction(m_lib, kernelName((Kernel)i));
@@ -75,6 +78,8 @@ Context::Context(Device& device, const VEDAcontext_mode mode) :
 	m_streams.resize(numStreams);
 	for(auto& stream : m_streams) {
 		ASSERT(stream.ctx == 0);
+		// Create a new AVEO context, a pseudo thread and corresponding
+		// VE thread for the context.
 		stream.ctx = veo_context_open(m_handle);
 		if(stream.ctx == 0)
 			VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_STREAM);
@@ -98,8 +103,10 @@ Context::~Context(void) noexcept(false) {
 		}
 	}
 	
-	if(m_handle)
+	if(m_handle) {
 		TVEO(veo_proc_destroy(m_handle));
+		m_handle = 0;
+	}
 
 	m_streams.clear();	// don't need to be destroyed
 	m_modules.clear();	// don't need to be destroyed
@@ -110,7 +117,7 @@ Context::~Context(void) noexcept(false) {
 veo_ptr Context::hmemId(void) const {
 	int procId = veo_proc_identifier(m_handle);
 	ASSERT(procId >= 0);
-	return SET_VE_FLAG(SET_PROC_IDENT(0, procId));
+	return (veo_ptr)veo_set_proc_identifier(0, procId);
 }
 
 //------------------------------------------------------------------------------
@@ -219,9 +226,9 @@ VEDAfunction Context::moduleGetFunction(Module* mod, const char* name) {
 
 //------------------------------------------------------------------------------
 Module* Context::moduleLoad(const char* name) {
-	if(name == 0)	VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+	if(name == 0 || !*name)	VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	auto lib = veo_load_library(m_handle, name);
-	if(lib == 0)	VEDA_THROW(VEDA_ERROR_MODULE_NOT_FOUND);
+	if(lib == 0)		VEDA_THROW(VEDA_ERROR_MODULE_NOT_FOUND);
 	LOCK(mutex_modules);
 	return &m_modules.emplace(MAP_EMPLACE(lib, this, lib)).first->second;
 }
@@ -379,11 +386,16 @@ void Context::call(VEDAhost_function func, void* userData, VEDAstream _stream) {
 // Memcpy
 //------------------------------------------------------------------------------
 void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream) {
+	if(!dst || !src)
+		throw VEDA_ERROR_INVALID_VALUE;
 	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
 }
 
 //------------------------------------------------------------------------------
 void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAstream _stream) {
+	if(!dst || !src)
+		throw VEDA_ERROR_INVALID_VALUE;
+
 	auto res	= getPtr(src);
 	auto ptr	= res.ptr;	ASSERT(ptr);
 	auto size	= res.size;	ASSERT(size);
@@ -399,6 +411,9 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 
 //------------------------------------------------------------------------------
 void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, VEDAstream _stream) {
+	if(!dst || !src)
+		throw VEDA_ERROR_INVALID_VALUE;
+
 	auto res	= getPtr(dst);
 	auto ptr	= res.ptr;	ASSERT(ptr);
 	auto size	= res.size;	ASSERT(size);
@@ -451,7 +466,7 @@ void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint16_t val
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32_2D), pitch, value, w, h);
+	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32_2D), dst, pitch, value, w, h);
 }
 
 //------------------------------------------------------------------------------
@@ -503,6 +518,20 @@ VEDAresult Context::query(VEDAstream _stream) {
 		case VEO_STATE_EXIT:	return VEDA_SUCCESS; // hope this is correct
 	}
 	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+void	Context::incRefCount	(void)		{	m_refCount++;		}
+void	Context::decRefCount	(const int cnt)	{	m_refCount -= cnt;	}
+int	Context::refCount	(void) const	{	return m_refCount;	}
+bool	Context::isHandleValid	(void) const	{	return m_handle != 0;	}
+
+//------------------------------------------------------------------------------
+void Context::destroyProcHandle(void) {
+	LOCK();
+	if(m_handle)
+		TVEO(veo_proc_destroy(m_handle));
+	m_handle = 0;
 }
 
 //------------------------------------------------------------------------------

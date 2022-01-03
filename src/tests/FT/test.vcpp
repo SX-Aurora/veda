@@ -1,0 +1,91 @@
+#include <veda_device.h>
+#include <cstdio>
+#include <omp.h>
+#include <thread>
+#include <functional>
+#include <math.h>
+#include <float.h>
+
+#define CHECK(err) if(err != VEDA_SUCCESS) {\
+		const char* str = 0;\
+		vedaGetErrorName(err, &str);\
+		printf("%s @ %s (%i)\n", str, __FILE__, __LINE__);\
+	}
+
+extern "C" void ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
+	int* out;
+	CHECK(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
+
+	#pragma _NEC ivdep
+	for(size_t i = 0; i < cnt; i++){
+		out[i] = cnt - 1 - i;
+	}
+}
+
+extern "C" void ve_hello_world(int stream) {
+	#pragma omp parallel
+	{
+    	size_t hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+		printf("\nStream %i: Omp: %i/%i Thread: %016llX\n", stream, omp_get_thread_num(), omp_get_num_threads(), hash);
+	}
+	printf("Stream %i DONE!\n", stream);
+}
+extern "C" void ve_exception(int stream) {
+	printf("Throwing exception :Stream %i\n", stream);
+	throw "Division by zero condition!";
+}
+extern "C" void ve_exception2(int stream) {
+	int *p;
+	*p = 5;
+}
+extern "C" void vedaSetArgs_dataType(size_t size){
+	if(size == CHAR_MAX)
+		 printf(": FT_VEDA_ECM_04: PASSED");
+	else if(size == UCHAR_MAX)
+		 printf(": FT_VEDA_ECM_05: PASSED");
+	else if(size == SHRT_MAX)
+		 printf(": FT_VEDA_ECM_06: PASSED");
+	else if(size == USHRT_MAX)
+		 printf(": FT_VEDA_ECM_07: PASSED");
+	else if(size == INT_MAX)
+		 printf(": FT_VEDA_ECM_08: PASSED");
+	else if(size == UINT_MAX)
+		 printf(": FT_VEDA_ECM_09: PASSED");
+	else if(size == LONG_MAX)
+		 printf(": FT_VEDA_ECM_10: PASSED");
+	else if(size == ULONG_MAX)
+		 printf(": FT_VEDA_ECM_11: PASSED");
+	else{
+		 printf(": FAILED\n");
+		 exit(1);
+	}
+	printf("\n");
+}
+extern "C" void vedaSetArgs_float(float size){
+	if(FLT_MAX == size )
+		 printf(": FT_VEDA_ECM_12: PASSED");
+	else{
+		 printf(": FT_VEDA_ECM_12: FAILED");
+		 exit(1);
+	}
+	printf("\n");
+}
+extern "C" void vedaSetArgs_double(double size){
+	if(DBL_MAX == size )
+		 printf(": FT_VEDA_ECM_13: PASSED");
+	else{
+		 printf(": FT_VEDA_ECM_13: FAILED");
+		 exit(1);
+	}
+	printf("\n");
+}
+extern "C" void vedaArgsSetStack_test(void* s_var, int size){
+
+	int *p = (int*)s_var;
+	printf("\nIn vedaArgsSetStack_test %u %d\n",(int*)s_var, size);
+	for(int i =0; i< size; i++)
+	{	
+		printf("%d ",p[i]);
+	}
+	printf("\n");
+}

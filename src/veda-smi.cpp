@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 		CHECK(vedaDeviceGetAVEOId	(&aveo, dev));
 		CHECK(vedaDeviceGetNUMAId	(&numa, dev));
 
-		int cores, clock_rate, clock_base, clock_memory, l1d, l1i, l2, llc, abi, firmware;
+		int cores, clock_rate, clock_base, clock_memory, l1d, l1i, l2, llc, firmware;
 		CHECK(vedaDeviceGetAttribute(&cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev));
 		CHECK(vedaDeviceGetAttribute(&clock_rate,	VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE, dev));
 		CHECK(vedaDeviceGetAttribute(&clock_base,	VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE, dev));
@@ -49,7 +49,6 @@ int main(int argc, char** argv) {
 		CHECK(vedaDeviceGetAttribute(&l1i,		VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE, dev));
 		CHECK(vedaDeviceGetAttribute(&l2,		VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, dev));
 		CHECK(vedaDeviceGetAttribute(&llc,		VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE, dev));
-		CHECK(vedaDeviceGetAttribute(&abi,		VEDA_DEVICE_ATTRIBUTE_ABI_VERSION, dev));
 		CHECK(vedaDeviceGetAttribute(&firmware,		VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION, dev));
 
 		printf("┌── #%-2i %s ", dev, name);
@@ -61,7 +60,6 @@ int main(int argc, char** argv) {
 		printf("  ├ AVEO:     %1i.%1i\n", aveo, numa);
 		printf("  ├ Clock:    current: %i MHz, base: %i MHz, memory: %i MHz\n", clock_rate, clock_base, clock_memory);
 		printf("  ├ Firmware: %i\n", firmware);
-		printf("  ├ ABI:      %i\n", abi);
 		printf("  ├ Memory:   %llu MiB\n", total/1024/1024);
 		printf("  ├ Cache:    LLC: %ikB, L2: %ikB, L1d: %ikB, L1i: %ikB\n", llc, l2, l1d, l1i);
 		printf("  ├ Temp:     ");
@@ -73,11 +71,13 @@ int main(int argc, char** argv) {
 		}
 		printf("\n");
 
-		float power = 0, current = 0, voltage = 0;
+		float power = 0, current = 0, voltage = 0, current_edge = 0, voltage_edge = 0;
 		CHECK(vedaDeviceGetPower(&power, dev));
 		CHECK(vedaDeviceGetCurrent(&current, dev));
 		CHECK(vedaDeviceGetVoltage(&voltage, dev));
-		printf("  └ Power:    %3.1fW (%3.1fV, %3.1fA)\n", power, voltage, current);
+		CHECK(vedaDeviceGetCurrentEdge(&current_edge, dev));
+		CHECK(vedaDeviceGetVoltageEdge(&voltage_edge, dev));
+		printf("  └ Power:    %3.1fW (AUX: %3.1fV, %3.1fA Edge: %3.1fV, %3.1fA)\n", power, voltage, current, voltage_edge, current_edge);
 		printf("└───────────────────────────────────────────────────────────────────────────────┘\n\n");
 	}
 

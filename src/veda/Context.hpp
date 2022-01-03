@@ -25,6 +25,7 @@ namespace veda {
 			VEDAmodule		m_lib;
 			VEDAidx			m_memidx;
 			bool			m_memOperationInFlight;
+			std::atomic<int>	m_refCount;
 
 		void			incMemIdx		(void);
 		void			syncPtrs		(void);
@@ -35,6 +36,7 @@ namespace veda {
 					~Context		(void) noexcept(false);
 		Device&			device			(void);
 		Module*			moduleLoad		(const char* name);
+		Stream&			stream			(const VEDAstream stream);
 		VEDAcontext_mode	mode			(void) const;
 		VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
 		VEDAdeviceptrInfo	getPtr			(VEDAdeviceptr vptr);
@@ -42,13 +44,17 @@ namespace veda {
 		VEDAfunction		moduleGetFunction	(Module* mod, const char* name);
 		VEDAresult		query			(VEDAstream stream);
 		VPtrTuple		memAllocPitch		(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream);
+		bool			isHandleValid		(void) const;
+		int			refCount		(void) const;
 		int			streamCount		(void) const;
 		size_t			memUsed			(void);
 		veo_ptr			hmemId			(void) const;
-		Stream&			stream			(const VEDAstream stream);
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
 		void			call			(VEDAhost_function func, void* userData, VEDAstream stream);
+		void			decRefCount		(const int cnt = 1);
 		void			destroy			(void);
+		void			destroyProcHandle	(void);
+		void			incRefCount		(void);
 		void			init			(void);
 		void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);
 		void			memReport		(void);

@@ -1,0 +1,9 @@
+#include <stdio.h>
+
+void hello_world(void) {
+	printf("Hello World from Device!\n");
+}
+void hello_world2(void) {
+	printf("Hello World from Device!\n");
+}
+

@@ -49,16 +49,18 @@ VEDAresult	vedaCtxStreamCnt		(int* cnt);
 VEDAresult	vedaCtxSynchronize		(void);
 VEDAresult	vedaDeviceDistance		(float* distance, VEDAdevice devA, VEDAdevice devB);
 VEDAresult	vedaDeviceGet			(VEDAdevice* device, int ordinal);
+VEDAresult	vedaDeviceGetAVEOId		(int* id, VEDAdevice dev);
 VEDAresult	vedaDeviceGetAttribute		(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev);
 VEDAresult	vedaDeviceGetCount		(int* count);
-VEDAresult	vedaDeviceGetName 		(char* name, int len, VEDAdevice dev);
-VEDAresult	vedaDeviceGetPower		(float* power, VEDAdevice dev);
 VEDAresult	vedaDeviceGetCurrent		(float* current, VEDAdevice dev);
-VEDAresult	vedaDeviceGetVoltage		(float* voltage, VEDAdevice dev);
-VEDAresult	vedaDeviceGetTemp		(float* tempC, const int coreIdx, VEDAdevice dev);
-VEDAresult	vedaDeviceGetPhysicalId		(int* id, VEDAdevice dev);
-VEDAresult	vedaDeviceGetAVEOId		(int* id, VEDAdevice dev);
+VEDAresult	vedaDeviceGetCurrentEdge	(float* current, VEDAdevice dev);
 VEDAresult	vedaDeviceGetNUMAId		(int* id, VEDAdevice dev);
+VEDAresult	vedaDeviceGetName 		(char* name, int len, VEDAdevice dev);
+VEDAresult	vedaDeviceGetPhysicalId		(int* id, VEDAdevice dev);
+VEDAresult	vedaDeviceGetPower		(float* power, VEDAdevice dev);
+VEDAresult	vedaDeviceGetTemp		(float* tempC, const int coreIdx, VEDAdevice dev);
+VEDAresult	vedaDeviceGetVoltage		(float* voltage, VEDAdevice dev);
+VEDAresult	vedaDeviceGetVoltageEdge	(float* voltage, VEDAdevice dev);
 VEDAresult	vedaDevicePrimaryCtxGetState	(VEDAdevice dev, uint32_t* flags, int* active);
 VEDAresult	vedaDevicePrimaryCtxRelease	(VEDAdevice dev);
 VEDAresult	vedaDevicePrimaryCtxReset	(VEDAdevice dev);
@@ -73,7 +75,7 @@ VEDAresult	vedaGetVersion			(const char** str);
 VEDAresult	vedaInit			(uint32_t Flags);
 VEDAresult	vedaLaunchHostFunc		(VEDAstream stream, VEDAhost_function fn, void* userData);
 VEDAresult	vedaLaunchKernel		(VEDAfunction f, VEDAstream stream, VEDAargs);
-VEDAresult	vedaLaunchKernelEx		(VEDAfunction f, VEDAstream stream, VEDAargs, const int destroyArgs);
+VEDAresult	vedaLaunchKernelEx		(VEDAfunction f, VEDAstream stream, VEDAargs, const int destroyArgs, const int checkResult);
 VEDAresult	vedaMemAlloc			(VEDAdeviceptr* ptr, size_t size);
 VEDAresult	vedaMemAllocAsync		(VEDAdeviceptr* ptr, size_t size, VEDAstream stream);
 VEDAresult	vedaMemAllocHost		(void** pp, size_t bytesiz);
@@ -176,7 +178,7 @@ inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAstack stac
 }
 
 inline VEDAresult __vedaLaunchKernel(VEDAfunction func, VEDAstream stream, VEDAargs args, const int idx) {
-	return vedaLaunchKernelEx(func, stream, args, 1);
+	return vedaLaunchKernelEx(func, stream, args, 1, 0);
 }
 
 template<typename T, typename... Args>

@@ -44,6 +44,7 @@ IF(BUILD_VEOS_RELEASE)
 	SET(AVEO_INCLUDE		"${AVEO_PATH}/include")
 	SET(AVEO_LIBRARY		"${AVEO_PATH}/lib64/libveo.so.1.0.0")
 	SET(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION /opt/nec/ve/bin /opt/nec/ve/lib /opt/nec/ve/share)
+	ADD_DEFINITIONS(-DBUILD_VEOS_RELEASE=1)
 ELSE()
 	SET(VEDA_INSTALL_DEFAULT	"/usr/local/ve")
 	SET(VEDA_INSTALL_PATH		"veda-${VEDA_VERSION}")
@@ -154,7 +155,7 @@ SET_TARGET_PROPERTIES(veda
 	CXX_STANDARD_REQUIRED	YES
 	CXX_EXTENSIONS		NO
 	SUFFIX			".so.${VEDA_VERSION_API}"
-	LINK_FLAGS		"-lpthread,-Wl,--no-as-needed -Wl,-z,defs -Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/libveda.map"
+	LINK_FLAGS		"-Wl,-lpthread -Wl,--no-as-needed -Wl,-z,defs -Wl,--version-script=${CMAKE_CURRENT_LIST_DIR}/libveda.map"
 )
 
 IF(NOT BUILD_VEOS_RELEASE)

@@ -7,6 +7,7 @@ namespace veda {
 
 	public:
 		static void acquire	(void);
+		static void init	(void);
 		static void release	(void);
 		static void shutdown	(void);
 	};
