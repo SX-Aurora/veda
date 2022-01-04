@@ -2,16 +2,27 @@
 
 namespace veda {
 //------------------------------------------------------------------------------
-std::vector<Device> Devices::s_devices;
+std::deque<Device> Devices::s_devices;
 
 //------------------------------------------------------------------------------
-int	Devices::count		(void) {	return (int)s_devices.size();	}
-void	Devices::shutdown	(void) {	s_devices.clear();		}
+int Devices::count(void) {
+	return (int)s_devices.size();
+}
+
+//------------------------------------------------------------------------------
+void Devices::shutdown(void) {
+	for(auto& device : s_devices) {
+		auto& ctx = device.ctx();
+		if(ctx.isActive())
+			ctx.destroy();
+	}
+	s_devices.clear();
+}
 
 //------------------------------------------------------------------------------
 void Devices::memReport(void) {
 	for(auto& d : s_devices)
-		d.memReport();
+		d.ctx().memReport();
 }
 
 //------------------------------------------------------------------------------
@@ -23,13 +34,13 @@ void Devices::report(void) {
 //------------------------------------------------------------------------------
 Device& Devices::get(const VEDAdeviceptr vptr) {
 	if(!vptr)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	return get(VEDA_GET_DEVICE(vptr));
 }
 
 //------------------------------------------------------------------------------
 Device& Devices::get(const VEDAdevice device) {
-	if(device < 0 || device >= s_devices.size())
+	if(device < 0 || device >= count())
 		VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
 	return s_devices[device];
 }

@@ -80,7 +80,7 @@ static inline void vedaMemsetD2DX(T* _ptr, const size_t pitch, const T value, co
 	veda_omp(h, [&](const size_t min, const size_t max) {
 		#pragma _NEC novector
 		for(size_t h = min; h < max; h++) {
-			auto ptr = _ptr + (h * pitch);
+			auto ptr = _ptr + (h * pitch / sizeof(T));
 			auto cnt = w;
 			vedaMemsetAlign		(ptr, value, cnt);
 			vedaMemsetBatched	(ptr, value, cnt);

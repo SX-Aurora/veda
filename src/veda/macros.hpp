@@ -4,7 +4,7 @@
 #define MAX_NUMA_NODES 2
 
 #ifndef NDEBUG
-#define VEDA_THROW(err) do { printf("[EXCEPTION] %s (%i)\n", __FILE__, __LINE__); throw err; }while(false)
+#define VEDA_THROW(err) do { const char* msg; vedaGetErrorName(err, &msg); printf("[%s] %s (%i)\n", msg, __FILE__, __LINE__); throw err; } while(false)
 #else
 #define VEDA_THROW(err) throw err
 #endif

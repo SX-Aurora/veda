@@ -55,7 +55,14 @@ void *t1(void *context)
 		retval = -1;
 		pthread_exit(&retval);
 	}
-       	CHECK(vedaCtxDestroy(*((VEDAcontext*)context)));
+       	
+	if( vedaCtxDestroy(*((VEDAcontext*)context)) != VEDA_ERROR_CONTEXT_IS_DESTROYED)
+	{
+		printf("FT_VEDA_CONTEXT_11_1 failed\n");
+		pthread_mutex_unlock(&m1);
+		retval = -1;
+		pthread_exit(&retval);
+	}
 
 	pthread_mutex_unlock(&m1);
 	pthread_exit(&retval);

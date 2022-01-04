@@ -25,7 +25,6 @@ int main(int argc, char** argv) {
 	CHECK(vedaDeviceGetCount(&devcnt));
 	printf("\nTEST CASE ID: FT_VEDA_DEVICE_01\n");
 	printf("\nTEST CASE ID: FT_VEDA_DEVICE_010\n");
-	printf("%d", ve_node);
 	if((ve_node == devcnt) || (getenv("VEDA_VISIBLE_DEVICES")!= NULL))
 	{
 		printf("PASSED\n");

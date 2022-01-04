@@ -30,88 +30,17 @@ static inline void vedaCtxCall(Context* ctx, VEDAstream stream, bool checkResult
 //------------------------------------------------------------------------------
 Device& 		Context::device		(void)		{	return m_device;		}
 VEDAcontext_mode	Context::mode		(void) const	{	return m_mode;			}
+bool			Context::isActive	(void) const	{	return m_handle != 0;		}
 int			Context::streamCount	(void) const	{	return (int)m_streams.size();	}
 
 //------------------------------------------------------------------------------
-Context::Context(Device& device, const VEDAcontext_mode mode) :
-	m_mode		(mode),
-	m_device	(device),
-	m_handle	(0),
-	m_lib		(0),
-	m_memidx	(1),
-	m_refCount	(0)
-{
-	// Create AVEO proc ----------------------------------------------------
-	int numStreams	= 0;
-	int cores	= device.cores();
-	if(auto omp = veda::ompThreads())
-		cores = std::min(cores, omp);
-
-	// Calculate the number of VEDA SM based on the VEDA context mode.
-	if(mode == VEDA_CONTEXT_MODE_OMP) {
-		char buffer[3];
-		snprintf(buffer, sizeof(buffer), "%i", cores);
-		setenv("VE_OMP_NUM_THREADS", buffer, 1);
-		numStreams = 1;
-	} else if(mode == VEDA_CONTEXT_MODE_SCALAR) {
-		setenv("VE_OMP_NUM_THREADS", "1", 1);
-		numStreams = cores;
-	} else {
-		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
-	}
-	ASSERT(numStreams);
-
-	// VE process is created and started on the VE device.
-	m_handle = veo_proc_create(this->device().aveoId());
-	if(!m_handle)
-		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
-
-	// Load STDLib ---------------------------------------------------------
-	m_kernels.resize(VEDA_KERNEL_CNT);
-
-	// Load the VEDA kernel module on the VE device memory.
-	m_lib = moduleLoad(veda::stdLib());
-	for(int i = 0; i < VEDA_KERNEL_CNT; i++)
-		m_kernels[i] = moduleGetFunction(m_lib, kernelName((Kernel)i));
-
-	// Create Streams ------------------------------------------------------
-	m_streams.resize(numStreams);
-	for(auto& stream : m_streams) {
-		ASSERT(stream.ctx == 0);
-		// Create a new AVEO context, a pseudo thread and corresponding
-		// VE thread for the context.
-		stream.ctx = veo_context_open(m_handle);
-		if(stream.ctx == 0)
-			VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_STREAM);
-		stream.calls.reserve(128);
-		ASSERT(stream.calls.empty());
-	}
-}
-
-//------------------------------------------------------------------------------
-Context::~Context(void) noexcept(false) {
-	LOCK(mutex_ptrs);
-	syncPtrs();
-
-	auto mem_trace = std::getenv("VEDA_MEM_TRACE");
-	if(mem_trace && std::atoi(mem_trace)) {
-		for(auto& it : m_ptrs) {
-			auto idx  = it.first;
-			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
-			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, it.second->size);
-			delete it.second;
-		}
-	}
-	
-	if(m_handle) {
-		TVEO(veo_proc_destroy(m_handle));
-		m_handle = 0;
-	}
-
-	m_streams.clear();	// don't need to be destroyed
-	m_modules.clear();	// don't need to be destroyed
-	m_kernels.clear();	// don't need to be destroyed
-}
+Context::Context(Device& device) :
+	m_mode	(VEDA_CONTEXT_MODE_OMP),
+	m_device(device),
+	m_handle(0),
+	m_lib	(0),
+	m_memidx(1)
+{}
 
 //------------------------------------------------------------------------------
 veo_ptr Context::hmemId(void) const {
@@ -134,6 +63,9 @@ size_t Context::memUsed(void) {
 
 //------------------------------------------------------------------------------
 void Context::memReport(void) {	
+	if(!isActive())
+		return;
+
 	size_t total	= device().memorySize();
 	size_t used	= memUsed();
 
@@ -321,6 +253,11 @@ void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
 
 //------------------------------------------------------------------------------
 void Context::memFree(VEDAdeviceptr vptr, VEDAstream stream) {
+	// If this context is not active, we don't care about still pending
+	// frees.
+	if(!isActive())
+		return;
+
 	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
 	
 	if(VEDA_GET_OFFSET(vptr) != 0)
@@ -387,14 +324,14 @@ void Context::call(VEDAhost_function func, void* userData, VEDAstream _stream) {
 //------------------------------------------------------------------------------
 void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream) {
 	if(!dst || !src)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
 }
 
 //------------------------------------------------------------------------------
 void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAstream _stream) {
 	if(!dst || !src)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 
 	auto res	= getPtr(src);
 	auto ptr	= res.ptr;	ASSERT(ptr);
@@ -412,7 +349,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 //------------------------------------------------------------------------------
 void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, VEDAstream _stream) {
 	if(!dst || !src)
-		throw VEDA_ERROR_INVALID_VALUE;
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 
 	auto res	= getPtr(dst);
 	auto ptr	= res.ptr;	ASSERT(ptr);
@@ -521,17 +458,91 @@ VEDAresult Context::query(VEDAstream _stream) {
 }
 
 //------------------------------------------------------------------------------
-void	Context::incRefCount	(void)		{	m_refCount++;		}
-void	Context::decRefCount	(const int cnt)	{	m_refCount -= cnt;	}
-int	Context::refCount	(void) const	{	return m_refCount;	}
-bool	Context::isHandleValid	(void) const	{	return m_handle != 0;	}
+void Context::init(const VEDAcontext_mode mode) {
+	if(isActive())
+		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
+
+	// Set Class Variables -------------------------------------------------
+	m_mode = mode;
+
+	// Create AVEO proc ----------------------------------------------------
+	int numStreams	= 0;
+	int cores	= device().cores();
+	if(auto omp = veda::ompThreads())
+		cores = std::min(cores, omp);
+
+	// Calculate the number of VEDA SM based on the VEDA context mode.
+	if(mode == VEDA_CONTEXT_MODE_OMP) {
+		char buffer[3];
+		snprintf(buffer, sizeof(buffer), "%i", cores);
+		setenv("VE_OMP_NUM_THREADS", buffer, 1);
+		numStreams = 1;
+	} else if(mode == VEDA_CONTEXT_MODE_SCALAR) {
+		setenv("VE_OMP_NUM_THREADS", "1", 1);
+		numStreams = cores;
+	} else {
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+	}
+	ASSERT(numStreams);
+
+	// VE process is created and started on the VE device.
+	m_handle = veo_proc_create(this->device().aveoId());
+	if(!m_handle)
+		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
+
+	// Load STDLib ---------------------------------------------------------
+	m_kernels.resize(VEDA_KERNEL_CNT);
+
+	// Load the VEDA kernel module on the VE device memory.
+	m_lib = moduleLoad(veda::stdLib());
+	for(int i = 0; i < VEDA_KERNEL_CNT; i++)
+		m_kernels[i] = moduleGetFunction(m_lib, kernelName((Kernel)i));
+
+	// Create Streams ------------------------------------------------------
+	m_streams.resize(numStreams);
+	for(auto& stream : m_streams) {
+		ASSERT(stream.ctx == 0);
+		// Create a new AVEO context, a pseudo thread and corresponding
+		// VE thread for the context.
+		stream.ctx = veo_context_open(m_handle);
+		if(stream.ctx == 0)
+			VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_STREAM);
+		stream.calls.reserve(128);
+		ASSERT(stream.calls.empty());
+	}
+}
 
 //------------------------------------------------------------------------------
-void Context::destroyProcHandle(void) {
-	LOCK();
-	if(m_handle)
+void Context::destroy(void) {
+	if(!isActive())
+		VEDA_THROW(VEDA_ERROR_CONTEXT_IS_DESTROYED);
+
+	LOCK(mutex_ptrs);
+	syncPtrs();
+
+	if(veda::isMemTrace()) {
+		for(auto& it : m_ptrs) {
+			auto idx  = it.first;
+			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
+			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, it.second->size);
+		}
+	}
+	
+	if(m_handle) {
 		TVEO(veo_proc_destroy(m_handle));
-	m_handle = 0;
+		m_handle = 0;
+	}
+
+	m_streams.clear();	// don't need to be destroyed
+	m_modules.clear();	// don't need to be destroyed
+	m_kernels.clear();	// don't need to be destroyed
+	m_lib		= 0;
+	m_mode		= VEDA_CONTEXT_MODE_OMP;
+	m_memidx	= 0;
+
+	for(auto& it : m_ptrs)
+		delete it.second;
+	m_ptrs.clear();
 }
 
 //------------------------------------------------------------------------------

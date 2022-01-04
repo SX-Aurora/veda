@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <veda.h>
+#include <assert.h>
 
 #define CHECK(err) check(err, __FILE__, __LINE__)
 
@@ -11,7 +12,7 @@ void check(VEDAresult err, const char* file, const int line) {
 		vedaGetErrorString	(err, &str);
 		printf("%s: %s @ %s:%i\n", name, str, file, line);
 		printf("\nTEST CASE ID: FT_VEDA_MODULE_XX:FAILED\n");
-		assert(false);
+		assert(0);
 		exit(1);
 	}
 }

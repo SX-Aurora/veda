@@ -24,14 +24,13 @@ extern "C" {
  * from those threads will result in the error VEDA_ERROR_CONTEXT_IS_DESTROYED.
  */
 VEDAresult vedaCtxDestroy(VEDAcontext ctx) {
+	if(!ctx)
+		return VEDA_ERROR_UNKNOWN_CONTEXT;
+		
 	GUARDED(
-		auto count = veda::Contexts::countInstances(ctx);
 		veda::Contexts::remove(ctx);
-		ctx->decRefCount(count);
-		ctx->destroyProcHandle();
-		if(ctx->refCount() == 0)
-			ctx->device().destroyCtx();
-	)					
+		ctx->destroy();
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -197,7 +196,8 @@ VEDAresult vedaCtxSynchronize(void) {
  */
 VEDAresult vedaCtxCreate(VEDAcontext* pctx, int mode, VEDAdevice dev) {
 	GUARDED(
-		*pctx = veda::Devices::get(dev).createCtx((VEDAcontext_mode)mode);
+		*pctx = &veda::Devices::get(dev).ctx();
+		(*pctx)->init((VEDAcontext_mode)mode);
 		veda::Contexts::push(*pctx);
 	)
 }

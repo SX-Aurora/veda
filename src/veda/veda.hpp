@@ -16,6 +16,7 @@ typedef uint64_t veo_lib;
 #include <sstream>
 #include <sys/stat.h>
 #include <vector>
+#include <deque>
 #include <atomic>
 #include <thread>
 #include <chrono>
@@ -37,16 +38,17 @@ namespace veda {
 #include "Semaphore.hpp"
 #include "Kernel.hpp"
 #include "Module.hpp"
+#include "Context.hpp"
+#include "Contexts.hpp"
 #include "Device.hpp"
 #include "Devices.hpp"
 #include "Stream.hpp"
-#include "Context.hpp"
-#include "Contexts.hpp"
 
 //------------------------------------------------------------------------------
 namespace veda {
 	const char*	stdLib		(void);
 	int		ompThreads	(void);
+	bool		isMemTrace	(void);
 	VEDAresult	VEOtoVEDA	(const int err);
 	void		checkInitialized(void);
 	void		setInitialized	(const bool value);

@@ -10,8 +10,8 @@ VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
 //------------------------------------------------------------------------------
 VEDAresult vedaMemSwapAsync(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
 	GUARDED(
-		auto ctxA = veda::Devices::get(A).ctx();
-		auto ctxB = veda::Devices::get(B).ctx();
+		auto ctxA = &veda::Devices::get(A).ctx();
+		auto ctxB = &veda::Devices::get(B).ctx();
 		if(ctxA != ctxB)
 			return VEDA_ERROR_INVALID_CONTEXT;
 		ctxA->memSwap(A, B, stream);
@@ -172,10 +172,7 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
  * attributes results in undefined behavior.
  */
 VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
-	GUARDED(
-		if(auto ctx = veda::Devices::get(ptr).ctx())
-			ctx->memFree(ptr, stream);
-	)
+	GUARDED(veda::Devices::get(ptr).ctx().memFree(ptr, stream);)
 }
 
 //------------------------------------------------------------------------------
@@ -213,7 +210,7 @@ VEDAresult vedaMemFreeHost(void* ptr) {
  */
 VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
+		auto res = veda::Devices::get(vptr).ctx().getPtr(vptr);
 		*base = VEDAptr<>(vptr).base();
 		*size = res.size;
 	)
@@ -322,23 +319,23 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t size
 
 	if(ddst == dsrc) {
 		GUARDED(
-			auto ctx = veda::Devices::get(dst).ctx();
-			ctx->memcpyD2D(dst, src, size, hStream);
+			auto& ctx = veda::Devices::get(dst).ctx();
+			ctx.memcpyD2D(dst, src, size, hStream);
 		)
 	} else {
 		GUARDED(
-			auto sctx = veda::Devices::get(src).ctx();
-			auto dctx = veda::Devices::get(dst).ctx();
+			auto& sctx = veda::Devices::get(src).ctx();
+			auto& dctx = veda::Devices::get(dst).ctx();
 
 			void* host = malloc(size);
 			if(!host)
 				VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
 			
-			sctx->memcpyD2H(host, src, size, 0);
-			sctx->sync(0);
+			sctx.memcpyD2H(host, src, size, 0);
+			sctx.sync(0);
 
-			dctx->memcpyH2D(dst, host, size, 0);
-			dctx->sync(0);
+			dctx.memcpyH2D(dst, host, size, 0);
+			dctx.sync(0);
 			
 			free(host);
 		)
@@ -382,7 +379,7 @@ VEDAresult vedaMemcpyDtoH(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCou
  * number of bytes to copy.
  */
 VEDAresult vedaMemcpyDtoHAsync(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(srcDevice).ctx()->memcpyD2H(dstHost, srcDevice, ByteCount, hStream);)
+	GUARDED(veda::Devices::get(srcDevice).ctx().memcpyD2H(dstHost, srcDevice, ByteCount, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -422,7 +419,7 @@ VEDAresult vedaMemcpyHtoD(VEDAdeviceptr dstDevice, const void* srcHost, size_t B
  * number of bytes to copy.
  */
 VEDAresult vedaMemcpyHtoDAsync(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memcpyH2D(dstDevice, srcHost, ByteCount, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memcpyH2D(dstDevice, srcHost, ByteCount, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -458,7 +455,7 @@ VEDAresult vedaMemsetD16(VEDAdeviceptr dstDevice, uint16_t us, size_t N) {
  * Sets the memory range of N 16-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, us, N, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset(dstDevice, us, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -469,7 +466,7 @@ VEDAresult vedaMemsetD128(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD128Async(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, x, y, N, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset(dstDevice, x, y, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -480,7 +477,7 @@ VEDAresult vedaMemsetD2D128(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D128Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, x, y, Width, Height, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset2D(dstDevice, dstPitch, x, y, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -491,7 +488,7 @@ VEDAresult vedaMemsetD2D64(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t il
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD2D64Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, ul, Width, Height, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset2D(dstDevice, dstPitch, ul, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -535,7 +532,7 @@ VEDAresult vedaMemsetD2D16(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us
  * of bytes between each row.
  */
 VEDAresult vedaMemsetD2D16Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, us, Width, Height, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset2D(dstDevice, dstPitch, us, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -579,7 +576,7 @@ VEDAresult vedaMemsetD2D32(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui
  * of bytes between each row.
  */
 VEDAresult vedaMemsetD2D32Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, ui, Width, Height, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset2D(dstDevice, dstPitch, ui, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -623,7 +620,7 @@ VEDAresult vedaMemsetD2D8(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, 
  * of bytes between each row.
  */
 VEDAresult vedaMemsetD2D8Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset2D(dstDevice, dstPitch, uc, Width, Height, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset2D(dstDevice, dstPitch, uc, Width, Height, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -659,7 +656,7 @@ VEDAresult vedaMemsetD32(VEDAdeviceptr dstDevice, uint32_t ui, size_t N) {
  * Sets the memory range of N 32-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD32Async(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, ui, N, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset(dstDevice, ui, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -695,7 +692,7 @@ VEDAresult vedaMemsetD64(VEDAdeviceptr dstDevice, uint64_t ui, size_t N) {
  * Sets the memory range of N 64-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD64Async(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, ui, N, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset(dstDevice, ui, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -731,7 +728,7 @@ VEDAresult vedaMemsetD8(VEDAdeviceptr dstDevice, uint8_t uc, size_t N) {
  * Sets the memory range of N 8-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream) {
-	GUARDED(veda::Devices::get(dstDevice).ctx()->memset(dstDevice, uc, N, hStream);)
+	GUARDED(veda::Devices::get(dstDevice).ctx().memset(dstDevice, uc, N, hStream);)
 }
 
 //------------------------------------------------------------------------------
@@ -762,7 +759,7 @@ VEDAresult vedaMemReport(void) {
  */
 VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
+		auto res = veda::Devices::get(vptr).ctx().getPtr(vptr);
 		*ptr = (void*)res.ptr;
 	)
 }
@@ -782,7 +779,7 @@ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
  */
 VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
+		auto res = veda::Devices::get(vptr).ctx().getPtr(vptr);
 		*ptr	= (void*)res.ptr;
 		*size	= res.size;
 	)
@@ -802,7 +799,7 @@ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
  */
 VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto res = veda::Devices::get(vptr).ctx()->getPtr(vptr);
+		auto res = veda::Devices::get(vptr).ctx().getPtr(vptr);
 		*size	= res.size;
 	)
 }
@@ -821,9 +818,9 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
  */
 VEDAresult vedaMemHMEM(void** ptr, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto ctx = veda::Devices::get(vptr).ctx();
-		auto res = ctx->getPtr(vptr);
-		*ptr = (void*)((veo_ptr)res.ptr | ctx->hmemId());
+		auto& ctx	= veda::Devices::get(vptr).ctx();
+		auto res	= ctx.getPtr(vptr);
+		*ptr = (void*)((veo_ptr)res.ptr | ctx.hmemId());
 	);
 }
 
@@ -842,10 +839,10 @@ VEDAresult vedaMemHMEM(void** ptr, VEDAdeviceptr vptr) {
  */
 VEDAresult vedaMemHMEMSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
 	GUARDED(
-		auto ctx = veda::Devices::get(vptr).ctx();
-		auto res = ctx->getPtr(vptr);
-		*ptr	= (void*)((veo_ptr)res.ptr | ctx->hmemId());
-		*size	= res.size;
+		auto& ctx	= veda::Devices::get(vptr).ctx();
+		auto res	= ctx.getPtr(vptr);
+		*ptr		= (void*)((veo_ptr)res.ptr | ctx.hmemId());
+		*size		= res.size;
 	);
 }
 

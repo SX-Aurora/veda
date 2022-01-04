@@ -9,8 +9,8 @@ VEDAcontext Contexts::current(void) {
 	if(t_stack.empty())
 		VEDA_THROW(VEDA_ERROR_UNKNOWN_CONTEXT);
 	auto ctx = t_stack.back();
-	if(!ctx->isHandleValid())
-		throw VEDA_ERROR_CONTEXT_IS_DESTROYED;
+	if(!ctx->isActive())
+		VEDA_THROW(VEDA_ERROR_CONTEXT_IS_DESTROYED);
 	return ctx;
 }
 
@@ -18,14 +18,12 @@ VEDAcontext Contexts::current(void) {
 VEDAcontext Contexts::pop(void) {
 	auto ctx = current();
 	t_stack.pop_back();
-	ctx->decRefCount();
 	return ctx;
 }
 
 //------------------------------------------------------------------------------
 void Contexts::push(VEDAcontext ctx) {
 	t_stack.emplace_back(ctx);
-	ctx->incRefCount();
 }
 //------------------------------------------------------------------------------
 void Contexts::remove(VEDAcontext ctx) {
@@ -49,18 +47,11 @@ int Contexts::countInstances(VEDAcontext ctx) {
 //------------------------------------------------------------------------------
 void Contexts::set(VEDAcontext ctx) {
 	if(ctx) {
-		if(t_stack.empty()) {
-			t_stack.emplace_back(ctx);
-		} else {
-			t_stack.back()->decRefCount();
-			t_stack.back() = ctx;
-		}
-		ctx->incRefCount();
+		if(t_stack.empty())	t_stack.emplace_back(ctx);
+		else 			t_stack.back() = ctx;
 	} else {
-		if(!t_stack.empty()) {
-			t_stack.back()->decRefCount();
+		if(!t_stack.empty()) 
 			t_stack.pop_back();
-		}
 	}
 }
 

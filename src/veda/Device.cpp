@@ -2,7 +2,7 @@
 
 namespace veda {
 //------------------------------------------------------------------------------
-Context*	Device::unsafeCtx	(void) const					{	return m_ctx;								}
+Context&	Device::ctx		(void) 						{	return m_ctx;								}
 VEDAdevice	Device::vedaId		(void) const					{	return m_vedaId;							}
 bool		Device::isNUMA		(void) const					{	return m_isNUMA;							}
 float		Device::powerCurrent	(void) const					{	return readSensor<float>("sensor_12")/1000.0f / (isNUMA() ? 2 : 1);	}
@@ -44,7 +44,7 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	m_versionAbi		(readSensor<int>	("abi_version")),
 	m_versionFirmware	(readSensor<int>	("fw_version")),
 	m_model			(readSensor<int>	("model")),
-	m_ctx			(0)
+	m_ctx			(*this)
 {
 	int active = 0;
 	if(isNUMA()) {
@@ -60,39 +60,6 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	for(int i = 0; i < 32; i++, bit <<= 1)
 		if(active & bit)
 			m_cores.emplace_back(i);
-}
-
-//------------------------------------------------------------------------------
-Device::~Device(void) {
-	if(auto ctx = unsafeCtx())
-		delete ctx;
-}
-
-//------------------------------------------------------------------------------
-Context* Device::ctx(void) const {
-	if(!m_ctx)
-		VEDA_THROW(VEDA_ERROR_UNKNOWN_CONTEXT);
-	return m_ctx;
-}
-
-//------------------------------------------------------------------------------
-void Device::memReport(void) const {
-	if(auto ctx = unsafeCtx())
-		ctx->memReport();
-}
-
-//------------------------------------------------------------------------------
-void Device::destroyCtx(void) {
-	delete ctx();
-	m_ctx = 0;
-}
-
-//------------------------------------------------------------------------------
-Context* Device::createCtx(const VEDAcontext_mode mode) {
-	if(m_ctx)
-		VEDA_THROW(VEDA_ERROR_CANNOT_CREATE_CONTEXT);
-	m_ctx = new Context(*this, mode);
-	return m_ctx;
 }
 
 //------------------------------------------------------------------------------

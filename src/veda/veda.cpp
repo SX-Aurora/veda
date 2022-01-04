@@ -3,10 +3,12 @@
 namespace veda {
 //------------------------------------------------------------------------------
 static bool		s_initialized	= false;
+static bool		s_memTrace	= false;
 static int		s_ompThreads	= 0;
 static std::string	s_stdLib;
 
 //------------------------------------------------------------------------------
+bool		isMemTrace	(void) {	return s_memTrace;						}
 const char*	stdLib		(void) {	return s_stdLib.c_str();					}
 int		ompThreads	(void) {	return s_ompThreads;						}
 void		checkInitialized(void) {	if(!s_initialized) VEDA_THROW(VEDA_ERROR_NOT_INITIALIZED);	}
@@ -19,6 +21,10 @@ void setInitialized(const bool value) {
 		VEDA_THROW(VEDA_ERROR_NOT_INITIALIZED);
 
 	if(value) {
+		// Init MemTrace -----------------------------------------------
+		auto memTrace = std::getenv("VEDA_MEM_TRACE");
+		s_memTrace = memTrace && std::atoi(memTrace);
+
 		// Init OMP Threads --------------------------------------------
 		auto env = std::getenv("VE_OMP_NUM_THREADS");
 		if(env)
