@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
-	VEDA(vedaLaunchKernelEx(func, 0, args, 1));
+	VEDA(vedaLaunchKernelEx(func, 0, args, 1, 0));
 	
 	VEDA(vedaCtxSynchronize());
 	VEDA(vedaExit());

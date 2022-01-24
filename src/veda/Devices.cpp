@@ -56,6 +56,7 @@ void Devices::init(void) {
 void Devices::initCount(std::set<int>& devices) {
 	assert(devices.empty());
 
+	// Find available VE's in system 
 	struct dirent* dp;
 	DIR* fd;
 
@@ -77,7 +78,8 @@ void Devices::initMapping(const std::set<int>& devices) {
 	if(devices.empty())
 		return;
 
-	std::set<int> visible;
+	// Parse VEDA_VISIBLE_DEVICES and VE_NODE_NUMBER as fallback
+	std::set<std::tuple<int, int>> visible;
 	auto env = std::getenv("VEDA_VISIBLE_DEVICES");
 	if(!env)
 		env = std::getenv("VE_NODE_NUMBER");
@@ -88,19 +90,48 @@ void Devices::initMapping(const std::set<int>& devices) {
 		while(ss.good()) {
 			std::getline(ss, line, ',');
 			if(line.size()) {
-				auto id = std::atoi(line.c_str());
-				if(id >= 0)
-					visible.emplace(id);
+				auto id		= (int)(std::atof(line.c_str()) * 10.0f);
+				auto aveoId	= id / 10;
+				auto numaId	= id % 10;
+				if(aveoId >= 0)
+					visible.emplace(aveoId, numaId);
 			}
 			line.clear();
 		}
 	}
 
+	// Apply _VENODELIST
+	std::map<int, int> mapping;
+	if(auto env = std::getenv("_VENODELIST")) {
+		std::istringstream ss(env);
+		std::string line;
+		while(ss.good()) {
+			std::getline(ss, line, ' ');
+			if(line.size()) {
+				auto id = std::atoi(line.c_str());
+				mapping.emplace(id, (int)mapping.size());
+			}
+			line.clear();
+		}
+
+		// if _VENODELIST is set, but with no values, no VE's are active
+		if(mapping.empty())
+			return;
+	}
+
 	// Parse real device ids
 	char device[] = "/dev/veslotX";
-	int vedaIdx = 0;
 	for(int deviceIdx : devices) {
 		assert(deviceIdx < 10); // otherwise this will fail
+
+		// Check _VENODELIST filtering and determine AVEO ID
+		auto it = mapping.find(deviceIdx);
+		if(mapping.size() && it == mapping.end())
+			continue;
+
+		auto aveoId = it != mapping.end() ? it->second : deviceIdx;
+
+		// Determine Sensor ID
 		device[strlen(device) - 1] = '0' + (char)deviceIdx;
 
 		struct stat sb = {0};
@@ -120,15 +151,13 @@ void Devices::initMapping(const std::set<int>& devices) {
 		udev_device_unref(ve_udev);
 		udev_unref(udev);
 
-		auto aveoId	= deviceIdx;
-		auto sensorId	= (int)(real_device_idx - '0');
-		int numaCnt	= 1;
+		auto sensorId = (int)(real_device_idx - '0');
 
-		if(readSensor(sensorId, "partitioning_mode", false))
-			numaCnt = 2;
+		// Determine NUMA count
+		int numaCnt = readSensor(sensorId, "partitioning_mode", false) ? 2 : 1;
 
 		for(int numaId = 0; numaId < numaCnt; numaId++) {
-			if(!visible.empty() && visible.find(vedaIdx++) == visible.end())
+			if(visible.size() && visible.find({aveoId, numaId}) == visible.end())
 				continue;
 
 			auto vedaId = (VEDAdevice)s_devices.size();

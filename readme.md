@@ -5,6 +5,14 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+
+<tr><td>v1.1.1</td><td>
+<ul>
+<li>Added support for AVEO's <code>_VENODELIST</code> env to ensure correct behavior in cluster environments.</li>
+<li>Changed behavior of <code>VEDA_VISIBLE_DEVICES</code> in case of NUMA nodes. It now accepts the direct hardware id in the format of <code>[AVEO_ID].[NUMA_ID]</code></li>
+</ul>
+</td></tr>
+
 <tr><td>v1.1.0</td><td>
 <ul>
 <li>added <code>vedaMemSwap</code> function to swap the underlying memory buffer between two <code>VEDAdeviceptr</code>.</li>
@@ -92,7 +100,7 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 	vedaArgsDestroy(&args);
 
 	// Kernel Call Version 2: automatically destroys VEDAargs object after execution (can't be reused for other calls!)
-	vedaLaunchKernelEx(func, stream, args, 1);
+	vedaLaunchKernelEx(func, stream, args, 1, 0);
 
 	// CPP ---------------------------------------------------------------------
 	vedaLaunchKernel(func, stream, myFloat, myUnsignedChar, VEDAstack(array, VEDA_ARGS_INTENT_INOUT, sizeof(array)));
