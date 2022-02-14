@@ -6,6 +6,12 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v1.1.2</td><td>
+<ul>
+<li>changed behavior of <code>VE_NODE_NUMBER</code> to be only used when <code>_VENODELIST</code> AND <code>VEDA_VISIBLE_DEVICES</code> are not set.</li>
+</ul>
+</td></tr>
+
 <tr><td>v1.1.1</td><td>
 <ul>
 <li>Added support for AVEO's <code>_VENODELIST</code> env to ensure correct behavior in cluster environments.</li>

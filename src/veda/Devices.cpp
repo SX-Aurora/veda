@@ -80,12 +80,14 @@ void Devices::initMapping(const std::set<int>& devices) {
 
 	// Parse VEDA_VISIBLE_DEVICES and VE_NODE_NUMBER as fallback
 	std::set<std::tuple<int, int>> visible;
-	auto env = std::getenv("VEDA_VISIBLE_DEVICES");
-	if(!env)
-		env = std::getenv("VE_NODE_NUMBER");
+	auto ve_node_list		= std::getenv("_VENODELIST");
+	auto veda_visible_devices	= std::getenv("VEDA_VISIBLE_DEVICES");
+	
+	if(!ve_node_list && !veda_visible_devices)
+		veda_visible_devices = std::getenv("VE_NODE_NUMBER");
 
-	if(env) {
-		std::istringstream ss(env);
+	if(veda_visible_devices) {
+		std::istringstream ss(veda_visible_devices);
 		std::string line;
 		while(ss.good()) {
 			std::getline(ss, line, ',');
@@ -102,8 +104,8 @@ void Devices::initMapping(const std::set<int>& devices) {
 
 	// Apply _VENODELIST
 	std::map<int, int> mapping;
-	if(auto env = std::getenv("_VENODELIST")) {
-		std::istringstream ss(env);
+	if(ve_node_list) {
+		std::istringstream ss(ve_node_list);
 		std::string line;
 		while(ss.good()) {
 			std::getline(ss, line, ' ');
