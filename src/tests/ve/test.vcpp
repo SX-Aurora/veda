@@ -10,13 +10,15 @@
 		printf("%s @ %s (%i)\n", str, __FILE__, __LINE__);\
 	}
 
-extern "C" void ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
+extern "C" uint64_t ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
 	int* out;
 	CHECK(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
 
 	#pragma _NEC ivdep
 	for(size_t i = 0; i < cnt; i++)
 		out[i] = cnt - 1 - i;
+
+	return 0x0123456789ABCDEFllu;
 }
 
 extern "C" void ve_hello_world(int stream) {

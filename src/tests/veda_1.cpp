@@ -125,8 +125,13 @@ int main(int argc, char** argv) {
 		CHECK(vedaLaunchKernel(func, 0, ptr.ptr(), ptr2, cnt));
 		printf("vedaLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, ptr, ptr2, cnt);
 
+		uint64_t res = 0xDEADBEEF0C0FFEE0llu;
+		CHECK(vedaLaunchKernelEx(func, 0, &res, ptr.ptr(), ptr2, cnt));
+		printf("vedaLaunchKernelEx(%p, %i, %p, %p, %llu, %016llX)\n", func, 0, ptr, ptr2, cnt, res);
+
 		CHECK(vedaCtxSynchronize());
 		printf("vedaCtxSynchronize()\n");
+		printf("res == %016llX\n", res);
 
 		CHECK(vedaMemcpyDtoHAsync(host, ptr2, size, 0));
 		printf("vedaMemcpyDtoHAsync(%p, %p, %llu, %i)\n", host, ptr2, size, 0);

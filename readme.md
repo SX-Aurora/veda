@@ -6,6 +6,14 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v1.2.0</td><td>
+<ul>
+<li>replaced <code>bool checkResult</code> with <code>int64_t* result</code> in <code>vedaLaunchKernelEx</code> to receive return value of kernel</li>
+<li>added C++ version of <code>vedaLaunchKernelEx</code></li>
+<li>added <code>vedaLaunchHostFuncEx</code> that can return the return value of the function</li>
+</ul>
+</td></tr>
+
 <tr><td>v1.1.2</td><td>
 <ul>
 <li>changed behavior of <code>VE_NODE_NUMBER</code> to be only used when <code>_VENODELIST</code> AND <code>VEDA_VISIBLE_DEVICES</code> are not set.</li>
