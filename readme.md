@@ -260,10 +260,12 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 ```bash
 mkdir build
 cd build
-cmake3 ../
+cmake3 ../src
 make
 sudo make install
 ```
+
+For building an RPM call `cpack3` after the 'make' step.
 
 ## How to use:
 VEDA has an own CMake find script. This supports 3 modes. The script uses the compilers installed in ```/opt/nec/ve/bin```. You can modify the ```CMAKE_[LANG]_COMPILER``` flags to change that behavior. See the Hello World examples in the [Examples Folder](example)
