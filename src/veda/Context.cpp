@@ -6,23 +6,23 @@ namespace veda {
 //------------------------------------------------------------------------------
 // Static Inline
 //------------------------------------------------------------------------------
-static inline void vedaCtxCall(Context* ctx, VEDAstream stream, bool checkResults, VEDAfunction func, VEDAargs args, const int idx) {
-	ctx->call(func, stream, args, true, checkResults);
+static inline void vedaCtxCall(Context* ctx, VEDAstream stream, const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx) {
+	ctx->call(func, stream, args, true, checkResult, result);
 }
 
 //------------------------------------------------------------------------------
 template<typename T, typename... Args>
-static inline void vedaCtxCall(Context* ctx, VEDAstream stream, bool checkResults, VEDAfunction func, VEDAargs args, const int idx, const T value, Args... vargs) {
+static inline void vedaCtxCall(Context* ctx, VEDAstream stream, const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx, const T value, Args... vargs) {
 	TVEDA(vedaArgsSet(args, idx, value));
-	vedaCtxCall(ctx, stream, checkResults, func, args, idx+1, vargs...);
+	vedaCtxCall(ctx, stream, checkResult, result, func, args, idx+1, vargs...);
 }
 
 //------------------------------------------------------------------------------
 template<typename... Args>
-static inline void vedaCtxCall(Context* ctx, VEDAstream stream, bool checkResults, VEDAfunction func, Args... vargs) {
+static inline void vedaCtxCall(Context* ctx, VEDAstream stream, const bool checkResult, uint64_t* result, VEDAfunction func, Args... vargs) {
 	VEDAargs args = 0;
 	TVEDA(vedaArgsCreate(&args));
-	vedaCtxCall(ctx, stream, checkResults, func, args, 0, vargs...);
+	vedaCtxCall(ctx, stream, checkResult, result, func, args, 0, vargs...);
 }
 
 //------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ void Context::syncPtrs(void) {
 			// is size is != 0, then we only need to wait till the malloc reports back the ptr
 			if(info->size == 0) {
 				auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
-				vedaCtxCall(this, 0, false, kernel(VEDA_KERNEL_MEM_PTR), 
+				vedaCtxCall(this, 0, false, 0, kernel(VEDA_KERNEL_MEM_PTR), 
 					vptr, VEDAstack(info, VEDA_ARGS_INTENT_OUT, sizeof(VEDAdeviceptrInfo)));
 			}
 			syn = true;
@@ -227,7 +227,7 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 	vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
 
 	if(size)
-		vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_ALLOC), vptr, VEDAstack(info, VEDA_ARGS_INTENT_INOUT, sizeof(VEDAdeviceptrInfo)));
+		vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEM_ALLOC), vptr, VEDAstack(info, VEDA_ARGS_INTENT_INOUT, sizeof(VEDAdeviceptrInfo)));
 
 	return vptr;
 }
@@ -248,7 +248,7 @@ void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
 	};
 
 	std::swap(get(A)->second, get(B)->second);
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_SWAP), A, B);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEM_SWAP), A, B);
 }
 
 //------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ void Context::memFree(VEDAdeviceptr vptr, VEDAstream stream) {
 	delete it->second;
 	m_ptrs.erase(it);
 
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEM_FREE), vptr);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEM_FREE), vptr);
 }
 
 //------------------------------------------------------------------------------
@@ -300,23 +300,23 @@ VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr) {
 //------------------------------------------------------------------------------
 // Function Calls
 //------------------------------------------------------------------------------
-void Context::call(VEDAfunction func, VEDAstream _stream, VEDAargs args, const bool destroyArgs, const bool checkResult) {
+void Context::call(VEDAfunction func, VEDAstream _stream, VEDAargs args, const bool destroyArgs, const bool checkResult, uint64_t* result) {
 	auto& s		= stream(_stream);
 	uint64_t req	= CREQ(veo_call_async(s.ctx, func, args));
 	if(destroyArgs)
 		TVEDA(vedaArgsDestroy(args));
 
 	LOCK(s.mutex);
-	s.calls.emplace_back(req, checkResult);
+	s.calls.emplace_back(req, checkResult, result);
 }
 
 //------------------------------------------------------------------------------
-void Context::call(VEDAhost_function func, void* userData, VEDAstream _stream) {
+void Context::call(VEDAhost_function func, VEDAstream _stream, void* userData, const bool checkResult, uint64_t* result) {
 	auto& s		= stream(_stream);
 	uint64_t req	= CREQ(veo_call_async_vh(s.ctx, func, userData));
 
 	LOCK(s.mutex);
-	s.calls.emplace_back(req, false);
+	s.calls.emplace_back(req, checkResult, result);
 }
 
 //------------------------------------------------------------------------------
@@ -325,7 +325,7 @@ void Context::call(VEDAhost_function func, void* userData, VEDAstream _stream) {
 void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream) {
 	if(!dst || !src)
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
 }
 
 //------------------------------------------------------------------------------
@@ -343,7 +343,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 	uint64_t req	= CREQ(veo_async_read_mem(s.ctx, dst, (veo_ptr)ptr, bytes));
 
 	LOCK(s.mutex);
-	s.calls.emplace_back(req, false);
+	s.calls.emplace_back(req, false, (uint64_t*)0);
 }
 
 //------------------------------------------------------------------------------
@@ -361,59 +361,59 @@ void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, 
 	uint64_t req	= CREQ(veo_async_write_mem(s.ctx, (veo_ptr)ptr, src, bytes));
 
 	LOCK(s.mutex);
-	s.calls.emplace_back(req, false);
+	s.calls.emplace_back(req, false, (uint64_t*)0);
 }
 
 //------------------------------------------------------------------------------
 // Memset
 //------------------------------------------------------------------------------
 void Context::memset(VEDAdeviceptr dst, const uint8_t value, const size_t cnt, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U8), dst, value, cnt);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U8), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset(VEDAdeviceptr dst, const uint16_t value, const size_t cnt, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U16), dst, value, cnt);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U16), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset(VEDAdeviceptr dst, const uint32_t value, const size_t cnt, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32), dst, value, cnt);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U32), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset(VEDAdeviceptr dst, const uint64_t value, const size_t cnt, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U64), dst, value, cnt);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U64), dst, value, cnt);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t cnt, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U128), dst, x, y, cnt);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U128), dst, x, y, cnt);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U8_2D), dst, pitch, value, w, h);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U8_2D), dst, pitch, value, w, h);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint16_t value, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U16_2D), dst, pitch, value, w, h);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U16_2D), dst, pitch, value, w, h);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U32_2D), dst, pitch, value, w, h);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U32_2D), dst, pitch, value, w, h);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U64_2D), dst, pitch, value, w, h);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U64_2D), dst, pitch, value, w, h);
 }
 
 //------------------------------------------------------------------------------
 void Context::memset2D(VEDAdeviceptr dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream stream) {
-	vedaCtxCall(this, stream, true, kernel(VEDA_KERNEL_MEMSET_U128_2D), dst, pitch, x, y, w, h);
+	vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEMSET_U128_2D), dst, pitch, x, y, w, h);
 }
 
 //------------------------------------------------------------------------------
@@ -430,15 +430,18 @@ void Context::sync(VEDAstream _stream) {
 	auto& s = stream(_stream);
 
 	LOCK(s.mutex);
-	for(auto& it : s.calls) {
-		auto id			= std::get<0>(it);
-		auto checkResult	= std::get<1>(it);
-		uint64_t res		= 0;
+	for(auto&& [id, checkResult, result] : s.calls) {
+		uint64_t res = 0;
 		TVEO(veo_call_wait_result(s.ctx, id, &res));
-		VEDAresult _res = (VEDAresult)res;
 
-		if(checkResult && _res != VEDA_SUCCESS)
-			VEDA_THROW(_res);
+		if(result)
+			*result = res;
+		
+		if(checkResult) {
+			auto veda = (VEDAresult)res;
+			if(veda != VEDA_SUCCESS)
+				VEDA_THROW(veda);
+		}
 	}
 	
 	s.calls.clear();

@@ -77,15 +77,14 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
  * @param args Handle to the VEDA device parameters.
  * @param destroyArgs Set 1 if the VEDA arguement needs to be destroyed after VEDA 
  * device function is called else 0.
- * @param checkResult Set 1 if the return value is required from the VEDA device
- * function else 0.
+ * @param result If non-zero, the function return value gets written into the buffer.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
  * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
  */
-VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs, const int checkResult) {
-	GUARDED(veda::Contexts::current()->call(f, stream, args, destroyArgs != 0, checkResult);)
+VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs, uint64_t* result) {
+	GUARDED(veda::Contexts::current()->call(f, stream, args, destroyArgs != 0, false, result);)
 }
 
 //------------------------------------------------------------------------------
@@ -102,7 +101,25 @@ VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, 
  * currently enqueued work and will block work added after it.
  */ 
 VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* userData) {
-	GUARDED(veda::Contexts::current()->call(fn, userData, stream);)
+	return vedaLaunchHostFuncEx(stream, fn, userData, 0);
+}
+
+//------------------------------------------------------------------------------
+/**
+ * @brief Enqueues a host function call in a stream.
+ * @param stream Stream Identifier.
+ * @param fn The function to call once preceding stream operations are complete.
+ * @param userData User-specified data to be passed to the function.
+ * @param result If non-zero, the function return value gets written into the buffer.
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * Enqueues a host function to run in a stream. The function will be called after
+ * currently enqueued work and will block work added after it.
+ */ 
+VEDAresult vedaLaunchHostFuncEx(VEDAstream stream, VEDAhost_function fn, void* userData, uint64_t* result) {
+	GUARDED(veda::Contexts::current()->call(fn, stream, userData, false, result);)
 }
 
 //------------------------------------------------------------------------------

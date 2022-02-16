@@ -45,8 +45,8 @@ namespace veda {
 		int			streamCount		(void) const;
 		size_t			memUsed			(void);
 		veo_ptr			hmemId			(void) const;
-		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult = false);
-		void			call			(VEDAhost_function func, void* userData, VEDAstream stream);
+		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult, uint64_t* result);
+		void			call			(VEDAhost_function func, VEDAstream stream, void* userData, const bool checkResult, uint64_t* result);
 		void			destroy			(void);
 		void			init			(const VEDAcontext_mode mode);
 		void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);

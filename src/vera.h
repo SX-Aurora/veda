@@ -38,12 +38,13 @@ inline veraError_t	veraDeviceGetTemp	(float* temp, const int coreIdx, int device
 inline veraError_t	veraDeviceSynchronize	(void)									{	CVEDA(veraInit()); return vedaCtxSynchronize();							}
 inline veraError_t	veraDriverGetVersion	(const char** driverVersion)						{	CVEDA(veraInit()); return vedaDriverGetVersion(driverVersion);					}
 inline veraError_t	veraFree		(void* devPtr)								{	CVEDA(veraInit()); return vedaMemFree(VERA2VEDA(devPtr));					}
-inline veraError_t	veraFreeAsync		(void* devPtr, veraStream_t stream = 0)					{	CVEDA(veraInit()); return vedaMemFreeAsync(VERA2VEDA(devPtr), stream);			}
+inline veraError_t	veraFreeAsync		(void* devPtr, veraStream_t stream = 0)					{	CVEDA(veraInit()); return vedaMemFreeAsync(VERA2VEDA(devPtr), stream);				}
 inline veraError_t	veraFreeHost		(void* ptr)								{	CVEDA(veraInit()); return vedaMemFreeHost(ptr);							}
 inline veraError_t	veraGetDevice		(int* device)								{	CVEDA(veraInit()); return vedaCtxGetDevice(device);						}
 inline veraError_t	veraGetDeviceCount	(int* count)								{	CVEDA(veraInit()); return vedaDeviceGetCount(count);						}
 inline veraError_t	veraHostAlloc		(void** pHost, size_t size, unsigned int flags)				{	CVEDA(veraInit()); return vedaMemAllocHost(pHost, size);					}
 inline veraError_t	veraLaunchHostFunc	(veraStream_t stream, veraHostFn_t fn, void* userData)			{	CVEDA(veraInit()); return vedaLaunchHostFunc(stream, fn, userData);				}
+inline veraError_t	veraLaunchHostFuncEx	(veraStream_t stream, veraHostFn_t fn, void* userData, uint64_t* result){	CVEDA(veraInit()); return vedaLaunchHostFuncEx(stream, fn, userData, result);			}
 inline veraError_t	veraMalloc		(void** devPtr, size_t size)						{	CVEDA(veraInit()); return vedaMemAlloc((VEDAdeviceptr*)devPtr, size);				}
 inline veraError_t	veraMallocAsync		(void** devPtr, size_t size, veraStream_t stream = 0)			{	CVEDA(veraInit()); return vedaMemAllocAsync((VEDAdeviceptr*)devPtr, size, stream);		}
 inline veraError_t	veraMallocHost		(void** ptr, size_t size)						{	CVEDA(veraInit()); return vedaMemAllocHost(ptr, size);						}

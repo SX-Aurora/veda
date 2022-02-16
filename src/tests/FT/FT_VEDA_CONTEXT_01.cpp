@@ -283,10 +283,12 @@ int main(int argc, char** argv) {
 	CHECK(vedaModuleGetFunction(&func, mod, "ve_hello_world_fault"));
 	VEDAargs args;
 	CHECK(vedaArgsCreate(&args));
+	std::vector<uint64_t> res;
+	res.reserve(streams.size());
 	for(VEDAstream stream : streams)
 	{
-		vedaArgsSetU64(args, 0, stream);	
-		CHECK(vedaLaunchKernelEx(func, stream, args,0,1));
+		vedaArgsSetU64(args, 0, stream);
+		CHECK(vedaLaunchKernelEx(func, stream, args, 0, &res.emplace_back()));
 	}
 	if( -1 != vedaCtxSynchronize())
 	{

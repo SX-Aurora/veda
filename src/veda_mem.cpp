@@ -133,9 +133,9 @@ VEDAresult vedaMemAllocPitch(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthIn
  */
 VEDAresult vedaMemAllocPitchAsync(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream) {
 	GUARDED(
-		auto res = veda::Contexts::current()->memAllocPitch(WidthInBytes, Height, ElementSizeByte, stream);
-		*dptr	= std::get<0>(res);
-		*pPitch	= std::get<1>(res);
+		auto&& [ptr, pitch]  = veda::Contexts::current()->memAllocPitch(WidthInBytes, Height, ElementSizeByte, stream);
+		*dptr	= ptr;
+		*pPitch	= pitch;
 	)
 }
 
