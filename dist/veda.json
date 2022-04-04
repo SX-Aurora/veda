@@ -1,0 +1,29 @@
+{
+	"name":			"veda",
+	"version":		"@VEDA_VERSION@",
+	"platform":		"linux_x86_x64",
+	"summary":		"VEDA",
+	"readme":		"veda/README.md",
+	"author":		"Nicolas Weber <nicolas.weber@neclab.eu>",
+	"license":		"3 BSD-License",
+	"requires-python":	">=3.7",
+	"payload": [
+		"?veda/bin/veda-smi",
+		"?veda/include/vera/*.h",
+		"veda/*LICENSE",
+		"veda/cmake/*.cmake",
+		"veda/cmake/nec/*.cmake",
+		"veda/cmake/nec/*.cmake.in",
+		"veda/cmake/nec/inject/*.cmake",
+		"veda/include/*.h",
+		"veda/include/veda/*.h",
+		"veda/lib64/libveda.so*",
+		"veda/lib64/libveo.so*",
+		"veda/libve/libveda.vso",
+		"veda/libexec/aveorun",
+		"veda/libexec/aveorun-ftrace"
+	],
+	"requires-dist": [
+		"tungl (>= @Tungl_VERSION_MIN@, < @Tungl_VERSION_MAX@)"
+	]
+}

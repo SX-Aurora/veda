@@ -1,0 +1,118 @@
+#include "internal.h"
+
+//------------------------------------------------------------------------------
+extern "C" {
+//------------------------------------------------------------------------------
+VEDAresult veda_memcpy_d2d(VEDAdeviceptr vdst_, VEDAdeviceptr vsrc_, const size_t size) {
+	VEDAptr<char> vdst(vdst_);
+	VEDAptr<char> vsrc(vsrc_);
+	auto rdst = vdst.ptrSize();
+	auto rsrc = vsrc.ptrSize();
+	if((vdst.offset() + size) > rdst.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	if((vsrc.offset() + size) > rsrc.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemcpy(rdst.ptr, rsrc.ptr, size);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u8(VEDAdeviceptr vdst, const uint8_t  value, const size_t cnt) {
+	VEDAptr<> ptr(vdst);
+	auto ps = ptr.ptrSize();
+	if((ptr.offset() + cnt * sizeof(uint8_t)) > ps.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemsetD8(ps.ptr, value, cnt);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u16(VEDAdeviceptr vdst, const uint16_t value, const size_t cnt) {
+	VEDAptr<> ptr(vdst);
+	auto ps = ptr.ptrSize();
+	if((ptr.offset() + cnt * sizeof(uint16_t)) > ps.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemsetD16(ps.ptr, value, cnt);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u32(VEDAdeviceptr vdst, const uint32_t value, const size_t cnt) {
+	VEDAptr<> ptr(vdst);
+	auto ps = ptr.ptrSize();
+	if((ptr.offset() + cnt * sizeof(uint32_t)) > ps.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemsetD32(ps.ptr, value, cnt);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u64(VEDAdeviceptr vdst, const uint64_t value, const size_t cnt) {
+	VEDAptr<> ptr(vdst);
+	auto ps = ptr.ptrSize();
+	if((ptr.offset() + cnt * sizeof(uint64_t)) > ps.size)	return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemsetD64(ps.ptr, value, cnt);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u128(VEDAdeviceptr vdst, const uint64_t x, const uint64_t y, const size_t cnt) {
+	VEDAptr<> ptr(vdst);
+	auto ps = ptr.ptrSize();
+	if((ptr.offset() + cnt * sizeof(uint64_t) * 2) > ps.size)return VEDA_ERROR_OUT_OF_BOUNDS;
+	return vedaMemsetD128(ps.ptr, x, y, cnt);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u8_2d(VEDAdeviceptr vdst, const size_t pitch, const uint8_t value, const size_t w, const size_t h) {
+	VEDAptr<> ptr(vdst);
+	return vedaMemsetD2D8(ptr.ptr(), pitch, value, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u16_2d(VEDAdeviceptr vdst, const size_t pitch, const uint16_t value, const size_t w, const size_t h) {
+	VEDAptr<> ptr(vdst);
+	return vedaMemsetD2D16(ptr.ptr(), pitch, value, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u32_2d(VEDAdeviceptr vdst, const size_t pitch, const uint32_t value, const size_t w, const size_t h) {
+	VEDAptr<> ptr(vdst);
+	return vedaMemsetD2D32(ptr.ptr(), pitch, value, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u64_2d(VEDAdeviceptr vdst, const size_t pitch, const uint64_t value, const size_t w, const size_t h) {
+	VEDAptr<> ptr(vdst);
+	return vedaMemsetD2D64(ptr.ptr(), pitch, value, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_memset_u128_2d(VEDAdeviceptr vdst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h) {
+	VEDAptr<> ptr(vdst);
+	return vedaMemsetD2D128(ptr.ptr(), pitch, x, y, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_alloc(VEDAdeviceptr vptr, const size_t size) {
+	void* ptr = 0;
+	return vedaMemAllocPtr(&ptr, vptr, size);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_free(VEDAdeviceptr vptr) {
+	auto res = vedaMemFree(vptr);
+	return res == VEDA_ERROR_UNKNOWN_VPTR ? VEDA_SUCCESS : res;
+}
+
+//------------------------------------------------------------------------------
+void* veda_mem_ptr(VEDAdeviceptr vptr) {
+	void* ptr = 0;
+	vedaMemPtr(&ptr, vptr);
+	return ptr;
+}
+
+//------------------------------------------------------------------------------
+size_t veda_mem_size(VEDAdeviceptr vptr) {
+	size_t size = 0;
+	vedaMemSize(&size, vptr);
+	return size;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_swap(VEDAdeviceptr A, VEDAdeviceptr B) {
+	return vedaMemSwap(A, B);
+}
+
+//------------------------------------------------------------------------------
+}

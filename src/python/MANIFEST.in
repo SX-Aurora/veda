@@ -1,7 +1,0 @@
-include veda/cmake/*
-include veda/lib64/*
-include veda/libexec/*
-include veda/libve/*
-include veda/include/*
-recursive-include veda/include/* *
-recursive-include veda/cmake/* *

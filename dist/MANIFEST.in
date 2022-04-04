@@ -1,0 +1,14 @@
+include veda/lib64/libveda.so.*.*
+include veda/lib64/libveo.so.*
+include veda/lib64/libvera.so.*.*
+include veda/include/*.h
+include veda/include/veda/*.h
+include veda/include/vera/*.h
+include veda/cmake/*.cmake
+include veda/cmake/nec/*.cmake*
+include veda/cmake/nec/inject/*.cmake
+include veda/*LICENSE
+include veda/bin/veda-smi
+include veda/libexec/aveorun
+include veda/libexec/aveorun-ftrace
+include veda/libve/libveda.vso

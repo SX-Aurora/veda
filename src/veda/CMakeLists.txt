@@ -1,10 +1,58 @@
+## Build VEDA ------------------------------------------------------------------
+CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda_version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp)
+CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/veda/version.h)
+
+FIND_LIBRARY(LIBUDEV_LIBRARY "libudev.so.1" REQUIRED)
+FIND_FILE(LIBUDEV_H "libudev.h")
+IF(NOT LIBUDEV_H)
+	MESSAGE(FATAL_ERROR "'libudev.h' not found. You might need to install 'systemd-devel'.")
+ENDIF()
+MARK_AS_ADVANCED(LIBUDEV_H LIBUDEV_LIBRARY)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${AVEO_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Tungl_INCLUDE_DIRS})
+
 SET(VEDA_SRC
-	${VEDA_SRC}
-	${CMAKE_CURRENT_LIST_DIR}/Device.cpp
-	${CMAKE_CURRENT_LIST_DIR}/Devices.cpp
-	${CMAKE_CURRENT_LIST_DIR}/Context.cpp
-	${CMAKE_CURRENT_LIST_DIR}/Contexts.cpp
-	${CMAKE_CURRENT_LIST_DIR}/Module.cpp
-	${CMAKE_CURRENT_LIST_DIR}/Semaphore.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_args.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_context.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_device.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_mem.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_module.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_stream.cpp
 )
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/veda/CMakeLists.txt)
+
+ADD_LIBRARY(veda ${VEDA_BUILD_TYPE} ${VEDA_SRC})
+ILLYRIAN_TARGET_OPTIONS(veda LINK_MAP ${VEDA_DIST_TYPE}
+	SOVERSION 	${VEDA_VERSION}
+	DESTINATION	${VEDA_INSTALL_PATH}/lib64
+	COMPILE_OPTIONS	"-Wl,-lpthread"
+)
+
+TARGET_LINK_LIBRARIES(veda ${AVEO_LIBRARIES} ${LIBUDEV_LIBRARY} ${Tungl_LIBRARY} dl)
+IF(NOT VEDA_DIST_TYPE STREQUAL VEOS)
+	ADD_DEPENDENCIES(veda aveo)
+ENDIF()
+
+## Install Files ---------------------------------------------------------------
+INSTALL(FILES
+	${CMAKE_CURRENT_LIST_DIR}/veda_version.h
+	${CMAKE_CURRENT_LIST_DIR}/veda.h
+	${CMAKE_CURRENT_LIST_DIR}/veda_enums.h
+	${CMAKE_CURRENT_LIST_DIR}/veda_macros.h
+	${CMAKE_CURRENT_LIST_DIR}/veda_types.h
+	${CMAKE_CURRENT_LIST_DIR}/veda_ptr.h
+DESTINATION ${VEDA_INSTALL_PATH}/include)
+
+INSTALL(FILES
+	${CMAKE_CURRENT_BINARY_DIR}/veda/version.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/api.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/enums.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/macros.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/types.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/ptr.h
+DESTINATION ${VEDA_INSTALL_PATH}/include/veda)
