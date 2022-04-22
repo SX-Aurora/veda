@@ -156,6 +156,7 @@ inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAdeviceptr 
 
 template<typename T>
 inline typename std::enable_if<(sizeof(T) == 1), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+	static_assert(!std::is_same<T, bool>::value, "Don't use bool as data-type when calling a VE function, as it defined as 1B on VH and 4B on VE!");
 	return vedaArgsSetU8(args, idx, *reinterpret_cast<const uint8_t*>(&value));
 }
 

@@ -272,8 +272,7 @@ int main(int argc, char** argv) {
 		}
         	printf("PASSED\n");
         
-                auto start = NOW(), end = NOW();
-        
+                auto start = NOW(), end = NOW();        
                 // Copy to VE0
                 CHECK(veraSetDevice(0));
                 void* ptr0;
@@ -300,123 +299,122 @@ int main(int argc, char** argv) {
                                 exit(1);
         		}
                 printf("PASSED\n");
-                memset(host4, 0, size);
-        
-                // Copy from VE0 to VE1
-                CHECK(veraSetDevice(1));
-                void* ptr1;
-                CHECK(veraMallocAsync(&ptr1, size, 0));
-                CHECK(veraDeviceSynchronize());
-        
-                printf("\nTEST CASE ID: FT_VERA_25:");
-                for(int i = 0; i < 10; i++) {
-                        start = NOW();
-                        CHECK(veraMemcpyAsync(ptr1, ptr0, size, veraMemcpyDeviceToDevice, 0));
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
-        
-        	printf("\nTEST CASE ID: FT_VERA_23:");
-                for(int i = 0; i < 10; i++) {
-                        start = NOW();
-                        CHECK(veraMemcpyAsync(host4, ptr1, size, veraMemcpyDeviceToHost, 0));
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
-        
-                // Check results
-                for(size_t i = 0; i < cnt1; i++)
-                        if(host4[i] != i){
-                                printf("FAILED\n");
-                                exit(1);
-        		}
-        
-                printf("PASSED\n");
+		if(devcnt > 1){ 
+			memset(host4, 0, size);
+			// Copy from VE0 to VE1
+			CHECK(veraSetDevice(1));
+			void* ptr1;
+			CHECK(veraMallocAsync(&ptr1, size, 0));
+			CHECK(veraDeviceSynchronize());
+		
+			printf("\nTEST CASE ID: FT_VERA_25:");
+			for(int i = 0; i < 10; i++) {
+				start = NOW();
+				CHECK(veraMemcpyAsync(ptr1, ptr0, size, veraMemcpyDeviceToDevice, 0));
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
+		
+			printf("\nTEST CASE ID: FT_VERA_23:");
+			for(int i = 0; i < 10; i++) {
+				start = NOW();
+				CHECK(veraMemcpyAsync(host4, ptr1, size, veraMemcpyDeviceToHost, 0));
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
+		
+			// Check results
+			for(size_t i = 0; i < cnt1; i++)
+				if(host4[i] != i){
+					printf("FAILED\n");
+					exit(1);
+				}
+			printf("PASSED\n");
 
-                int* host4_ = (int*)malloc(size);
+			int* host4_ = (int*)malloc(size);
 
-                printf("\nTEST CASE ID: FT_VERA_33:");
-                for(size_t i = 0; i < cnt1; i++){
-                        CHECK(veraMemcpy(host4_+i,&i,sizeof(int),veraMemcpyHostToHost));
-                }
-                printf("PASSED\n");
+			printf("\nTEST CASE ID: FT_VERA_33:");
+			for(size_t i = 0; i < cnt1; i++){
+				CHECK(veraMemcpy(host4_+i,&i,sizeof(int),veraMemcpyHostToHost));
+			}
+			printf("PASSED\n");
 
-                start = NOW();
-	       	end = NOW();
+			start = NOW();
+			end = NOW();
+			// Copy to VE0
+			CHECK(veraSetDevice(0));
+			void* ptr0_;
+			CHECK(veraMalloc(&ptr0_, size));
+			printf("\nTEST CASE ID: FT_VERA_34:");
+			for(int i = 0; i < 10; i++) {
+				start = NOW();
+				CHECK(veraMemcpy(ptr0_, host4_, size, veraMemcpyHostToDevice));
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
 
-                // Copy to VE0
-                CHECK(veraSetDevice(0));
-                void* ptr0_;
-                CHECK(veraMalloc(&ptr0_, size));
-                printf("\nTEST CASE ID: FT_VERA_34:");
-                for(int i = 0; i < 10; i++) {
-                        start = NOW();
-                        CHECK(veraMemcpy(ptr0_, host4_, size, veraMemcpyHostToDevice));
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
+			printf("\nTEST CASE ID: FT_VERA_35:");
+			for(int i = 0; i < 10; i++) {
+				start = NOW();
+				CHECK(veraMemcpy(host4_, ptr0_, size, veraMemcpyDeviceToHost));
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
+			for(size_t i = 0; i < cnt1; i++)
+				if(host4_[i] != i){
+					printf("FAILED\n");
+					exit(1);
+				}
+			printf("PASSED\n");
+			memset(host4_, 0, size);
 
-                printf("\nTEST CASE ID: FT_VERA_35:");
-                for(int i = 0; i < 10; i++) {
-                        start = NOW();
-                        CHECK(veraMemcpy(host4_, ptr0_, size, veraMemcpyDeviceToHost));
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
-                for(size_t i = 0; i < cnt1; i++)
-                        if(host4_[i] != i){
-                                printf("FAILED\n");
-                                exit(1);
-                        }
-                printf("PASSED\n");
-                memset(host4_, 0, size);
+			// Copy from VE0 to VE1
+			CHECK(veraSetDevice(1));
+			void* ptr1_;
+			CHECK(veraMalloc(&ptr1_, size));
+			CHECK(veraDeviceSynchronize());
 
-                // Copy from VE0 to VE1
-                CHECK(veraSetDevice(1));
-                void* ptr1_;
-                CHECK(veraMalloc(&ptr1_, size));
-                CHECK(veraDeviceSynchronize());
+			printf("\nTEST CASE ID: FT_VERA_36:");
+			for(int i = 0; i < 10; i++) {
+				CHECK(veraMemcpy(ptr1_, ptr0_, size, veraMemcpyDeviceToDevice));
+				start = NOW();
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
 
-                printf("\nTEST CASE ID: FT_VERA_36:");
-                for(int i = 0; i < 10; i++) {
-                        CHECK(veraMemcpy(ptr1_, ptr0_, size, veraMemcpyDeviceToDevice));
-                        start = NOW();
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
+			for(int i = 0; i < 10; i++) {
+				start = NOW();
+				CHECK(veraMemcpy(host4_, ptr1_, size, veraMemcpyDeviceToHost));
+				CHECK(veraDeviceSynchronize());
+				end = NOW();
+			}
 
-                for(int i = 0; i < 10; i++) {
-                        start = NOW();
-                        CHECK(veraMemcpy(host4_, ptr1_, size, veraMemcpyDeviceToHost));
-                        CHECK(veraDeviceSynchronize());
-                        end = NOW();
-                }
+			// Check results
+			for(size_t i = 0; i < cnt1; i++)
+				if(host4_[i] != i){
+					printf("FAILED\n");
+					exit(1);
+				}
 
-                // Check results
-                for(size_t i = 0; i < cnt1; i++)
-                        if(host4_[i] != i){
-                                printf("FAILED\n");
-                                exit(1);
-                        }
+			printf("PASSED\n");
+		
+			start = NOW();
+			veraPointerAttributes attr;
+			printf("\nTEST CASE ID: FT_VERA_31:");
+			CHECK(veraPointerGetAttributes(&attr, ptr));
+			if(attr.type != veraMemoryTypeDevice || attr.hostPointer != 0){
+				printf("FAILED\n");
+				exit(1);
+			}
+			printf("PASSED\n");
+			CHECK(veraFreeAsync(ptr1, 0));
+			CHECK(veraSetDevice(0));
+			CHECK(veraFree(ptr0_));
+			end = NOW();
+			printf("free = %fms\n", time(start, end));
+			free(host4);
 
-                printf("PASSED\n");
-        
-                start = NOW();
-		veraPointerAttributes attr;
-	      	printf("\nTEST CASE ID: FT_VERA_31:");
-		CHECK(veraPointerGetAttributes(&attr, ptr));
-		if(attr.type != veraMemoryTypeDevice || attr.hostPointer != 0){
-                        printf("FAILED\n");
-                        exit(1);
 		}
-	        printf("PASSED\n");
-                CHECK(veraFreeAsync(ptr1, 0));
-                CHECK(veraSetDevice(0));
-                CHECK(veraFree(ptr0_));
-                end = NOW();
-                printf("free = %fms\n", time(start, end));
-                free(host4);
-
       		printf("\nTEST CASE ID: FT_VERA_11:");
 		CHECK(veraModuleUnload(mod));
         	printf("PASSED\n");

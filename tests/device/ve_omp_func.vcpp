@@ -1,0 +1,28 @@
+#include <veda_device.h>
+#include <cstdio>
+#include <omp.h>
+
+extern "C" void ve_omp_func(void* p, size_t cnt){
+  int *ptr = (int*)p;
+  int rem,blockSize,nthread;
+  cnt = cnt/sizeof(int);
+ #pragma omp parallel
+ {
+  int tid =  omp_get_thread_num();
+  nthread =  omp_get_num_threads();
+  blockSize = cnt/nthread;
+  rem = cnt%nthread;
+  for(size_t i=0; i < blockSize; i++){
+	ptr[blockSize*tid + i]= blockSize*tid + i;
+  }
+  if(tid < rem)
+  	ptr[blockSize*nthread + tid] = blockSize*nthread + tid ;
+ }
+}
+extern "C" void ve_non_omp_func(void* p, size_t cnt){
+        int *ptr = (int*)p;
+        cnt = cnt/sizeof(int);
+        for(int i = 0; i < cnt; i++)
+                ptr[i]= i ;
+}
+

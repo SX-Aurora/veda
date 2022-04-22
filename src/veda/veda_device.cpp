@@ -1,13 +1,40 @@
 #include "veda/internal.h"
 
+#if VEDA_WITH_VEOS_PRODUCT_INFO
+#include <productinfo.h>
+#endif
+
 extern "C" {
+// implementation of VEDA API functions
+/**
+ * \defgroup vedaapi VEDA API
+ *
+ * To use VEDA API functions, include "veda.h" header.
+ */
+/** @{ */
+
 //------------------------------------------------------------------------------
+/**
+ * @brief This function is not yet implemented. 
+ * @param dev
+ * @return VEDA_SUCCESS\n 
+ *
+ * This function is not yet implemented but return VEDA_SUCCESS while calling it.
+ */
 VEDAresult vedaDevicePrimaryCtxRelease(VEDAdevice dev) {
 	L_TRACE("[ve:%i] vedaDevicePrimaryCtxRelease(%i)", dev, dev);
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief This function is not yet implemented. 
+ * @param dev
+ * @param flags
+ * @return VEDA_SUCCESS\n 
+ *
+ * This function is not yet implemented but return VEDA_SUCCESS while calling it.
+ */
 VEDAresult vedaDevicePrimaryCtxSetFlags(VEDAdevice dev, uint32_t flags) {
 	L_TRACE("[ve:%i] vedaDeviceCtxSetFlags(%i, %u)", dev, dev, flags);
 	return VEDA_SUCCESS;
@@ -31,8 +58,8 @@ VEDAresult vedaCtxGet(VEDAcontext* ctx, const VEDAdevice device) {
 
 //------------------------------------------------------------------------------
 /**
- * @brief Retrieve the core temparature of the VEDA device in Celsius.
- * @param tempC pointer to hold the core temparature.
+ * @brief Retrieve the core temperature of the VEDA device in Celsius.
+ * @param tempC pointer to hold the core temperature.
  * @param coreIdx Core index of the VEDA device.
  * @param dev VEDA device ID.
  * @retval VEDA_SUCCESS on Success
@@ -48,7 +75,7 @@ VEDAresult vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev) {
 
 //------------------------------------------------------------------------------
 /**
- * @brief Retrieve the number of initializaed VEDA device.
+ * @brief Retrieve the number of initialized VEDA device.
  * @param count pointer to hold the count of the VEDA device.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
@@ -85,7 +112,8 @@ VEDAresult vedaDeviceTotalMem(size_t* bytes, VEDAdevice dev) {
  * @param dev VEDA device ID.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * Physical ID is the Slot ID of the underlying VE node, physical ID is used 
  * internally to retrieve the VE node information like VE node temperature, 
  * voltage etc. from the VE device file.
@@ -104,7 +132,8 @@ VEDAresult vedaDeviceGetPhysicalId(int* id, VEDAdevice dev) {
  * @param dev VEDA device ID.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * AVEO ID is the logical node ID of the underlying VE node assigned by the VEOS
  * at the time of the VE node initialization.
  */
@@ -122,7 +151,8 @@ VEDAresult vedaDeviceGetAVEOId(int* id, VEDAdevice dev) {
  * @param dev VEDA device ID.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * if VE device is not configured in NUMA mode then this ID will be 0..
  */
 VEDAresult vedaDeviceGetNUMAId(int* id, VEDAdevice dev) {
@@ -140,12 +170,13 @@ VEDAresult vedaDeviceGetNUMAId(int* id, VEDAdevice dev) {
  * @param devB handle to the second VEDA device.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
- * Returns following value of distances:
- * 0: if both the VEDA devices are initialized on the same VE device.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
+ * Returns following value of distances:\n 
+ * 0: if both the VEDA devices are initialized on the same VE device.\n 
  * 0.5: if both the VEDA devices are initialized on the difference NUMA node of 
- * the same VE device.
- * 1: if both the VEDA devices are initialized on the difference VE node. 
+ * the same VE device.\n 
+ * 1: if both the VEDA devices are initialized on the difference VE node. \n 
  */
 VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB) {
 	GUARDED(
@@ -191,7 +222,8 @@ VEDAresult vedaDeviceGet(VEDAdevice* device, int ordinal) {
  * @param dev VEDA device handle.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * Calculated VE device power includes both the PCIe edge power as well as the VE
  * device AUX power with added 5W.
  */
@@ -262,6 +294,8 @@ VEDAresult vedaDeviceGetVoltage(float* voltage, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetVoltageEdge(float* voltage, VEDAdevice dev) {
 	GUARDED(
+		if(NULL == voltage)
+			throw VEDA_ERROR_INVALID_ARGS;
 		*voltage = veda::Devices::get(dev).powerVoltageEdge();
 		L_TRACE("[ve:%i] vedaDeviceGetVoltageEdge(%f, %i)", dev, *voltage, dev);
 	)
@@ -275,24 +309,25 @@ VEDAresult vedaDeviceGetVoltageEdge(float* voltage, VEDAdevice dev) {
  * @param dev VEDA device handle.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * Returns in *pi the integer value of the attribute attrib on device dev. The 
- * supported attributes are:
- * VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO: VEDA precision ratio.
- * VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE: Clock chip clock frequency of the VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE: Clock Base clock frequency of the VEDA device.
+ * supported attributes are:\n 
+ * VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO: VEDA precision ratio.\n 
+ * VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE: Clock chip clock frequency of the VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE: Clock Base clock frequency of the VEDA device.\n 
  * VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT: Number of VE cores corresponding to 
- * VEDA device.
+ * VEDA device.\n 
  * VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE: Clock memory clock frequency of the
- * VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE: Size of the L1 cache of the device of VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE: Size of L1 instruction cache of the VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE: Size of L2 data cache of the VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE: Size of last level cache of the VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_MODEL: VE device model corresponding to VEDA device.
- * VEDA_DEVICE_ATTRIBUTE_ABI_VERSION: VE device ABI version corresponding to VEDA device.
+ * VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE: Size of the L1 cache of the device of VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE: Size of L1 instruction cache of the VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE: Size of L2 data cache of the VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE: Size of last level cache of the VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_MODEL: VE device model corresponding to VEDA device.\n 
+ * VEDA_DEVICE_ATTRIBUTE_ABI_VERSION: VE device ABI version corresponding to VEDA device.\n 
  * VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION: VE device firmware version corresponding to 
- * VEDA device.
+ * VEDA device.\n 
  */
 VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevice dev) {
 	GUARDED(
@@ -331,7 +366,8 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
  * @param dev Device to get the identifier string
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.\n 
+ *
  * Returns an ASCII string identifying the device dev in the NULL-terminated 
  * string pointed to by name. len specifies the maximum length of the string that
  * may be returned.
@@ -339,6 +375,20 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 	GUARDED(
 		auto& device		= veda::Devices::get(dev);
+	#if VEDA_WITH_VEOS_PRODUCT_INFO
+		auto version		= device.model();
+		auto type		= device.type();
+		char model[20];  
+		memset(model, '\0', sizeof(model));
+		auto ver = std::to_string(version);
+		auto typ = std::to_string(type);
+  		char* v = const_cast<char*>(ver.c_str());
+  		char* t = const_cast<char*>(typ.c_str());
+
+	        int retval = get_ve_product_name(v, t, model, sizeof(model));
+        	if(retval != 0)
+			VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
+	#else
 		auto version		= device.model();
 		auto cores		= device.cores();
 		auto memory		= device.memorySize()/1024/1024/1024;
@@ -359,6 +409,7 @@ VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 			}
 			return "?";
 		}();
+	#endif
 		snprintf(name, len, "NEC SX-Aurora Tsubasa VE%s", model);
 		L_TRACE("[ve:%i] vedaDeviceGetName(%s, %i, %i)", dev, name, len, dev);
 	)
@@ -391,6 +442,7 @@ VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* ac
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_CANNOT_CREATE_CONTEXT Error while creating VEDA context.
  * @retval VEDA_ERROR_CANNOT_CREATE_STREAM error while creating VEDA SM.
+ *
  * Explicitly destroys and cleans up all resources associated with the current
  * device in the current process.
  */
@@ -417,6 +469,7 @@ VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_CANNOT_CREATE_CONTEXT Error while creating VEDA context.
  * @retval VEDA_ERROR_CANNOT_CREATE_STREAM error while creating VEDA SM.
+ *
  * Retains the primary context on the device. Once the user successfully
  * retains the primary context, the primary context will be active and available
  * to the user until the user resets it with vedaDevicePrimaryCtxReset(). 

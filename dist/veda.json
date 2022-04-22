@@ -7,6 +7,7 @@
 	"author":		"Nicolas Weber <nicolas.weber@neclab.eu>",
 	"license":		"3 BSD-License",
 	"requires-python":	">=3.7",
+	"platform-tag":		"linux_x86_64",
 	"payload": [
 		"?veda/bin/veda-smi",
 		"?veda/include/vera/*.h",

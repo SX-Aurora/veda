@@ -1,10 +1,22 @@
 # VEDA (VE Driver API) and VERA (VE Runtime API)
 
-VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NEC SX-Aurora. It is based on [AVEO](https://github.com/sx-aurora/aveo). Most of the functionality is identical to the [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) and [CUDA Runtime API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
+VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the
+NEC SX-Aurora. It is based on [AVEO](https://github.com/sx-aurora/aveo). Most of
+the functionality is identical to the [CUDA Driver
+API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) and [CUDA Runtime
+API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+
+<tr><td>v1.3.1</td><td>
+<ul>
+<li>Added compile guard to prevent <code>vedaArgsSet&lt;bool&gt;</code> because <code>bool</code> is defined as 1B on VH and 4B on VE.</li>
+<li>Merged changes from <a href="https://github.com/veos-sxarr-NEC/veda_source/tree/release-2.11.1" target="_BLANK">VEOS 2.11.1 release</a>.</li>
+<li>Compatibility Bugfix for ```veda/omp.h``` NCC &ge; v3.4</li>
+</ul>
+</td></tr>
 
 <tr><td>v1.3.0</td><td>
 <ul>
@@ -16,7 +28,7 @@ VEDA and VERA are a CUDA Driver and Runtime API-like APIs for programming the NE
 <li>renamed <code>VEDA_INCLUDES</code> to <code>VEDA_INCLUDE_DIRS</code> to comply with CMake standard</li>
 <li>moved <code>CMakeLists.txt</code> into project root</li>
 <li>VEDA_CXX will now obey <code>CMAKE_CXX_STANDARD</code> when <code>CMAKE_CXX_STANDARD_REQUIRED</code> is set.</li>
-<li>added device-side support for Tungl</li>
+<li>added device-side support for <a href="https://github.com/nec-research/tungl" target="_BLANK">Tungl</a></li>
 </ul>
 </td></tr>
 

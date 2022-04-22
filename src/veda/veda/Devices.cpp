@@ -1,5 +1,7 @@
 #include "veda/internal.h"
 
+#define SYS_CLASS_VE_BUFFER_SIZE 128
+
 namespace veda {
 //------------------------------------------------------------------------------
 std::deque<Device> Devices::s_devices;
@@ -56,9 +58,8 @@ void Devices::init(void) {
 void Devices::initCount(std::set<int>& devices) {
 	assert(devices.empty());
 
-	// Find available VE's in system 
-	struct dirent* dp;
-	DIR* fd;
+	struct dirent* dp = 0;
+	DIR* fd = 0;
 
 	if((fd = opendir("/dev/")) == NULL)
 		return;
@@ -173,7 +174,7 @@ uint64_t Devices::readSensor(const int sensorId, const char* file, const bool is
 	if(file == 0)
 		VEDA_THROW(VEDA_ERROR_NO_SENSOR_FILE);
 
-	char buffer[128];
+	char buffer[SYS_CLASS_VE_BUFFER_SIZE];
 	snprintf(buffer, sizeof(buffer), "/sys/class/ve/ve%i/%s", sensorId, file);
 
 	uint64_t value = 0;

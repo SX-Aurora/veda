@@ -31,7 +31,7 @@ __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
-	void* ptr;
+	void* ptr = 0;
 	return vedaMemAllocPtr(&ptr, vptr, size);
 }
 

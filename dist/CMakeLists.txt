@@ -13,15 +13,15 @@ IF(NOT (VEDA_DIST_TYPE STREQUAL PYTHON))
 	ADD_CUSTOM_TARGET(dist COMMAND cpack3 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 	INSTALL(FILES
-		${Tungl_DIR}/api.h
-		${Tungl_DIR}/c.h
-		${Tungl_DIR}/colors.h
-		${Tungl_DIR}/config.h
-		${Tungl_DIR}/cxx.h
-		${Tungl_DIR}/types.h
-		${Tungl_DIR}/version.h
-		DESTINATION ${VEDA_INSTALL_PATH}/tungle/include)
-	INSTALL(FILES ${Tungl_LIBRARY} DESTINATION ${VEDA_INSTALL_PATH}/lib64)
+		${Tungl_DIR}/include/tungl/api.h
+		${Tungl_DIR}/include/tungl/c.h
+		${Tungl_DIR}/include/tungl/colors.h
+		${Tungl_DIR}/include/tungl/config.h
+		${Tungl_DIR}/include/tungl/cxx.h
+		${Tungl_DIR}/include/tungl/types.h
+		${Tungl_DIR}/include/tungl/version.h
+		DESTINATION ${VEDA_INSTALL_PATH}/tungl/include)
+	INSTALL(FILES "${Tungl_LIBRARY}.${Tungl_VERSION_MAJOR}" DESTINATION ${VEDA_INSTALL_PATH}/lib64)
 	ILLYRIAN_INSTALL_SYMLINK(${VEDA_INSTALL_PATH} veda)
 
 	## Configure CPack -------------------------------------------------------------

@@ -12,7 +12,7 @@ void check(VEDAresult err, const char* file, const int line) {
 		vedaGetErrorString	(err, &str);
 		printf("%s: %s @ %s:%i\n", name, str, file, line);
 		printf("\nTEST CASE ID: FT_VEDA_MODULE_XX:FAILED\n");
-		assert(0);
+		assert(false);
 		exit(1);
 	}
 }

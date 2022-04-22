@@ -1,6 +1,13 @@
 #include "veda/internal.h"
 
 extern "C" {
+// implementation of VEDA API functions
+/**
+ * \defgroup vedaapi VEDA API
+ *
+ * To use VEDA API functions, include "veda.h" header.
+ */
+/** @{ */
 //------------------------------------------------------------------------------
 /**
  * @brief Query the flags of a given stream.
@@ -45,7 +52,8 @@ VEDAresult vedaStreamQuery(VEDAstream hStream) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed. \n 
+ *
  * Waits until the device has completed all operations in the stream specified by
  * hStream.
  */
@@ -60,7 +68,7 @@ VEDAresult vedaStreamSynchronize(VEDAstream hStream) {
 //------------------------------------------------------------------------------
 /**
  * @brief Add a callback to a compute stream.
- * @param hStream Determine status of a compute stream.
+ * @param stream Determine status of a compute stream.
  * @param callback The function to call once preceding stream operations are 
  * complete.
  * @param userData User specified data to be passed to the callback function.
@@ -69,7 +77,8 @@ VEDAresult vedaStreamSynchronize(VEDAstream hStream) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n
+ * 
  * Adds a callback to be called on the host after all currently enqueued items
  * in the stream have completed.
  */
@@ -86,6 +95,6 @@ VEDAresult vedaStreamAddCallback(VEDAstream stream, VEDAstream_callback callback
 		callback(stream, res, userData);
 	);
 }
-
+/** @} */
 //------------------------------------------------------------------------------
 } // extern "C"

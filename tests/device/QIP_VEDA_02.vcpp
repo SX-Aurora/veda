@@ -1,0 +1,33 @@
+#include <veda_device.h>
+#include <cstdio>
+#include <omp.h>
+#include <thread>
+#include <functional>
+
+extern "C" void init( int *p, int v, int n )
+{
+    printf( "VE init : %d %d %p\n", v, n, p );
+    //p = (int *)veo_get_hmem_addr(p);
+    int i;
+    for ( i = 0; i < n; i++ ){
+ 	p[i] = v;
+	//printf("init p[%d]=%d \n",i,p[i]); 
+    }
+}
+
+extern "C" void check( int *p, int v, int n, int* result)
+{
+    printf( "VE init : %d %d %p\n", v, n, p );
+    //p = (int *)veo_get_hmem_addr(p);
+  
+    int i;
+    for ( i = 0; i < n; i++ ) {
+//	printf("check p[%d]=%d != v=%d \n ",i,p[i],v); 
+        if ( p[i] != v ) break;
+    }
+    
+    if(i < n)
+	*result=0;
+    else
+	*result=1;
+}

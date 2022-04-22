@@ -21,6 +21,7 @@ namespace veda {
 		const	int			m_versionAbi;
 		const	int			m_versionFirmware;
 		const	int			m_model;
+		const	int			m_type;
 			Context			m_ctx;
 
 		uint64_t	readSensor	(const char* file, const bool isHex) const;
@@ -53,6 +54,7 @@ namespace veda {
 		int		model		(void) const;
 		int		numaId		(void) const;
 		int		sensorId	(void) const;
+		int		type		(void) const;
 		int		versionAbi	(void) const;
 		int		versionFirmware	(void) const;
 		size_t		memorySize	(void) const;

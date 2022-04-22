@@ -1,5 +1,7 @@
 #include "veda/internal.h"
 
+#define SENSOR_BUFFER_SIZE 16
+
 namespace veda {
 //------------------------------------------------------------------------------
 Context&	Device::ctx		(void) 						{	return m_ctx;								}
@@ -24,6 +26,7 @@ int		Device::sensorId	(void) const					{	return m_sensorId;							}
 int		Device::versionAbi	(void) const					{	return m_versionAbi;							}
 int		Device::versionFirmware	(void) const					{	return m_versionFirmware;						}
 size_t		Device::memorySize	(void) const					{	return m_memorySize;							}
+int		Device::type		(void) const					{	return m_type;								}
 uint64_t	Device::readSensor	(const char* file, const bool isHex) const	{	return Devices::readSensor(sensorId(), file, isHex);			}
 
 //------------------------------------------------------------------------------
@@ -44,11 +47,12 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	m_versionAbi		(readSensor<int>	("abi_version")),
 	m_versionFirmware	(readSensor<int>	("fw_version")),
 	m_model			(readSensor<int>	("model")),
+	m_type			(readSensor<int>	("type")),
 	m_ctx			(*this)
 {
 	int active = 0;
 	if(isNUMA()) {
-		char buffer[16];
+		char buffer[SENSOR_BUFFER_SIZE];
 		snprintf(buffer, sizeof(buffer), "numa%i_cores", numaId);
 		active = readSensor<int>(buffer, true);
 	} else {
@@ -57,7 +61,7 @@ Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, co
 	ASSERT(active);
 
 	int bit = 1;
-	for(int i = 0; i < 32; i++, bit <<= 1)
+	for(int i = 0; i < (sizeof(int)*8); i++, bit <<= 1)
 		if(active & bit)
 			m_cores.emplace_back(i);
 }
@@ -68,7 +72,7 @@ float Device::coreTemp(const int coreIdx) const {
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 	
 	auto sensor  = m_cores[coreIdx] + 14; // offseted by 14
-	char buffer[16];
+	char buffer[SENSOR_BUFFER_SIZE];
 	snprintf(buffer, sizeof(buffer), "sensor_%i", sensor);
 	return readSensor<float>(buffer)/1000000.0f;	
 }

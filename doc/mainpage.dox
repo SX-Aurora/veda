@@ -1,0 +1,49 @@
+/**
+ * @mainpage Introduction
+ *
+ * VEDA is a parallel computing platform and programming model that makes
+ * using a VE for general purpose computing simple and elegant. The VEDA
+ * platform is designed to work with programming languages such as C, C++,
+ * and Fortran. This accessibility makes it easier for specialists in 
+ * parallel programming to use GPU resources,
+ *
+ * Using VEDA, a programmer can execute code on VE and can control the
+ * execution from VH main program.
+ *
+ * VEDA (VE Driver API) and VERA (VE Runtime API) are a CUDA Driver and 
+ * Runtime API-like APIs for hybrid programming. It is based 
+ * on AVEO. Most of the functionality is identical to the CUDA Driver API
+ * and CUDA Runtime API.
+ *
+ * This document describes public APIs for VEDA.
+ * The page "Modules" shows a list of VEDA API functions.
+ * The page "Examples" shows a list of all example.
+ *
+ * @author NEC Laboratories Europe
+ *
+ * @author NEC Corporation
+ * @copyright 2020-2022. Licensed under the terms of BSD 3-Clause.
+ *
+ * @par Revision History
+ *      Revision,
+ *      Date,
+ *      Updates/Remarks
+ * @par
+ *      Rev.3,
+ *      Feb. 2022,
+ * @n   This revision covers veoffload-veda-2.11 or later.
+ * @n   Updated VEDA API similar to CUDA.
+ * @n   Difference points between VEDA and CUDA
+ * @n   Unique features of VEDA.
+ * @par
+ *      Rev.2,
+ *      Jan. 2022,
+ * @n   This revision covers veoffload-veda-2.10.1 or later.
+ * @n   Updated environment variable usage/description.
+ * @n   Suppressed extra error messages.
+ * @par
+ *      Rev.1,
+ *      Dec. 2021,
+ * @n   This revision covers veoffload-veda-2.10.0 or later.
+ * @n   First release.
+ */

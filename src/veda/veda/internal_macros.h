@@ -5,7 +5,7 @@
 
 //------------------------------------------------------------------------------
 inline void veda_throw [[noreturn]] (VEDAresult err, const char* file, const int line) {
-#if 0
+#if 1
 	const char* msg;
 	vedaGetErrorName(err, &msg);
 	tungl_log(TUNGL_LEVEL_TRACE, L_MODULE, file, line, "%s", msg);

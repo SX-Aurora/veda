@@ -1,0 +1,13 @@
+#include <veda_device.h>
+#include <cstdio>
+#include <omp.h>
+
+extern "C" void testST_VEDA_02(void* p, int size, int index){
+	int *ptr = (int*)p;
+	for(int i = 0; i < size; i++)
+	{
+		ptr[i]= index + i + 1;
+
+	}
+}
+

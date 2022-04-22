@@ -49,7 +49,7 @@ public:
 		T tx	= omp_get_thread_num();
 		T min	= tx * step();
 		T max	= std::min(min + step(), cnt());
-		return {min, max};
+		return std::make_tuple(min, max);
 	}
 };
 
@@ -74,7 +74,7 @@ public:
 		T tx	= omp_get_thread_num();
 		T min	= m_batch * tx + (tx < m_remain ? tx : m_remain);
 		T max	= min + m_batch + (tx < m_remain ? 1 : 0);
-		return {min, max};
+		return std::make_tuple(min, max);
 	}
 };
 

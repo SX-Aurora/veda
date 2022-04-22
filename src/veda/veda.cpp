@@ -5,10 +5,19 @@ extern "C" {
 #include <veda_error.inc.cpp>
 
 //------------------------------------------------------------------------------
+// implementation of VEDA API functions
+/**
+ * \defgroup vedaapi VEDA API
+ *
+ * To use VEDA API functions, include "veda.h" header.
+ */
+
+/** @{ */
 /**
  * @brief Initialize the VEDA driver API library.
- * @param flags Initialization flags for VEDA library.
- * @retval VEDA_SUCCESS on Success
+ * @param Flags Initialization flags for VEDA library.
+ * @retval VEDA_SUCCESS on Success \n 
+ *
  * Initializes the driver API and must be called before any other function of
  * the VEDA driver API. Currently, the Flags parameter must be 0. If vedaInit()
  * has not been called, any function from the driver API will return 
@@ -30,7 +39,8 @@ VEDAresult vedaInit(uint32_t Flags) {
 //------------------------------------------------------------------------------
 /**
  * @brief Releases the VEDA driver API library gracefully.
- * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_SUCCESS on Success \n 
+ *
  * This function should be called from the hybrid program in order to perform the
  * proper cleanup of the VEDA driver library.
  */
@@ -46,7 +56,7 @@ VEDAresult vedaExit(void) {
 
 //------------------------------------------------------------------------------
 /**
- * @brief Return the latest AVEO version supported bt VEDA.
+ * @brief Return the latest AVEO version supported by VEDA.
  * @param str Pointer to hold the AVEO version.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
@@ -67,7 +77,8 @@ VEDAresult vedaDriverGetVersion(const char** str) {
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed. \n 
+ *
  * VEDA device function arguements can be allocated and set through the vedaArgsCreate
  * and vedaArgsSet* APIs.
  */ 
@@ -83,7 +94,7 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
  * @param args Handle to the VEDA device parameters.
  * @param destroyArgs Set 1 if the VEDA arguement needs to be destroyed after VEDA 
  * device function is called else 0.
- * @param result If non-zero, the function return value gets written into the buffer.
+ * @param result If set, the function return value will be copied to this pointer.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
@@ -106,7 +117,8 @@ VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, 
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed. \n 
+ *
  * Enqueues a host function to run in a stream. The function will be called after
  * currently enqueued work and will block work added after it.
  */ 
@@ -136,5 +148,6 @@ VEDAresult vedaLaunchHostFuncEx(VEDAstream stream, VEDAhost_function fn, void* u
 	)
 }
 
+/** @} */
 //------------------------------------------------------------------------------
 } // extern "C"

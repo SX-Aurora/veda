@@ -1,0 +1,4 @@
+SUBROUTINE hello_world
+  ! This is a comment line; it is ignored by the compiler
+  print *,'Hello World from Device!'
+end SUBROUTINE hello_world

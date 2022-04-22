@@ -1,3 +1,6 @@
 .vscode
 build
 run
+doc/Doxyfile
+doc/doxygen
+doc/GettingStarted.md

@@ -1,13 +1,37 @@
 #include "veda/internal.h"
 
 extern "C" {
+// implementation of VEDA API functions
+/**
+ * \defgroup vedaapi VEDA API
+ *
+ * To use VEDA API functions, include "veda.h" header.
+ */
+/** @{ */
 //------------------------------------------------------------------------------
+/**
+ * @brief Swaps the underlying buffer of two device pointers.
+ * @param A first pointer
+ * @param B second pointer
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ */
 VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
 	CVEDA(vedaMemSwapAsync(A, B, 0));
 	return vedaCtxSynchronize();
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Swaps the underlying buffer of two device pointers.
+ * @param A first pointer
+ * @param B second pointer
+ * @param stream stream
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ */
 VEDAresult vedaMemSwapAsync(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream) {
 	GUARDED(
 		auto ctxA = &veda::Devices::get(A).ctx();
@@ -44,7 +68,8 @@ VEDAresult vedaMemGetDevice(VEDAdevice* dev, VEDAdeviceptr ptr) {
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
  * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- * @retval VEDA_ERROR_OUT_OF_MEMORY VEDA device memory exausted.
+ * @retval VEDA_ERROR_OUT_OF_MEMORY VEDA device memory exausted.\n 
+ * 
  * Allocates size bytes of linear memory on the VEDA device and returns in *ptr a
  * pointer to the allocated memory.
  */
@@ -65,7 +90,8 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
  * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- * @retval VEDA_ERROR_OUT_OF_MEMORY VEDA device memory exausted.
+ * @retval VEDA_ERROR_OUT_OF_MEMORY VEDA device memory exausted.\n 
+ * 
  * Inserts an allocation operation into stream. A pointer to the allocated memory
  * is returned immediately in *ptr. The allocation must not be accessed until 
  * the the allocation operation completes.
@@ -81,8 +107,8 @@ VEDAresult vedaMemAllocAsync(VEDAdeviceptr* ptr, size_t size, VEDAstream stream)
 //------------------------------------------------------------------------------
 /**
  * @brief Allocates host memory.
- * @param ptr Returned host pointer
- * @param size Requested allocation size in bytes.
+ * @param pp Returned host pointer
+ * @param bytesize Requested allocation size in bytes.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
@@ -109,7 +135,8 @@ VEDAresult vedaMemAllocHost(void** pp, size_t bytesize) {
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
  * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- * @retval VEDA_ERROR_OUT_OF_MEMORY Host memory exausted.
+ * @retval VEDA_ERROR_OUT_OF_MEMORY Host memory exausted.\n 
+ *
  * Allocates at least WidthInBytes * Height bytes of linear memory on the device and
  * returns in *dptr a pointer to the allocated memory. The pitch returned in *pPitch
  * by vedaMemAllocPitch() is the width in bytes of the allocation.
@@ -134,7 +161,8 @@ VEDAresult vedaMemAllocPitch(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthIn
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
  * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- * @retval VEDA_ERROR_OUT_OF_MEMORY Host memory exausted.
+ * @retval VEDA_ERROR_OUT_OF_MEMORY Host memory exausted.\n 
+ *
  * Allocates at least WidthInBytes * Height bytes of linear memory on the device and
  * returns in *dptr a pointer to the allocated memory. The pitch returned in *pPitch
  * by vedaMemAllocPitch() is the width in bytes of the allocation.
@@ -157,7 +185,8 @@ VEDAresult vedaMemAllocPitchAsync(VEDAdeviceptr* dptr, size_t* pPitch, size_t Wi
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Frees the memory space pointed to by dptr, which must have been returned by a
  * previous call to vedaMemAlloc() or vedaMemAllocPitch().
  */
@@ -175,7 +204,8 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Inserts a free operation into stream. The allocation must not be accessed after
  * stream execution reaches the free. After this API returns, accessing the memory
  * from any subsequent work launched on the VEDA device or querying its pointer
@@ -197,7 +227,8 @@ VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Frees the memory space pointed to by dptr, which must have been returned by a
  * previous call to vedaMemAllocHost().
  */
@@ -219,7 +250,8 @@ VEDAresult vedaMemFreeHost(void* ptr) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Returns the base address in *base and size in *size of the allocation by
  * vedaMemAlloc() or vedaMemAllocPitch() that contains the input pointer vptr.
  */
@@ -242,7 +274,8 @@ VEDAresult vedaMemGetAddressRange(VEDAdeviceptr* base, size_t* size, VEDAdevicep
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Returns in *total the total amount of memory available to the the current context.
  * Returns in *free the amount of memory on the VEDA device that is free.
  */
@@ -265,7 +298,8 @@ VEDAresult vedaMemGetInfo(size_t* free, size_t* total) {
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies data between two pointers. dst and src are base pointers of the
  * destination and source, respectively. ByteCount specifies the number of bytes
  * to copy.
@@ -281,12 +315,13 @@ VEDAresult vedaMemcpy(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount) {
  * @param dst Destination virtual address pointer.
  * @param src Source virtual address pointer.
  * @param ByteCount Size of memory copy in bytes.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies data between two pointers. dst and src are base pointers of the
  * destination and source, respectively. ByteCount specifies the number of bytes
  * to copy.
@@ -305,7 +340,8 @@ VEDAresult vedaMemcpyAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCoun
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from device memory to device memory. dstDevice and srcDevice are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -320,13 +356,14 @@ VEDAresult vedaMemcpyDtoD(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size
  * @brief Copies Memory from VEDA device to VEDA device Asynchronously.
  * @param dst Destination virtual address pointer.
  * @param src Source virtual address pointer.
- * @param ByteCount Size of memory copy in bytes.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param size Size of memory copy in bytes.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from device memory to device memory. dstDevice and srcDevice are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -372,7 +409,8 @@ VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t size
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from device memory to host. dstHost and srcDevice are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -388,12 +426,13 @@ VEDAresult vedaMemcpyDtoH(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCou
  * @param dstHost Destination virtual address pointer.
  * @param srcDevice Source virtual address pointer.
  * @param ByteCount Size of memory copy in bytes.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from device memory to host. dstHost and srcDevice are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -416,7 +455,8 @@ VEDAresult vedaMemcpyDtoHAsync(void* dstHost, VEDAdeviceptr srcDevice, size_t By
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from host memory to device memory. dstDevice and srcHost are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -432,12 +472,13 @@ VEDAresult vedaMemcpyHtoD(VEDAdeviceptr dstDevice, const void* srcHost, size_t B
  * @param dstDevice Destination virtual address pointer.
  * @param srcHost Source Host virtual address pointer.
  * @param ByteCount Size of memory copy in bytes.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Copies from host memory to device memory. dstDevice and srcHost are the base
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
@@ -460,7 +501,8 @@ VEDAresult vedaMemcpyHtoDAsync(VEDAdeviceptr dstDevice, const void* srcHost, siz
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 16-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD16(VEDAdeviceptr dstDevice, uint16_t us, size_t N) {
@@ -474,12 +516,13 @@ VEDAresult vedaMemsetD16(VEDAdeviceptr dstDevice, uint16_t us, size_t N) {
  * @param dstDevice Destination device pointer.
  * @param us Value to set.
  * @param N Number of Elements.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 16-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VEDAstream hStream) {
@@ -491,12 +534,41 @@ VEDAresult vedaMemsetD16Async(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VE
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param x first 64bit value
+ * @param y second 64bit value
+ * @param N Number of Elements.
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 128-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD128(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N) {
 	CVEDA(vedaMemsetD128Async(dstDevice, x, y, N, 0));
 	return vedaCtxSynchronize();
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param x first 64bit value
+ * @param y second 64bit value
+ * @param N Number of Elements.
+ * @param hStream Stream
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 128-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD128Async(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::Devices::get(dstDevice).ctx();
@@ -506,12 +578,45 @@ VEDAresult vedaMemsetD128Async(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, 
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param dstPitch memory pitch
+ * @param x first 64bit value
+ * @param y second 64bit value
+ * @param Width Width of 2D memset.
+ * @param Height Height of 2D memset.
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 128-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD2D128(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height) {
 	CVEDA(vedaMemsetD2D128Async(dstDevice, dstPitch, x, y, Width, Height, 0));
 	return vedaCtxSynchronize();
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param dstPitch memory pitch
+ * @param x first 64bit value
+ * @param y second 64bit value
+ * @param Width Width of 2D memset.
+ * @param Height Height of 2D memset.
+ * @param hStream stream
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 128-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD2D128Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::Devices::get(dstDevice).ctx();
@@ -521,12 +626,43 @@ VEDAresult vedaMemsetD2D128Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint6
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param dstPitch memory pitch
+ * @param il 32bit value
+ * @param Width Width of 2D memset.
+ * @param Height Height of 2D memset.
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 64-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD2D64(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t il, size_t Width, size_t Height) {
 	CVEDA(vedaMemsetD2D64Async(dstDevice, dstPitch, il, Width, Height, 0));
 	return vedaCtxSynchronize();
 }
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Initializes device memory.
+ * @param dstDevice Destination device pointer.
+ * @param dstPitch memory pitch
+ * @param ul 32bit value
+ * @param Width Width of 2D memset.
+ * @param Height Height of 2D memset.
+ * @param hStream stream
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Sets the memory range of N 64-bit values to the specified value us.
+ */
 VEDAresult vedaMemsetD2D64Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::Devices::get(dstDevice).ctx();
@@ -547,7 +683,8 @@ VEDAresult vedaMemsetD2D64Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint64
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 16-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -565,12 +702,13 @@ VEDAresult vedaMemsetD2D16(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us
  * @param us Value to set.
  * @param Width Width of row.
  * @param Height Number of rows.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 16-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -588,14 +726,15 @@ VEDAresult vedaMemsetD2D16Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint16
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
  * @param dstPitch  Pitch of destination device pointer.
- * @param us Value to set.
+ * @param ui Value to set.
  * @param Width Width of row.
  * @param Height Number of rows.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 32-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -610,15 +749,16 @@ VEDAresult vedaMemsetD2D32(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
  * @param dstPitch  Pitch of destination device pointer.
- * @param us Value to set.
+ * @param ui Value to set.
  * @param Width Width of row.
  * @param Height Number of rows.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 32-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -636,14 +776,15 @@ VEDAresult vedaMemsetD2D32Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint32
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
  * @param dstPitch  Pitch of destination device pointer.
- * @param us Value to set.
+ * @param uc Value to set.
  * @param Width Width of row.
  * @param Height Number of rows.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 8-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -658,15 +799,16 @@ VEDAresult vedaMemsetD2D8(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, 
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
  * @param dstPitch  Pitch of destination device pointer.
- * @param us Value to set.
+ * @param uc Value to set.
  * @param Width Width of row.
  * @param Height Number of rows.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the 2D memory range of Width 8-bit values to the specified value uc.
  * Height specifies the number of rows to set, and dstPitch specifies the number
  * of bytes between each row.
@@ -683,13 +825,14 @@ VEDAresult vedaMemsetD2D8Async(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param ui Value to set.
  * @param N Number of Elements.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 32-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD32(VEDAdeviceptr dstDevice, uint32_t ui, size_t N) {
@@ -701,14 +844,15 @@ VEDAresult vedaMemsetD32(VEDAdeviceptr dstDevice, uint32_t ui, size_t N) {
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param ui Value to set.
  * @param N Number of Elements.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 32-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD32Async(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream) {
@@ -723,13 +867,14 @@ VEDAresult vedaMemsetD32Async(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VE
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param ui Value to set.
  * @param N Number of Elements.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 64-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD64(VEDAdeviceptr dstDevice, uint64_t ui, size_t N) {
@@ -741,14 +886,15 @@ VEDAresult vedaMemsetD64(VEDAdeviceptr dstDevice, uint64_t ui, size_t N) {
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param ul Value to set.
  * @param N Number of Elements.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 64-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD64Async(VEDAdeviceptr dstDevice, uint64_t ul, size_t N, VEDAstream hStream) {
@@ -763,13 +909,14 @@ VEDAresult vedaMemsetD64Async(VEDAdeviceptr dstDevice, uint64_t ul, size_t N, VE
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param uc Value to set.
  * @param N Number of Elements.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 8-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD8(VEDAdeviceptr dstDevice, uint8_t uc, size_t N) {
@@ -781,14 +928,15 @@ VEDAresult vedaMemsetD8(VEDAdeviceptr dstDevice, uint8_t uc, size_t N) {
 /**
  * @brief Initializes device memory.
  * @param dstDevice Destination device pointer.
- * @param us Value to set.
+ * @param uc Value to set.
  * @param N Number of Elements.
- * @param hstream The stream establishing the stream ordering contract.
+ * @param hStream The stream establishing the stream ordering contract.
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Sets the memory range of N 8-bit values to the specified value us.
  */
 VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream) {
@@ -806,7 +954,8 @@ VEDAresult vedaMemsetD8Async(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDA
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
  * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
  * Prints the each allocation VEDA memory address and size of the every VEDA
  * device.
  */
