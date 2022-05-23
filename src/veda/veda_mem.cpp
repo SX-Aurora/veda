@@ -80,6 +80,34 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
 
 //------------------------------------------------------------------------------
 /**
+ * @brief Overrides the pointer returned by the next call to vedaMemAllocAsync.
+ * @param size Requested allocation size in bytes.
+ * @param stream The stream establishing the stream ordering contract and the
+ * memory pool to allocate from
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_OFFSET_NOT_ALLOWED Only non-offsetted pointers are allowed.
+ * 
+ * You probably don't need to use this method ever. It's a hack to override 
+ * the allocation size of the next call to vedaMemAllocAsync. I.e. if you have
+ * allocated memory on VE, but you need to load that data into an opaque data
+ * structure that is not under your control, but that calls vedaMemAllocAsync,
+ * you can use vedaMemAllocOverrideOnce to return this pointer instead.
+ * 
+ */
+VEDAresult vedaMemAllocOverrideOnce(VEDAdeviceptr ptr) {
+	GUARDED(
+		auto ctx = veda::Contexts::current();
+		ctx->setMemOverride(ptr);
+		L_TRACE("[ve:%i] vedaMemAllocOverrideOnce(%p)", ctx->device().vedaId(), ptr);
+	)
+}
+
+//------------------------------------------------------------------------------
+/**
  * @brief Allocates memory with stream ordered semantics.
  * @param ptr Returned VEDA device pointer
  * @param size Requested allocation size in bytes.

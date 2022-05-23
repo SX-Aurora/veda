@@ -24,6 +24,7 @@ namespace veda {
 			veo_proc_handle*	m_handle;
 			VEDAmodule		m_lib;
 			VEDAidx			m_memidx;
+			VEDAdeviceptr		m_memOverride;
 
 		void			incMemIdx		(void);
 		void			syncPtrs		(void);
@@ -50,6 +51,7 @@ namespace veda {
 		void			destroy			(void);
 		void			init			(const VEDAcontext_mode mode);
 		void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);
+		void			setMemOverride		(VEDAdeviceptr vptr);
 		void			memReport		(void);
 		void			memSwap			(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream);
 		void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);

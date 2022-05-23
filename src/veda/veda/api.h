@@ -80,6 +80,7 @@ VEDAresult	vedaLaunchKernelEx		(VEDAfunction f, VEDAstream stream, VEDAargs, con
 VEDAresult	vedaMemAlloc			(VEDAdeviceptr* ptr, size_t size);
 VEDAresult	vedaMemAllocAsync		(VEDAdeviceptr* ptr, size_t size, VEDAstream stream);
 VEDAresult	vedaMemAllocHost		(void** pp, size_t bytesiz);
+VEDAresult	vedaMemAllocOverrideOnce	(VEDAdeviceptr ptr);
 VEDAresult	vedaMemAllocPitch		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte);
 VEDAresult	vedaMemAllocPitchAsync		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream);
 VEDAresult	vedaMemFree			(VEDAdeviceptr ptr);

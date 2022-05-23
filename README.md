@@ -10,11 +10,19 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
-<tr><td>v1.3.1</td><td>
+<tr><td>v1.3.2</td><td>
+<ul>
+<li>Added <code>vedaMemAllocOverrideOnce</code> to prevent <code>vedaMemAlloc</code> to allocate new memory and instead return the override value once. This is not meant to be used except when you want to circumvent unncessary memory allocations in opaque data structures that you don't have access to.</li>
+<li>Fixed RPATH for veda-smi in Python releases</li>
+</ul>
+</td></tr>
+<tr>
+
+<td>v1.3.1</td><td>
 <ul>
 <li>Added compile guard to prevent <code>vedaArgsSet&lt;bool&gt;</code> because <code>bool</code> is defined as 1B on VH and 4B on VE.</li>
 <li>Merged changes from <a href="https://github.com/veos-sxarr-NEC/veda_source/tree/release-2.11.1" target="_BLANK">VEOS 2.11.1 release</a>.</li>
-<li>Compatibility Bugfix for ```veda/omp.h``` NCC &ge; v3.4</li>
+<li>Compatibility Bugfix for <code>veda/omp.h</code> NCC &ge; v3.4</li>
 </ul>
 </td></tr>
 

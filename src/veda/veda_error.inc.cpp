@@ -50,6 +50,7 @@ VEDAresult vedaGetErrorName(VEDAresult error, const char** pStr) {
 		case VEDA_ERROR_VPTR_ALREADY_ALLOCATED:			*pStr = "VEDA_ERROR_VPTR_ALREADY_ALLOCATED";		return VEDA_SUCCESS;
 		case VEDA_SUCCESS:					*pStr = "VEDA_SUCCESS";					return VEDA_SUCCESS;
 		case VEDA_ERROR_INVALID_DTYPE:				*pStr = "VEDA_ERROR_INVALID_DTYPE";			return VEDA_SUCCESS;
+		case VEDA_ERROR_OFFSET_NOT_ALLOWED:			*pStr = "VEDA_ERROR_OFFSET_NOT_ALLOWED";		return VEDA_SUCCESS;
 	}
 	
 	*pStr = "VEDA_ERROR_UNKNOWN";
