@@ -103,6 +103,11 @@ void* veda_mem_ptr(VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult veda_mem_set_ptr(void *ptr, VEDAdeviceptr vptr, const size_t size) {
+	return vedaMemSetPtr(ptr, vptr, size);
+}
+
+//------------------------------------------------------------------------------
 size_t veda_mem_size(VEDAdeviceptr vptr) {
 	size_t size = 0;
 	vedaMemSize(&size, vptr);

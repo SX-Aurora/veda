@@ -36,6 +36,23 @@ __global__ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
 }
 
 //------------------------------------------------------------------------------
+__global__ VEDAresult vedaMemSetPtr(void* ptr, VEDAdeviceptr vptr, const size_t size) {
+	LOCK();
+	assert(size);
+	assert(ptr);
+	assert(vptr);
+
+	auto idx = VEDA_GET_IDX(vptr);
+	if(idx == 0)
+		return VEDA_ERROR_UNKNOWN_VPTR;
+	if(VEDA_GET_OFFSET(vptr))
+		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, ptr, size)).second)
+		return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 	LOCK();
 	if(VEDA_GET_OFFSET(vptr))

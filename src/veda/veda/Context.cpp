@@ -2,6 +2,28 @@
 
 #define LOCK(X) std::lock_guard<std::mutex> __lock__(X)
 
+//------------------------------------------------------------------------------
+// Helper function for async VH side request
+//------------------------------------------------------------------------------
+struct _alloc_hmem_args {
+	veo_proc_handle *proc;
+	Context *ctx;
+	VEDAstream stream;
+	size_t size;
+	VEDAdeviceptr vptr;
+};
+
+int64_t _alloc_hmem(void *data) {
+	struct _alloc_hmem_args *args = (struct _alloc_hmem_args *)data;
+	uint64_t addr;
+	veo_alloc_hmem(args->proc, &addr, args->size);
+        addr = VIRT_ADDR_VE(addr); // delete hmem bits (from aveo/veo_hmem_macros.h)
+	// is it possible to submit a req from here?
+	vedaCtxCall(args->ctx, args->stream, false, 0, kernel(VEDA_KERNEL_MEM_SET_PTR), addr, args->vptr, args->size);
+	delete (struct _alloc_hmem_args *)data;
+	return addr;
+}
+
 namespace veda {
 //------------------------------------------------------------------------------
 // Static Inline
@@ -117,6 +139,7 @@ const char* Context::kernelName(const Kernel k) const {
 		case VEDA_KERNEL_MEM_ALLOC:		return "veda_mem_alloc";
 		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
 		case VEDA_KERNEL_MEM_PTR:		return "veda_mem_ptr";
+		case VEDA_KERNEL_MEM_SET_PTR:		return "veda_mem_set_ptr";
 		case VEDA_KERNEL_MEM_SIZE:		return "veda_mem_size";
 		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
 	}
@@ -144,6 +167,7 @@ const char* Context::kernelName(VEDAfunction func) const {
 		case VEDA_KERNEL_MEM_ALLOC:	return "VEDA_KERNEL_MEM_ALLOC";
 		case VEDA_KERNEL_MEM_FREE:	return "VEDA_KERNEL_MEM_FREE";
 		case VEDA_KERNEL_MEM_PTR:	return "VEDA_KERNEL_MEM_PTR";
+		case VEDA_KERNEL_MEM_SET_PTR:	return "VEDA_KERNEL_MEM_SET_PTR";
 		case VEDA_KERNEL_MEM_SIZE:	return "VEDA_KERNEL_MEM_SIZE";
 		case VEDA_KERNEL_MEM_SWAP:	return "VEDA_KERNEL_MEM_SWAP";
 	}
@@ -248,8 +272,13 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 	incMemIdx();
 
 	if(size) {
-		vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEM_ALLOC), vptr, size);
-		vedaCtxCall(this, stream, false, (uint64_t*)&info->ptr, kernel(VEDA_KERNEL_MEM_PTR), vptr);
+		auto *args = new _alloc_hmem_args();
+		args->proc = this->m_handle;
+		args->ctx = this;
+		args->stream = stream;
+		args->size = size;
+		args->vptr = vptr;
+		this->call(_alloc_hmem, stream, (void *)args, true, (uint64_t*)&info->ptr);
 	}
 
 	return vptr;
