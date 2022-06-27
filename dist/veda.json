@@ -1,7 +1,7 @@
 {
 	"name":			"veda",
 	"version":		"@VEDA_VERSION@",
-	"platform":		"linux2014_x86_64",
+	"platform":		"linux_x86_64",
 	"summary":		"VEDA",
 	"readme":		"veda/README.md",
 	"author":		"Nicolas Weber <nicolas.weber@neclab.eu>",
@@ -11,12 +11,11 @@
 	"classifier": [
 		"License :: OSI Approved :: BSD License",
 		"Programming Language :: Python :: 3 :: Only",
-		"Programming Language :: C",
 		"Programming Language :: C"
 	],
 	"payload": [
-		"?veda/bin/veda-smi",
-		"?veda/include/vera/*.h",
+		"veda/bin/veda-smi?",
+		"veda/include/vera/*.h?",
 		"veda/*LICENSE",
 		"veda/cmake/*.cmake",
 		"veda/cmake/nec/*.cmake",

@@ -93,6 +93,7 @@ VEDAresult vedaCtxGetCurrent(VEDAcontext* pctx) {
  */
 VEDAresult vedaCtxGetDevice(VEDAdevice* device) {
 	GUARDED(
+		*device = -1; // initialize with some value in case we throw VEDA_ERROR_UNKNOWN_CONTEXT
 		*device = veda::Contexts::current()->device().vedaId();
 		L_TRACE("[ve:%i] vedaCtxGetDevice(%i)", *device, *device);
 	)

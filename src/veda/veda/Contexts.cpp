@@ -76,7 +76,7 @@ thread_local Stack t_stack;
 //------------------------------------------------------------------------------
 VEDAcontext Contexts::current(void) {
 	if(t_stack.empty())
-		VEDA_THROW(VEDA_ERROR_UNKNOWN_CONTEXT);
+		throw VEDA_ERROR_UNKNOWN_CONTEXT; // don't use VEDA_THROW to prevent polluting the log in case vedaCtxGetDevice is called
 	auto ctx = t_stack.back();
 	if(!ctx->isActive())
 		VEDA_THROW(VEDA_ERROR_CONTEXT_IS_DESTROYED);

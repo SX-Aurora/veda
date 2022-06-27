@@ -17,15 +17,20 @@ __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size
 	assert(vptr);
 
 	auto idx = VEDA_GET_IDX(vptr);
-	if(idx == 0)
-		return VEDA_ERROR_UNKNOWN_VPTR;
-	if(VEDA_GET_OFFSET(vptr))
-		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
+	if(VEDA_GET_OFFSET(vptr))		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	auto it = veda_ptrs.find(idx);
+	if(it != veda_ptrs.end()) {
+		if(it->second.size == size)	return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+		else				return VEDA_ERROR_INVALID_VALUE;
+	}
+
 	*ptr = malloc(size);
-	if(*ptr == 0)		
-		return VEDA_ERROR_OUT_OF_MEMORY;
-	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, *ptr, size)).second)
-		return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+	if(*ptr == 0)				return VEDA_ERROR_OUT_OF_MEMORY;
+	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, *ptr, size)).second) {
+		free(*ptr);			// free as we otherwise loose the ptr
+		return VEDA_ERROR_UNKNOWN;	// should never happen
+	}
 	return VEDA_SUCCESS;
 }
 
@@ -38,20 +43,16 @@ __global__ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 	LOCK();
-	if(VEDA_GET_OFFSET(vptr))
-		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	if(VEDA_GET_OFFSET(vptr))	return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
-	if(it != veda_ptrs.end()) {
-		auto ptr = it->second.ptr;
-		if(!ptr)
-			return VEDA_ERROR_UNKNOWN_PPTR;
-		
-		free(ptr);
-		veda_ptrs.erase(it);
-		return VEDA_SUCCESS;
-	}
-
-	return VEDA_ERROR_UNKNOWN_VPTR;
+	if(it == veda_ptrs.end())	return VEDA_ERROR_UNKNOWN_VPTR;
+	
+	auto ptr = it->second.ptr;
+	if(!ptr)			return VEDA_ERROR_UNKNOWN_PPTR;
+	
+	free(ptr);
+	veda_ptrs.erase(it);
+	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------

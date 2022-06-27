@@ -28,10 +28,10 @@ static inline void vedaCtxCall(Context* ctx, VEDAstream stream, const bool check
 //------------------------------------------------------------------------------
 // Context Class
 //------------------------------------------------------------------------------
-Device& 		Context::device		(void)			{	return m_device;		}
-VEDAcontext_mode	Context::mode		(void) const		{	return m_mode;			}
-bool			Context::isActive	(void) const		{	return m_handle != 0;		}
-int			Context::streamCount	(void) const		{	return (int)m_streams.size();	}
+Device& 		Context::device		(void)		{	return m_device;		}
+VEDAcontext_mode	Context::mode		(void) const	{	return m_mode;			}
+bool			Context::isActive	(void) const	{	return m_handle != 0;		}
+int			Context::streamCount	(void) const	{	return (int)m_streams.size();	}
 
 //------------------------------------------------------------------------------
 void Context::setMemOverride(VEDAdeviceptr vptr) {
@@ -219,6 +219,9 @@ void Context::syncPtrs(void) {
 
 //------------------------------------------------------------------------------
 VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
+	if(m_memOverride)
+		syncPtrs();
+
 	LOCK(mutex_ptrs);
 
 	// Check if VPTRs are left ---------------------------------------------
@@ -230,9 +233,12 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 		auto dev	= VEDA_GET_DEVICE(m_memOverride);	assert(dev == device().vedaId());
 		auto idx	= VEDA_GET_IDX(m_memOverride);
 		m_memOverride	= 0;
+		auto it		= m_ptrs.find(idx);
 		
-		if(m_ptrs.find(idx) == m_ptrs.end())
-			VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+		if(it == m_ptrs.end())	VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+		auto info = it->second;
+		if(info->size != size)	VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+		if(info->ptr  == 0)	VEDA_THROW(VEDA_ERROR_UNKNOWN_PPTR);
 
 		return VEDA_SET_PTR(dev, idx, 0);
 	}

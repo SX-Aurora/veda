@@ -10,6 +10,16 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v1.3.3</td><td>
+<ul>
+<li>Removed polluting <code>VEDA_ERROR_UNKNOWN_CONTEXT</code> log message.</li>
+<li>Fixed possible memleak when VPTR is already allocated.</li>
+<li>Fixed possible memleak when using <code>vedaMemAllocOverrideOnce</code>.</li>
+<li>Synchronizing TUNGL timer with VH.</li>
+</ul>
+</td></tr>
+<tr>
+
 <tr><td>v1.3.2</td><td>
 <ul>
 <li>Added <code>vedaMemAllocOverrideOnce</code> to prevent <code>vedaMemAlloc</code> to allocate new memory and instead return the override value once. This is not meant to be used except when you want to circumvent unncessary memory allocations in opaque data structures that you don't have access to.</li>
