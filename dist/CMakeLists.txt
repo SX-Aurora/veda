@@ -21,10 +21,13 @@ IF(NOT (VEDA_DIST_TYPE STREQUAL PYTHON))
 		${Tungl_DIR}/include/tungl/types.h
 		${Tungl_DIR}/include/tungl/version.h
 		DESTINATION ${VEDA_INSTALL_PATH}/tungl/include)
-	INSTALL(FILES "${Tungl_LIBRARY}.${Tungl_VERSION_MAJOR}" DESTINATION ${VEDA_INSTALL_PATH}/lib64)
+	INSTALL(FILES
+		"${Tungl_LIBRARY}.${Tungl_VERSION_MAJOR}" # Symlink
+		"${Tungl_LIBRARY}.${Tungl_VERSION}"
+		DESTINATION ${VEDA_INSTALL_PATH}/lib64)
 	ILLYRIAN_INSTALL_SYMLINK(${VEDA_INSTALL_PATH} veda)
 
-	## Configure CPack -------------------------------------------------------------
+	## Configure CPack -----------------------------------------------------
 	SET(CPACK_PACKAGE_VERSION ${VEDA_VERSION})
 	SET(CPACK_GENERATOR "RPM")
 	SET(CPACK_PACKAGE_RELEASE "1")

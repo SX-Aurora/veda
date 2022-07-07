@@ -1,8 +1,41 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
-PROJECT(VEDA VERSION 1.3.3 LANGUAGES C CXX)
+PROJECT(VEDA VERSION 1.3.4 LANGUAGES C CXX)
 
-FIND_PACKAGE(Illyrian 0.2.0 REQUIRED)
+IF(NOT Illyrian_FOUND AND VEDA_DIST_TYPE AND NOT (VEDA_DIST_TYPE STREQUAL "PYTHON"))
+	SET(DPATH ${CMAKE_BINARY_DIR}/dependencies)
+	FILE(MAKE_DIRECTORY ${DPATH})
+
+	# Build Illyrian -----------------------------------------------
+	EXECUTE_PROCESS(
+		COMMAND git clone https://github.com/nec-research/illyrian
+		WORKING_DIRECTORY ${DPATH})
+	FILE(MAKE_DIRECTORY ${DPATH}/illyrian/build)
+	EXECUTE_PROCESS(
+		COMMAND ${CMAKE_COMMAND} -DILLYRIAN_NO_PYTHON=ON ${DPATH}/illyrian
+		WORKING_DIRECTORY ${DPATH}/illyrian/build)
+	EXECUTE_PROCESS(
+		COMMAND ${CMAKE_COMMAND} --build ${DPATH}/illyrian/build --target install)
+	SET(ILLYRIAN_CMAKE ${DPATH}/illyrian/build/dist/illyrian/cmake)
+
+	# Build Tungl --------------------------------------------------
+	EXECUTE_PROCESS(
+		COMMAND git clone https://github.com/nec-research/tungl
+		WORKING_DIRECTORY ${DPATH})
+	FILE(MAKE_DIRECTORY ${DPATH}/tungl/build)
+	EXECUTE_PROCESS(
+		COMMAND ${CMAKE_COMMAND} -DILLYRIAN_NO_PYTHON=ON -DCMAKE_MODULE_PATH=${ILLYRIAN_CMAKE} -DCMAKE_INSTALL_PREFIX=${DPATH}/tungl/build/dist ${DPATH}/tungl
+		WORKING_DIRECTORY ${DPATH}/tungl/build)
+	EXECUTE_PROCESS(
+		COMMAND ${CMAKE_COMMAND} --build ${DPATH}/tungl/build --target install)
+	SET(TUNGL_CMAKE ${DPATH}/tungl/build/dist/tungl/cmake)
+
+	SET(CMAKE_MODULE_PATH ${ILLYRIAN_CMAKE} ${TUNGL_CMAKE} CACHE STRING "")
+
+	SET(ILLYRIAN_NO_PYTHON ON CACHE BOOL "")
+ENDIF()
+
+FIND_PACKAGE(Illyrian 0.2.1 REQUIRED)
 ILLYRIAN_PROJECT(
 	C_STANDARD	17
 	CXX_STANDARD	17

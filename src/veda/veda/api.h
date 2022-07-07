@@ -151,33 +151,28 @@ struct VEDAstack {
 		ptr(_ptr), intent(_intent), size(_size) {}
 };
 
-inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAdeviceptr value) {
-	return vedaArgsSetVPtr(args, idx, value);
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAdeviceptr value)	{ return vedaArgsSetVPtr(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAstack stack)	{ return vedaArgsSetStack(args, idx, stack.ptr, stack.intent, stack.size); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const double value)		{ return vedaArgsSetF64(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const float value)		{ return vedaArgsSetF32(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const int16_t value)	{ return vedaArgsSetI16(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const int32_t value)	{ return vedaArgsSetI32(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const int64_t value)	{ return vedaArgsSetI64(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const int8_t value)		{ return vedaArgsSetI8 (args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint16_t value)	{ return vedaArgsSetU16(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint32_t value)	{ return vedaArgsSetU32(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint64_t value)	{ return vedaArgsSetU64(args, idx, value); }
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint8_t value)	{ return vedaArgsSetU8 (args, idx, value); }
+
+template<typename T>
+inline typename std::enable_if<std::is_enum<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+	return vedaArgsSetI32(args, idx, (int32_t)value);
 }
 
 template<typename T>
-inline typename std::enable_if<(sizeof(T) == 1), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	static_assert(!std::is_same<T, bool>::value, "Don't use bool as data-type when calling a VE function, as it defined as 1B on VH and 4B on VE!");
-	return vedaArgsSetU8(args, idx, *reinterpret_cast<const uint8_t*>(&value));
-}
-
-template<typename T>
-inline typename std::enable_if<(sizeof(T) == 2), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	return vedaArgsSetU16(args, idx, *reinterpret_cast<const uint16_t*>(&value));
-}
-
-template<typename T>
-inline typename std::enable_if<(sizeof(T) == 4), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	return vedaArgsSetU32(args, idx, *reinterpret_cast<const uint32_t*>(&value));
-}
-
-template<typename T>
-inline typename std::enable_if<(sizeof(T) == 8), VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	return vedaArgsSetU64(args, idx, *reinterpret_cast<const uint64_t*>(&value));
-}
-
-inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAstack stack) {
-	return vedaArgsSetStack(args, idx, stack.ptr, stack.intent, stack.size);
+inline typename std::enable_if<!std::is_enum<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+	static_assert(!std::is_same<T, T>::value, "Illegal dtype in vedaArgsSet or vedaLaunchKernel detected! You can only use VEDAdeviceptr, VEDAstack, double, float, int16_t, int32_t, int64_t, int8_t, uint16_t, uint32_t, uint64_t, uint8_t or enum.");
+	return VEDA_ERROR_INVALID_VALUE;
 }
 
 inline VEDAresult __vedaLaunchKernel(VEDAfunction func, VEDAstream stream, uint64_t* result, VEDAargs args, const int idx) {
@@ -229,7 +224,7 @@ VEDA_MEMSET(64)
 #undef VEDA_MEMSET
 
 template<typename T> VEDA_ENABLE(T, 64) vedaMemsetD128(VEDAdeviceptr dst, T x, T y, size_t N) {
-	return vedaMemsetD128(dst, *(uint64_t*)&x, *(uint64_t*)&y, N);\
+	return vedaMemsetD128(dst, *(uint64_t*)&x, *(uint64_t*)&y, N);
 }
 template<typename T> VEDA_ENABLE(T, 64) vedaMemsetD128Async(VEDAdeviceptr dst, T x, T y, size_t N, VEDAstream stream) {
 	return vedaMemsetD128Async(dst, *(uint64_t*)&x, *(uint64_t*)&y, N, stream);

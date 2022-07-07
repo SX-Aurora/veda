@@ -6,6 +6,9 @@
 #define CVEDA(ERR)	{ VEDAresult __VEDA_ERROR__ = (ERR); if(__VEDA_ERROR__ != VEDA_SUCCESS) { return __VEDA_ERROR__; }}
 #endif
 
+#define VEDA_STR(s) VEDA_STR_(s)
+#define VEDA_STR_(s) #s
+
 /** VPTR Format
  * 5Bit:  Device (32 devices max)
  * 22Bit: Idx    (4,194,304 indicies)

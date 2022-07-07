@@ -10,6 +10,14 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v1.3.4</td><td>
+<ul>
+<li>Fixed RPM and LOCAL dist types.</li>
+<li>Automatically downloading Illyrian and Tungl in VEOS and LOCAL builds.</li>
+<li>Fixed DType issues with in cpp <code>vedaLaunchKernel(...)</code></li>
+</ul>
+</td></tr>
+
 <tr><td>v1.3.3</td><td>
 <ul>
 <li>Removed polluting <code>VEDA_ERROR_UNKNOWN_CONTEXT</code> log message.</li>
@@ -18,7 +26,6 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <li>Synchronizing TUNGL timer with VH.</li>
 </ul>
 </td></tr>
-<tr>
 
 <tr><td>v1.3.2</td><td>
 <ul>
@@ -26,9 +33,8 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <li>Fixed RPATH for veda-smi in Python releases</li>
 </ul>
 </td></tr>
-<tr>
 
-<td>v1.3.1</td><td>
+<tr><td>v1.3.1</td><td>
 <ul>
 <li>Added compile guard to prevent <code>vedaArgsSet&lt;bool&gt;</code> because <code>bool</code> is defined as 1B on VH and 4B on VE.</li>
 <li>Merged changes from <a href="https://github.com/veos-sxarr-NEC/veda_source/tree/release-2.11.1" target="_BLANK">VEOS 2.11.1 release</a>.</li>
@@ -308,15 +314,15 @@ cd veda/build
 
 # Build Option 1: Local installation (default: /usr/local/ve (use -DCMAKE_INSTALL_PREFIX=... for other path))
 cmake3 -DVEDA_DIST_TYPE=LOCAL ..
-# Build Option 2: VEOS installation
-cmake3 -DVEDA_DIST_TYPE=VEOS ..
-# Build Option 3: Python package
-cmake3 -DVEDA_DIST_TYPE=PYTHON ..
-
-# for direct installation (LOCAL and VEOS only)
 cmake3 --build . --target install 
 
-# for distribution package (generates *.rpm or *.whl in build folder)
+# Build Option 2: VEOS installation
+cmake3 -DVEDA_DIST_TYPE=VEOS ..
+cmake3 --build . --target install 
+
+# Build Option 3: Python package
+pip3 install illyrian tungl
+illyrian cmake3 -DVEDA_DIST_TYPE=PYTHON ..
 cmake3 --build . --target dist
 ```
 
