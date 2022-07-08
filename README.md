@@ -10,6 +10,12 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v1.3.5</td><td>
+<ul>
+<li>Bugfix for <code>vedaArgsSet(...)</code> to again accept <code>VEDAptr<T></code></li>
+</ul>
+</td></tr>
+
 <tr><td>v1.3.4</td><td>
 <ul>
 <li>Fixed RPM and LOCAL dist types.</li>

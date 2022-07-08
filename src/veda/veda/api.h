@@ -165,6 +165,11 @@ inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint64_t value
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint8_t value)	{ return vedaArgsSetU8 (args, idx, value); }
 
 template<typename T>
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAptr<T>& value) {
+	return vedaArgsSet(args, idx, (VEDAdeviceptr)value);
+}
+
+template<typename T>
 inline typename std::enable_if<std::is_enum<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	return vedaArgsSetI32(args, idx, (int32_t)value);
 }
