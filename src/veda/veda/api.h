@@ -175,7 +175,15 @@ inline typename std::enable_if<std::is_enum<T>::value, VEDAresult>::type vedaArg
 }
 
 template<typename T>
-inline typename std::enable_if<!std::is_enum<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+inline typename std::enable_if<std::is_pointer<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+	return vedaArgsSetI64(args, idx, (int64_t)value);
+}
+
+template<typename T>
+inline typename std::enable_if<
+	!std::is_enum<T>::value &&
+	!std::is_pointer<T>::value
+, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
 	static_assert(!std::is_same<T, T>::value, "Illegal dtype in vedaArgsSet or vedaLaunchKernel detected! You can only use VEDAdeviceptr, VEDAstack, double, float, int16_t, int32_t, int64_t, int8_t, uint16_t, uint32_t, uint64_t, uint8_t or enum.");
 	return VEDA_ERROR_INVALID_VALUE;
 }
