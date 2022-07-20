@@ -10,6 +10,12 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>**TO BE RELEASED**</td><td>
+<ul>
+<li>Fixed bug in CMake setting correct C++ standard flags</li>
+</ul>
+</td></tr>
+
 <tr><td>v1.3.5</td><td>
 <ul>
 <li>Bugfix for <code>vedaArgsSet(...)</code> to again accept <code>VEDAptr<T></code></li>
