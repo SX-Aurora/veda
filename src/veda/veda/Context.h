@@ -1,7 +1,7 @@
 #pragma once
 
 namespace veda {
-	class Context {
+	class Context final {
 	public:
 		typedef std::tuple<VEDAdeviceptr, size_t> VPtrTuple;
 	
@@ -36,6 +36,7 @@ namespace veda {
 		Module*			moduleLoad		(const char* name);
 		Stream&			stream			(const VEDAstream stream);
 		VEDAcontext_mode	mode			(void) const;
+		VEDAhmemptr		hmemAlloc		(const size_t size);
 		VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
 		VEDAdeviceptrInfo	getPtr			(VEDAdeviceptr vptr);
 		VEDAfunction		kernel			(Kernel kernel) const;
@@ -45,7 +46,6 @@ namespace veda {
 		bool			isActive		(void) const;
 		int			streamCount		(void) const;
 		size_t			memUsed			(void);
-		veo_ptr			hmemId			(void) const;
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult, uint64_t* result);
 		void			call			(VEDAhost_function func, VEDAstream stream, void* userData, const bool checkResult, uint64_t* result);
 		void			destroy			(void);
@@ -57,6 +57,9 @@ namespace veda {
 		void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);
 		void			memcpyD2H		(void* dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);
 		void			memcpyH2D		(VEDAdeviceptr dst, const void* src, const size_t size, VEDAstream stream);
+		void			hmemcpyD2D		(VEDAhmemptr dst, VEDAhmemptr src, const size_t size);
+		void			hmemcpyD2H		(void* dst, VEDAhmemptr src, const size_t size);
+		void			hmemcpyH2D		(VEDAhmemptr dst, const void* src, const size_t size);
 		void			memset			(VEDAdeviceptr dst, const uint16_t value, const size_t size, VEDAstream stream);
 		void			memset			(VEDAdeviceptr dst, const uint32_t value, const size_t size, VEDAstream stream);
 		void			memset			(VEDAdeviceptr dst, const uint64_t value, const size_t size, VEDAstream stream);

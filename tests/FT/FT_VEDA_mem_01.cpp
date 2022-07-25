@@ -436,6 +436,7 @@ int main(int argc, char** argv) {
 	CHECK(vedaCtxSynchronize());
 	CHECK(vedaMemFree(ptr22));
 
+#if 0 // DISABLED
 	printf("\nTEST CASE ID: FT_VEDA_MEM_23\n");
 	VEDAdeviceptr hmemPtr = NULL;
 	CHECK(vedaMemHMEM((void**)&hmemPtr, ptr));
@@ -455,6 +456,7 @@ int main(int argc, char** argv) {
 	}
 	printf("\nTEST CASE ID: FT_VEDA_MEM_25\n");
 	CHECK(vedaMemReport());
+#endif
 
 	printf("\nTEST CASE ID: FT_VEDA_MEM_26\n");
 	size_t free=0,total=0;

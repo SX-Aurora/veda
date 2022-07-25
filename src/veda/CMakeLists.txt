@@ -30,6 +30,7 @@ SET(VEDA_SRC
 	${CMAKE_CURRENT_LIST_DIR}/veda_args.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_context.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_device.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda_hmem.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_mem.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_module.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda_stream.cpp

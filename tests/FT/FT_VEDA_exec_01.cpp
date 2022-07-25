@@ -171,6 +171,7 @@ int main(int argc, char** argv) {
                 }
     		printf("\nTEST CASE ID: FT_VEDA_ECM_16:");
 
+	#if 0 // DISABLED
 		VEDAargs args2=NULL;
 		CHECK(vedaArgsCreate(&args2));
 		void *ptr4;
@@ -193,8 +194,9 @@ int main(int argc, char** argv) {
         	CHECK(vedaLaunchKernel(func6, 0, args2));
    	 	printf("PASSED\n");
 
-		CHECK(vedaModuleUnload(mod));
 		CHECK(vedaMemFree(mpi));
+	#endif
+		CHECK(vedaModuleUnload(mod));
 //		printf("vedaModuleUnload(%p)\n", mod);
 		CHECK(vedaMemFreeAsync(ptr, 0));
 //		printf("vedaMemFree(%p, %i)\n", ptr, 0);
@@ -300,13 +302,15 @@ void testInvalidArgsValue(VEDAargs& args) {
     	printf("PASSED\n");
     else
      	{printf("FAILED\n");exit(1);}
-    
+
+#if 0 // DISABLED
     printf("\nTEST CASE ID: FT_VEDA_ECM_30:");
     ret = vedaArgsSetHMEM(args, 0, ptr2);
     if(ret == VEDA_ERROR_INVALID_ARGS)
     	printf("PASSED\n");
     else
      	{printf("FAILED\n");exit(1);}
+#endif
     
     printf("\nTEST CASE ID: FT_VEDA_ECM_31:");
     ret = vedaArgsSetStack(args, 0, ptr2,VEDA_ARGS_INTENT_INOUT, 1);

@@ -53,10 +53,11 @@ Context::Context(Device& device) :
 {}
 
 //------------------------------------------------------------------------------
-veo_ptr Context::hmemId(void) const {
-	int procId = veo_proc_identifier(m_handle);
-	ASSERT(procId >= 0);
-	return (veo_ptr)veo_set_proc_identifier(0, procId);
+VEDAhmemptr Context::hmemAlloc(const size_t size) {
+	VEDAhmemptr ptr;
+	if(veo_alloc_hmem(m_handle, (void**)&ptr, size) != 0)
+		VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
+	return ptr;
 }
 
 //------------------------------------------------------------------------------
@@ -574,6 +575,21 @@ void Context::destroy(void) {
 	m_lib		= 0;
 	m_mode		= VEDA_CONTEXT_MODE_OMP;
 	m_memidx	= 0;
+}
+
+//------------------------------------------------------------------------------
+void Context::hmemcpyD2D(VEDAhmemptr dst, VEDAhmemptr src, const size_t size) {
+
+}
+
+//------------------------------------------------------------------------------
+void Context::hmemcpyD2H(void* dst, VEDAhmemptr src, const size_t size) {
+
+}
+
+//------------------------------------------------------------------------------
+void Context::hmemcpyH2D(VEDAhmemptr dst, const void* src, const size_t size) {
+	
 }
 
 //------------------------------------------------------------------------------

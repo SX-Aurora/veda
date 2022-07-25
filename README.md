@@ -10,8 +10,9 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
-<tr><td>**TO BE RELEASED**</td><td>
+<tr><td>v1.4.0</td><td>
 <ul>
+<li>Overhauled HMEM API</li>
 <li>Fixed bug in CMake setting correct C++ standard flags</li>
 </ul>
 </td></tr>
@@ -243,13 +244,13 @@ Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal n
 When you use C++, you can use the ```VEDAptr<typename>``` that gives you more directly control over the ```VEDAdeviceptr```, i.e. you can use ```vptr.size()```, ```vptr.device()```, ... . The ```typename``` is used to automatically determine the correct offsets when executing ```vptr += offset;```.
 
 ### VEDA-NEC MPI integration
-The VEO-aware NEC MPI ( https://www.hpc.nec/forums/topic?id=pgmcA8 ) enables to much easier implement hybrid VE applications. For this, so called HMEM pointers have been introduced in VEO. Starting with v0.10 VEDA also supports HMEM pointers via the functions ```vedaGetHMEM(void*, VEDAdeviceptr)``` or ```VEDAptr<> vptr; vptr.hmem()``` (C++ only). To make it more comfortable to use you can directly pass ```VEDAptr<typename>``` instances to the ```mpi_*``` method, as shown in this example:
+The VEO-aware NEC MPI ( https://www.hpc.nec/forums/topic?id=pgmcA8 ) enables to much easier implement hybrid VE applications. For this, so called HMEM pointers have been introduced in VEO. Starting with v1.4.0 VEDA introduced a new HMEM API: ```vedaHMEM*```. See following example:
 
 ```cpp
-VEDAptr<float> vptr;
-vedaMemAlloc(&vptr, size);
-vedaMemcpyHtoD(vptr, hptr, size);
-mpi_send(vptr, ...);
+VEDAhmemptr hmem;
+vedaHMemAlloc(&hmem, size);
+vedaHMemcpy(hmem, hostr_ptr, size);
+mpi_send(hmem, ...);
 ```
 
 ### NUMA Support

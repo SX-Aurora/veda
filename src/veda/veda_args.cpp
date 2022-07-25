@@ -166,7 +166,7 @@ VEDAresult vedaArgsSetU64(VEDAargs args, const int idx, const uint64_t value) {
 
 //------------------------------------------------------------------------------
 /**
- * @brief Initialize the VEDA function arguments by converting the heterogeneous memory address to VEDA device memory address.
+ * @brief Initialize the VEDA function arguments by converting the heterogeneous memory address to raw device memory address.
  * @param args Handle to VEDA function argument.
  * @param idx VEDA function argument number
  * @param value Value to be set for the VEDA function argument. 
@@ -176,7 +176,7 @@ VEDAresult vedaArgsSetU64(VEDAargs args, const int idx, const uint64_t value) {
  *
  * Set the VEDA device memory address as an argument by converting the heterogeneous memory address to VEDA device memory address.
  */
-VEDAresult vedaArgsSetHMEM(VEDAargs args, const int idx, const void* value) {
+VEDAresult vedaArgsSetHMEM(VEDAargs args, const int idx, const VEDAhmemptr value) {
 	if(!args)			return VEDA_ERROR_INVALID_ARGS;
 	if(!veo_is_ve_addr(value))	return VEDA_ERROR_INVALID_VALUE;
 	CVEO(veo_args_set_u64(args, idx, (uint64_t)veo_get_hmem_addr((void*)value)));

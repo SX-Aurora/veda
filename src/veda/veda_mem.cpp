@@ -1056,48 +1056,4 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
-/**
- * @brief  Gets the Hetrogenous Memory address for the given VEDA device virtual
- * address.
- * @param ptr Pointer to hold the HMEM address.
- * @param vptr Pointer containing the VEDA device virtual address.
- * @retval VEDA_SUCCESS on Success
- * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
- * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- */
-VEDAresult vedaMemHMEM(void** ptr, VEDAdeviceptr vptr) {
-	GUARDED(
-		auto& ctx	= veda::Devices::get(vptr).ctx();
-		auto res	= ctx.getPtr(vptr);
-		*ptr = (void*)((veo_ptr)res.ptr | ctx.hmemId());
-		L_TRACE("[ve:%i] vedaMemHMEM(%p, %p)", ctx.device().vedaId(), *ptr, vptr);
-	);
-}
-
-//------------------------------------------------------------------------------
-/**
- * @brief  Gets the VEDA HMEM address and allocation size against the given VEDA
- * device virtual address.
- * @param ptr Pointer to hold the VEDA HMEM address.
- * @param size total size of the allocation in bytes.
- * @param vptr Pointer containing the VEDA device virtual address.
- * @retval VEDA_SUCCESS on Success
- * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
- * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
- * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
- * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
- */
-VEDAresult vedaMemHMEMSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
-	GUARDED(
-		auto& ctx	= veda::Devices::get(vptr).ctx();
-		auto res	= ctx.getPtr(vptr);
-		*ptr		= (void*)((veo_ptr)res.ptr | ctx.hmemId());
-		*size		= res.size;
-		L_TRACE("[ve:%i] vedaMemHMEMSize(%p, %llu, %p)", ctx.device().vedaId(), *ptr, *size, vptr);
-	);
-}
-
-//------------------------------------------------------------------------------
 } // extern "C"

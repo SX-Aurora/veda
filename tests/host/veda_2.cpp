@@ -22,6 +22,13 @@ void check(VEDAresult err, const char* file, const int line) {
 int main(int argc, char** argv) {
 	CHECK(vedaInit(0));
 
+	int dcnt;
+	CHECK(vedaDeviceGetCount(&dcnt));
+	if(dcnt < 2) {
+		printf("This test requires at least 2 VEs, but only %i have been found.\n", dcnt);
+		return 1;
+	}
+
 	auto start = NOW();
 	VEDAcontext dev0;
 	CHECK(vedaCtxCreate(&dev0, 0, 0));
@@ -76,7 +83,7 @@ int main(int argc, char** argv) {
 		printf("ve0 >> ve1 = %fms\n", time(start, end));
 	}
 
-	#if 0
+#if 0
 	for(int i = 0; i < 10; i++) {
 		start = NOW();
 		CHECK(vedaMemcpyDtoHAsync(host, ptr1, size, 0));
@@ -92,7 +99,7 @@ int main(int argc, char** argv) {
 			return 1;
 		}
 	}
-	#endif
+#endif
 	
 	start = NOW();
 	CHECK(vedaMemFreeAsync(ptr1, 0));

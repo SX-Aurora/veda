@@ -20,6 +20,7 @@
 extern "C" {
 #endif
 
+// Common API ------------------------------------------------------------------
 VEDAresult	vedaArgsCreate			(VEDAargs* args);
 VEDAresult	vedaArgsDestroy			(VEDAargs args);
 VEDAresult	vedaArgsSetF32			(VEDAargs args, const int idx, const float value);
@@ -28,9 +29,6 @@ VEDAresult	vedaArgsSetI16			(VEDAargs args, const int idx, const int16_t value);
 VEDAresult	vedaArgsSetI32			(VEDAargs args, const int idx, const int32_t value);
 VEDAresult	vedaArgsSetI64			(VEDAargs args, const int idx, const int64_t value);
 VEDAresult	vedaArgsSetI8			(VEDAargs args, const int idx, const int8_t value);
-VEDAresult	vedaArgsSetPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
-VEDAresult	vedaArgsSetVPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
-VEDAresult	vedaArgsSetHMEM			(VEDAargs args, const int idx, const void* value);
 VEDAresult	vedaArgsSetStack		(VEDAargs args, const int idx, void* ptr, VEDAargs_intent intent, const size_t size);
 VEDAresult	vedaArgsSetU16			(VEDAargs args, const int idx, const uint16_t value);
 VEDAresult	vedaArgsSetU32			(VEDAargs args, const int idx, const uint32_t value);
@@ -77,20 +75,40 @@ VEDAresult	vedaLaunchHostFunc		(VEDAstream stream, VEDAhost_function fn, void* u
 VEDAresult	vedaLaunchHostFuncEx		(VEDAstream stream, VEDAhost_function fn, void* userData, uint64_t* result);
 VEDAresult	vedaLaunchKernel		(VEDAfunction f, VEDAstream stream, VEDAargs);
 VEDAresult	vedaLaunchKernelEx		(VEDAfunction f, VEDAstream stream, VEDAargs, const int destroyArgs, uint64_t* result);
+VEDAresult	vedaMemAllocHost		(void** pp, size_t bytesiz);
+VEDAresult	vedaMemFreeHost			(void* ptr);
+VEDAresult	vedaMemGetInfo			(size_t* free, size_t* total);
+VEDAresult	vedaModuleGetFunction		(VEDAfunction* hfunc, VEDAmodule hmod, const char* name);
+VEDAresult	vedaModuleLoad			(VEDAmodule* module, const char* fname);
+VEDAresult	vedaModuleUnload		(VEDAmodule hmod);
+VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
+VEDAresult	vedaStreamGetFlags		(VEDAstream hStream, uint32_t* flags);
+VEDAresult	vedaStreamQuery			(VEDAstream hStream);
+VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
+
+// VEDAhmemptr API -------------------------------------------------------------
+VEDAresult	vedaArgsSetHMEM			(VEDAargs args, const int idx, const VEDAhmemptr value);
+VEDAresult	vedaHMemAlloc			(VEDAhmemptr* ptr, size_t size);
+VEDAresult	vedaHMemFree			(VEDAhmemptr ptr);
+VEDAresult	vedaHMemPtr			(void** ptr, VEDAhmemptr hptr);
+VEDAresult	vedaHMemcpy			(VEDAhmemptr dst, VEDAhmemptr src, size_t ByteCount);
+VEDAresult	vedaHMemcpyDtoX			(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount);
+VEDAresult	vedaHMemcpyDtoXAsync		(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream stream);
+VEDAresult	vedaHMemcpyXtoD			(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount);
+VEDAresult	vedaHMemcpyXtoDAsync		(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount, VEDAstream stream);
+
+// VEDAdeviceptr API -----------------------------------------------------------
+VEDAresult	vedaArgsSetPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
+VEDAresult	vedaArgsSetVPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
 VEDAresult	vedaMemAlloc			(VEDAdeviceptr* ptr, size_t size);
 VEDAresult	vedaMemAllocAsync		(VEDAdeviceptr* ptr, size_t size, VEDAstream stream);
-VEDAresult	vedaMemAllocHost		(void** pp, size_t bytesiz);
 VEDAresult	vedaMemAllocOverrideOnce	(VEDAdeviceptr ptr);
 VEDAresult	vedaMemAllocPitch		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte);
 VEDAresult	vedaMemAllocPitchAsync		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream);
 VEDAresult	vedaMemFree			(VEDAdeviceptr ptr);
 VEDAresult	vedaMemFreeAsync		(VEDAdeviceptr ptr, VEDAstream stream);
-VEDAresult	vedaMemFreeHost			(void* ptr);
 VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
 VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
-VEDAresult	vedaMemGetInfo			(size_t* free, size_t* total);
-VEDAresult	vedaMemHMEM			(void** ptr, VEDAdeviceptr vptr);
-VEDAresult	vedaMemHMEMSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
 VEDAresult	vedaMemPtr			(void** ptr, VEDAdeviceptr vptr);
 VEDAresult	vedaMemPtrSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
 VEDAresult	vedaMemReport			(void);
@@ -125,13 +143,6 @@ VEDAresult	vedaMemsetD64			(VEDAdeviceptr dstDevice, uint64_t ui, size_t N);
 VEDAresult	vedaMemsetD64Async		(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream);
 VEDAresult	vedaMemsetD8			(VEDAdeviceptr dstDevice, uint8_t uc, size_t N);
 VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream);
-VEDAresult	vedaModuleGetFunction		(VEDAfunction* hfunc, VEDAmodule hmod, const char* name);
-VEDAresult	vedaModuleLoad			(VEDAmodule* module, const char* fname);
-VEDAresult	vedaModuleUnload		(VEDAmodule hmod);
-VEDAresult	vedaStreamAddCallback		(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags);
-VEDAresult	vedaStreamGetFlags		(VEDAstream hStream, uint32_t* flags);
-VEDAresult	vedaStreamQuery			(VEDAstream hStream);
-VEDAresult	vedaStreamSynchronize		(VEDAstream hStream);
 
 #ifdef __cplusplus
 }
@@ -151,6 +162,7 @@ struct VEDAstack {
 		ptr(_ptr), intent(_intent), size(_size) {}
 };
 
+inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAhmemptr value)	{ return vedaArgsSetHMEM(args, idx, value); }
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAdeviceptr value)	{ return vedaArgsSetVPtr(args, idx, value); }
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAstack stack)	{ return vedaArgsSetStack(args, idx, stack.ptr, stack.intent, stack.size); }
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const double value)		{ return vedaArgsSetF64(args, idx, value); }
@@ -163,6 +175,10 @@ inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint16_t value
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint32_t value)	{ return vedaArgsSetU32(args, idx, value); }
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint64_t value)	{ return vedaArgsSetU64(args, idx, value); }
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const uint8_t value)	{ return vedaArgsSetU8 (args, idx, value); }
+
+inline typename std::enable_if<!std::is_same<uint64_t, unsigned long long int>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const unsigned long long int value) {
+	return vedaArgsSetU64(args, idx, value);
+}
 
 template<typename T>
 inline VEDAresult vedaArgsSet(VEDAargs args, const int idx, const VEDAptr<T>& value) {
@@ -184,7 +200,7 @@ inline typename std::enable_if<
 	!std::is_enum<T>::value &&
 	!std::is_pointer<T>::value
 , VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	static_assert(!std::is_same<T, T>::value, "Illegal dtype in vedaArgsSet or vedaLaunchKernel detected! You can only use VEDAdeviceptr, VEDAstack, double, float, int16_t, int32_t, int64_t, int8_t, uint16_t, uint32_t, uint64_t, uint8_t or enum.");
+	static_assert(!std::is_same<T, T>::value, "Illegal dtype in vedaArgsSet or vedaLaunchKernel detected! You can only use VEDAdeviceptr, VEDAhmemptr, VEDAstack, double, float, int16_t, int32_t, int64_t, int8_t, uint16_t, uint32_t, uint64_t, uint8_t or enum.");
 	return VEDA_ERROR_INVALID_VALUE;
 }
 

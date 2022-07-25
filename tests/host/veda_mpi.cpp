@@ -15,8 +15,8 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
-void mpi_something(void* ptr, VEDAptr<double> vptr) {
-	printf("VOID*: %p, VPTR: %p, VE: %p, HMEM: %p\n", ptr, (VEDAdeviceptr)vptr, vptr.ptr(), vptr.hmem());
+void mpi_something(void* ptr, HMEMptr<double> vptr) {
+	printf("VOID*: %p, VPTR: %p, VE: %p\n", ptr, (VEDAhmemptr)vptr, vptr.ptr());
 }
 
 int main(int argc, char** argv) {
@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
 	VEDAcontext ctx;
 	CHECK(vedaCtxCreate(&ctx, 0, 0));
 	
-	VEDAptr<char> mpi;
-	CHECK(vedaMemAlloc(&mpi, 128));
+	HMEMptr<char> mpi;
+	CHECK(vedaHMemAlloc(&mpi, 128));
 
 	mpi_something(mpi, mpi);
 	mpi_something(mpi, mpi);
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 	auto off2 = mpi + 0xDEADBEEF;
 	mpi_something(off2, off2);
 
-	CHECK(vedaMemFree(mpi));
+	CHECK(vedaHMemFree(mpi));
 
 	CHECK(vedaExit());
 	return 0;
