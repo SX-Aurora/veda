@@ -13,6 +13,7 @@ __global__	VEDAresult	vedaMemFree		(VEDAdeviceptr vptr);
 __global__	VEDAresult	veda_mem_alloc		(VEDAdeviceptr vptr, const size_t size);
 __global__	VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
 __global__	void*		veda_mem_ptr		(VEDAdeviceptr vptr);
+__global__	void*		veda_mem_ptr_vptr	(VEDAdeviceptr vptr, const size_t size);
 __global__	size_t		veda_mem_size		(VEDAdeviceptr vptr);
 __global__	VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptr B);
 __global__	VEDAresult	veda_memcpy_d2d		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size);

@@ -118,6 +118,7 @@ const char* Context::kernelName(const Kernel k) const {
 		case VEDA_KERNEL_MEM_ALLOC:		return "veda_mem_alloc";
 		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
 		case VEDA_KERNEL_MEM_PTR:		return "veda_mem_ptr";
+		case VEDA_KERNEL_MEM_PTR_VPTR:		return "veda_mem_ptr_vptr";
 		case VEDA_KERNEL_MEM_SIZE:		return "veda_mem_size";
 		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
 	}
@@ -145,6 +146,7 @@ const char* Context::kernelName(VEDAfunction func) const {
 		case VEDA_KERNEL_MEM_ALLOC:	return "VEDA_KERNEL_MEM_ALLOC";
 		case VEDA_KERNEL_MEM_FREE:	return "VEDA_KERNEL_MEM_FREE";
 		case VEDA_KERNEL_MEM_PTR:	return "VEDA_KERNEL_MEM_PTR";
+		case VEDA_KERNEL_MEM_PTR_VPTR:	return "VEDA_KERNEL_MEM_PTR_VPTR";
 		case VEDA_KERNEL_MEM_SIZE:	return "VEDA_KERNEL_MEM_SIZE";
 		case VEDA_KERNEL_MEM_SWAP:	return "VEDA_KERNEL_MEM_SWAP";
 	}
@@ -219,7 +221,7 @@ void Context::syncPtrs(void) {
 }
 
 //------------------------------------------------------------------------------
-VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
+VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 	if(m_memOverride)
 		syncPtrs();
 
@@ -255,8 +257,16 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream stream) {
 	incMemIdx();
 
 	if(size) {
-		vedaCtxCall(this, stream, true, 0, kernel(VEDA_KERNEL_MEM_ALLOC), vptr, size);
-		vedaCtxCall(this, stream, false, (uint64_t*)&info->ptr, kernel(VEDA_KERNEL_MEM_PTR), vptr);
+		// TODO: make sure the following two requests come after each other and no other request
+		// sneaks in between. Eg. use a recursive mutex in stream that is acquired in CREQ()
+		{
+			auto& s		= stream(_stream);
+			uint64_t req	= CREQ(veo_alloc_mem_async(s.ctx, size));
+			LOCK(s.mutex);
+			s.calls.emplace_back(req, false, (uint64*)0);
+		}
+
+		vedaCtxCall(this, _stream, false, (uint64_t*)&info->ptr, kernel(VEDA_KERNEL_MEM_PTR_VPTR), vptr, size);
 	}
 
 	return vptr;

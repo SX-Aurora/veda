@@ -35,6 +35,29 @@ __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size
 }
 
 //------------------------------------------------------------------------------
+__global__ VEDAresult vedaAssingPtr(void* ptr, VEDAdeviceptr vptr, const size_t size) {
+	LOCK();
+	assert(size);
+	assert(vptr);
+	assert(ptr);
+
+	auto idx = VEDA_GET_IDX(vptr);
+	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
+	if(VEDA_GET_OFFSET(vptr))		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	auto it = veda_ptrs.find(idx);
+	if(it != veda_ptrs.end()) {
+		if(it->second.size == size)	return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+		else				return VEDA_ERROR_INVALID_VALUE;
+	}
+
+	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, ptr, size)).second) {
+		// ptr remains allocated!
+		return VEDA_ERROR_UNKNOWN;	// should never happen
+	}
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
 	void* ptr = 0;
 	return vedaMemAllocPtr(&ptr, vptr, size);
