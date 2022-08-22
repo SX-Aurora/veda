@@ -257,8 +257,7 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 	incMemIdx();
 
 	if(size) {
-		// TODO: make sure the following two requests come after each other and no other request
-		// sneaks in between. Eg. use a recursive mutex in stream that is acquired in CREQ()
+		veo_req_block_begin(s.ctx);
 		{
 			auto& s		= stream(_stream);
 			uint64_t req	= CREQ(veo_alloc_mem_async(s.ctx, size));
@@ -267,6 +266,7 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 		}
 
 		vedaCtxCall(this, _stream, false, (uint64_t*)&info->ptr, kernel(VEDA_KERNEL_MEM_PTR_VPTR), vptr, size);
+		veo_req_block_end(s.ctx);
 	}
 
 	return vptr;
