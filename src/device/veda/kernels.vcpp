@@ -105,7 +105,7 @@ void* veda_mem_ptr(VEDAdeviceptr vptr) {
 //------------------------------------------------------------------------------
 void* veda_mem_ptr_vptr(VEDAdeviceptr vptr, const size_t size) {
 	void* ptr = 0;
-        veo_prev_req_result(&ptr);
+        veo_prev_req_result(0, &ptr);
 	auto res = vedaAssignPtr(ptr, vptr, size);
 	return ptr;
 }
