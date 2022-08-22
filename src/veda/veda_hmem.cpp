@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 extern "C" {
 // implementation of VEDA API functions
@@ -25,7 +25,7 @@ extern "C" {
  */
 VEDAresult vedaHMemAlloc(VEDAhmemptr* ptr, size_t size) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		*ptr = ctx->hmemAlloc(size);
 		L_TRACE("[ve:%i] vedaHMemAlloc(%p, %llu)", ctx->device().vedaId(), ptr, size);
 	)
@@ -135,7 +135,7 @@ VEDAresult vedaHMemcpyDtoX(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount)
  */
 VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
-		auto& ctx = veda::Devices::get(dst).ctx();
+		auto& ctx = veda::devices::get(dst).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyXtoDAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
 		if(veo_is_ve_addr(src))
 			return veo_hmemcpy(ctx.getPtr(dst).ptr, src, ByteCount) == 0 ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE;
@@ -162,7 +162,7 @@ VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteC
  */
 VEDAresult vedaHMemcpyDtoXAsync(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
-		auto& ctx = veda::Devices::get(src).ctx();
+		auto& ctx = veda::devices::get(src).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyDtoXAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
 		if(veo_is_ve_addr(dst))
 			return veo_hmemcpy(dst, ctx.getPtr(src).ptr, ByteCount) == 0 ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE;

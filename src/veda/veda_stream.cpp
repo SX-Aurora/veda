@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 extern "C" {
 // implementation of VEDA API functions
@@ -38,7 +38,7 @@ VEDAresult vedaStreamGetFlags(VEDAstream hStream, uint32_t* flags) {
  */
 VEDAresult vedaStreamQuery(VEDAstream hStream) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		CVEDA(ctx->query(hStream));
 		L_TRACE("[ve:%i] vedaStreamQuery(%i)", ctx->device().vedaId(), hStream);
 	);
@@ -59,7 +59,7 @@ VEDAresult vedaStreamQuery(VEDAstream hStream) {
  */
 VEDAresult vedaStreamSynchronize(VEDAstream hStream) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaStreamSynchronize(%i)", ctx->device().vedaId(), hStream);
 		ctx->sync(hStream);
 	)
@@ -84,7 +84,7 @@ VEDAresult vedaStreamSynchronize(VEDAstream hStream) {
  */
 VEDAresult vedaStreamAddCallback(VEDAstream stream, VEDAstream_callback callback, void* userData, unsigned int flags) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaStreamAddCallback(%i, %p, %p, %i)", ctx->device().vedaId(), stream, callback, userData, flags);
 		VEDAresult res = VEDA_SUCCESS;
 		try {

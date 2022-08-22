@@ -16,13 +16,8 @@ typedef uint64_t		VEDAfunction;
 typedef uint64_t (*VEDAhost_function)(void*);
 typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
 
-typedef struct {
-	int8_t _;
-} VEDAdeviceptr_;
-
-typedef struct {
-	void* _;
-} VEDAhmemptr_;
+typedef struct { int8_t _; } VEDAdeviceptr_;
+typedef struct { int8_t _; } VEDAhmemptr_;
 
 typedef VEDAdeviceptr_*	VEDAdeviceptr;
 typedef VEDAhmemptr_*	VEDAhmemptr;

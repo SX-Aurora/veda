@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 namespace veda {
 //------------------------------------------------------------------------------
@@ -58,6 +58,9 @@ void setInitialized(const bool value) {
 		s_stdLib = home;
 		s_stdLib.append("/libve/libveda.vso");
 #endif
+
+		L_TRACE("AVEORUN: %s", std::getenv("VEORUN_BIN"));
+		L_TRACE("libveda: %s", s_stdLib.c_str());
 
 		// Set VE_LD_LIBRARY_PATH if is not set ------------------------
 		setenv("VE_LD_LIBRARY_PATH", ".", 0);

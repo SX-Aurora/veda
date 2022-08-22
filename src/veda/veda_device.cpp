@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 #if VEDA_WITH_VEOS_PRODUCT_INFO
 #include <productinfo.h>
@@ -51,7 +51,7 @@ VEDAresult vedaDevicePrimaryCtxSetFlags(VEDAdevice dev, uint32_t flags) {
  */
 VEDAresult vedaCtxGet(VEDAcontext* ctx, const VEDAdevice device) {
 	GUARDED(
-		*ctx = &veda::Devices::get(device).ctx();
+		*ctx = &veda::devices::get(device).ctx();
 		L_TRACE("[ve:%i] vedaCtxGet(&p, %i)", device, ctx, device);
 	)
 }
@@ -68,7 +68,7 @@ VEDAresult vedaCtxGet(VEDAcontext* ctx, const VEDAdevice device) {
  */
 VEDAresult vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev) {
 	GUARDED(
-		*tempC = veda::Devices::get(dev).coreTemp(coreIdx);
+		*tempC = veda::devices::get(dev).coreTemp(coreIdx);
 		L_TRACE("[ve:%i] vedaDeviceGetTemp(%f, %i, %i)", dev, *tempC, coreIdx, dev);
 	)
 }
@@ -83,7 +83,7 @@ VEDAresult vedaDeviceGetTemp(float* tempC, const int coreIdx, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetCount(int* count) {
 	GUARDED(
-		*count = veda::Devices::count();
+		*count = veda::devices::count();
 		L_TRACE("vedaDeviceGetCount(%i)", *count);
 	)
 	
@@ -100,7 +100,7 @@ VEDAresult vedaDeviceGetCount(int* count) {
  */
 VEDAresult vedaDeviceTotalMem(size_t* bytes, VEDAdevice dev) {
 	GUARDED(
-		*bytes = veda::Devices::get(dev).memorySize();
+		*bytes = veda::devices::get(dev).memorySize();
 		L_TRACE("[ve:%i] vedaDeviceTotalMem(%llu, %i)", dev, *bytes, dev);
 	)
 }
@@ -120,7 +120,7 @@ VEDAresult vedaDeviceTotalMem(size_t* bytes, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetPhysicalId(int* id, VEDAdevice dev) {
 	GUARDED(
-		*id = veda::Devices::get(dev).sensorId();
+		*id = veda::devices::get(dev).sensorId();
 		L_TRACE("[ve:%i] vedaDeviceGetPhysicalId(%i, %i)", dev, *id, dev);
 	)
 }
@@ -139,7 +139,7 @@ VEDAresult vedaDeviceGetPhysicalId(int* id, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetAVEOId(int* id, VEDAdevice dev) {
 	GUARDED(
-		*id = veda::Devices::get(dev).aveoId();
+		*id = veda::devices::get(dev).aveoId();
 		L_TRACE("[ve:%i] vedaDeviceGetAVEOId(%i, %i)", dev, *id, dev);
 	)
 }
@@ -157,7 +157,7 @@ VEDAresult vedaDeviceGetAVEOId(int* id, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetNUMAId(int* id, VEDAdevice dev) {
 	GUARDED(
-		*id = veda::Devices::get(dev).numaId();
+		*id = veda::devices::get(dev).numaId();
 		L_TRACE("[ve:%i] vedaDeviceGetNUMAId(%i, %i)", dev, *id, dev);
 	)
 }
@@ -182,8 +182,8 @@ VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB)
 	GUARDED(
 		*distance = 0.0f;
 
-		auto& A = veda::Devices::get(devA);
-		auto& B = veda::Devices::get(devB);
+		auto& A = veda::devices::get(devA);
+		auto& B = veda::devices::get(devB);
 		
 		if(A.vedaId() == B.vedaId()) {
 			*distance = 0.0f;
@@ -209,7 +209,7 @@ VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB)
  */
 VEDAresult vedaDeviceGet(VEDAdevice* device, int ordinal) {
 	GUARDED(
-		veda::Devices::get(ordinal);
+		veda::devices::get(ordinal);
 		*device = ordinal;
 		L_TRACE("[ve:%i] vedaDeviceGet(%i, %i)", ordinal, *device, ordinal);
 	)
@@ -229,7 +229,7 @@ VEDAresult vedaDeviceGet(VEDAdevice* device, int ordinal) {
  */
 VEDAresult vedaDeviceGetPower(float* watts, VEDAdevice dev) {
 	GUARDED(
-		auto& device = veda::Devices::get(dev);
+		auto& device = veda::devices::get(dev);
 		*watts = ((device.powerVoltage() * device.powerCurrent())+(device.powerVoltageEdge() * device.powerCurrentEdge())+5.0);
 		L_TRACE("[ve:%i] vedaDeviceGetPower(%f, %i)", dev, *watts, dev);
 	)
@@ -246,7 +246,7 @@ VEDAresult vedaDeviceGetPower(float* watts, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetCurrent(float* current, VEDAdevice dev) {
 	GUARDED(
-		*current = veda::Devices::get(dev).powerCurrent();
+		*current = veda::devices::get(dev).powerCurrent();
 		L_TRACE("[ve:%i] vedaDeviceGetCurrent(%f, %i)", dev, *current, dev);
 	)
 }
@@ -262,7 +262,7 @@ VEDAresult vedaDeviceGetCurrent(float* current, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetCurrentEdge(float* current, VEDAdevice dev) {
 	GUARDED(
-		*current = veda::Devices::get(dev).powerCurrentEdge();
+		*current = veda::devices::get(dev).powerCurrentEdge();
 		L_TRACE("[ve:%i] vedaDeviceGetCurrentEdge(%f, %i)", dev, *current, dev);
 	)
 }
@@ -278,7 +278,7 @@ VEDAresult vedaDeviceGetCurrentEdge(float* current, VEDAdevice dev) {
  */
 VEDAresult vedaDeviceGetVoltage(float* voltage, VEDAdevice dev) {
 	GUARDED(
-		*voltage = veda::Devices::get(dev).powerVoltage();
+		*voltage = veda::devices::get(dev).powerVoltage();
 		L_TRACE("[ve:%i] vedaDeviceGetVoltage(%f, %i)", dev, *voltage, dev);
 	)
 }
@@ -296,7 +296,7 @@ VEDAresult vedaDeviceGetVoltageEdge(float* voltage, VEDAdevice dev) {
 	GUARDED(
 		if(NULL == voltage)
 			throw VEDA_ERROR_INVALID_ARGS;
-		*voltage = veda::Devices::get(dev).powerVoltageEdge();
+		*voltage = veda::devices::get(dev).powerVoltageEdge();
 		L_TRACE("[ve:%i] vedaDeviceGetVoltageEdge(%f, %i)", dev, *voltage, dev);
 	)
 }
@@ -334,7 +334,7 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 		if(attrib == VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO) {
 			*pi = 2;
 		} else {
-			auto& device = veda::Devices::get(dev);
+			auto& device = veda::devices::get(dev);
 			*pi = [&](void) -> int {
 				switch(attrib) {
 					case VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE:			return device.clockRate();
@@ -374,7 +374,7 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
  */
 VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 	GUARDED(
-		auto& device		= veda::Devices::get(dev);
+		auto& device		= veda::devices::get(dev);
 	#if VEDA_WITH_VEOS_PRODUCT_INFO
 		auto version		= device.model();
 		auto type		= device.type();
@@ -428,7 +428,7 @@ VEDAresult vedaDeviceGetName(char* name, int len, VEDAdevice dev) {
 VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* active) {
 	GUARDED(
 		*flags	= 0;
-		*active = veda::Devices::get(dev).ctx().isActive();
+		*active = veda::devices::get(dev).ctx().isActive();
 		L_TRACE("[ve:%i] vedaDevicePrimaryCtxGetState(%i, %u, %i)", dev, dev, *flags, *active);
 	)
 }
@@ -448,7 +448,7 @@ VEDAresult vedaDevicePrimaryCtxGetState(VEDAdevice dev, uint32_t* flags, int* ac
  */
 VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
 	GUARDED(
-		auto& device	= veda::Devices::get(dev);
+		auto& device	= veda::devices::get(dev);
 		auto& ctx	= device.ctx();
 		if(ctx.isActive()) {
 			auto mode = ctx.mode();
@@ -477,7 +477,7 @@ VEDAresult vedaDevicePrimaryCtxReset(VEDAdevice dev) {
  */
 VEDAresult vedaDevicePrimaryCtxRetain(VEDAcontext* pctx, VEDAdevice dev) {
 	GUARDED(
-		*pctx = &veda::Devices::get(dev).ctx();
+		*pctx = &veda::devices::get(dev).ctx();
 		if(!(*pctx)->isActive())
 			(*pctx)->init(VEDA_CONTEXT_MODE_OMP);
 		L_TRACE("[ve:%i] vedaDevicePrimaryCtxRetain(%i)", dev, dev);

@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 extern "C" {
 // implementation of VEDA API functions
@@ -39,7 +39,7 @@ VEDAresult vedaModuleGetFunction(VEDAfunction* hfunc, VEDAmodule hmod, const cha
  */
 VEDAresult vedaModuleLoad(VEDAmodule* module, const char* fname) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		*module = ctx->moduleLoad(fname);
 		L_TRACE("[ve:%i] vedaModuleLoad(%p, %s)", ctx->device().vedaId(), *module, fname);
 	)

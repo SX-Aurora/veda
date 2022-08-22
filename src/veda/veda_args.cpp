@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 extern "C" {
 // implementation of VEDA API functions

@@ -9,6 +9,9 @@
 #define VEDA_STR(s) VEDA_STR_(s)
 #define VEDA_STR_(s) #s
 
+#define VEDA_JOIN(a, b) VEDA_JOIN_(a, b)
+#define VEDA_JOIN_(a,b) a##b
+
 /** VPTR Format
  * 5Bit:  Device (32 devices max)
  * 22Bit: Idx    (4,194,304 indicies)

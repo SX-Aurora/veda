@@ -1,5 +1,5 @@
 #include "vera.h"
-#include "veda/internal.h"
+#include <veda/internal.h>
 #include <cstring> // memcpy
 
 //------------------------------------------------------------------------------

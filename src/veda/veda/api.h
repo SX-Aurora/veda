@@ -97,6 +97,27 @@ VEDAresult	vedaHMemcpyDtoXAsync		(VEDAhmemptr dst, VEDAdeviceptr src, size_t Byt
 VEDAresult	vedaHMemcpyXtoD			(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount);
 VEDAresult	vedaHMemcpyXtoDAsync		(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount, VEDAstream stream);
 
+VEDAresult	vedaHMemsetD128			(VEDAhmemptr dstDevice, uint64_t x, uint64_t y, size_t N);
+VEDAresult	vedaHMemsetD128Async		(VEDAhmemptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream);
+VEDAresult	vedaHMemsetD16			(VEDAhmemptr dstDevice, uint16_t value, size_t N);
+VEDAresult	vedaHMemsetD16Async		(VEDAhmemptr dstDevice, uint16_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaHMemsetD2D128		(VEDAhmemptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height);
+VEDAresult	vedaHMemsetD2D128Async		(VEDAhmemptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaHMemsetD2D16		(VEDAhmemptr dstDevice, size_t dstPitch, uint16_t value, size_t Width, size_t Height);
+VEDAresult	vedaHMemsetD2D16Async		(VEDAhmemptr dstDevice, size_t dstPitch, uint16_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaHMemsetD2D32		(VEDAhmemptr dstDevice, size_t dstPitch, uint32_t value, size_t Width, size_t Height);
+VEDAresult	vedaHMemsetD2D32Async		(VEDAhmemptr dstDevice, size_t dstPitch, uint32_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaHMemsetD2D64		(VEDAhmemptr dstDevice, size_t dstPitch, uint64_t value, size_t Width, size_t Height);
+VEDAresult	vedaHMemsetD2D64Async		(VEDAhmemptr dstDevice, size_t dstPitch, uint64_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaHMemsetD2D8			(VEDAhmemptr dstDevice, size_t dstPitch, uint8_t value, size_t Width, size_t Height);
+VEDAresult	vedaHMemsetD2D8Async		(VEDAhmemptr dstDevice, size_t dstPitch, uint8_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaHMemsetD32			(VEDAhmemptr dstDevice, uint32_t value, size_t N);
+VEDAresult	vedaHMemsetD32Async		(VEDAhmemptr dstDevice, uint32_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaHMemsetD64			(VEDAhmemptr dstDevice, uint64_t value, size_t N);
+VEDAresult	vedaHMemsetD64Async		(VEDAhmemptr dstDevice, uint64_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaHMemsetD8			(VEDAhmemptr dstDevice, uint8_t value, size_t N);
+VEDAresult	vedaHMemsetD8Async		(VEDAhmemptr dstDevice, uint8_t value, size_t N, VEDAstream hStream);
+
 // VEDAdeviceptr API -----------------------------------------------------------
 VEDAresult	vedaArgsSetPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
 VEDAresult	vedaArgsSetVPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
@@ -124,25 +145,25 @@ VEDAresult	vedaMemcpyDtoHAsync		(void* dstHost, VEDAdeviceptr srcDevice, size_t 
 VEDAresult	vedaMemcpyHtoD			(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount);
 VEDAresult	vedaMemcpyHtoDAsync		(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream);
 VEDAresult	vedaMemsetD128			(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N);
-VEDAresult	vedaMemsetD128Async		(VEDAdeviceptr dstDevice, uint64_t x, uint64_t u, size_t N, VEDAstream hStream);
-VEDAresult	vedaMemsetD16			(VEDAdeviceptr dstDevice, uint16_t us, size_t N);
-VEDAresult	vedaMemsetD16Async		(VEDAdeviceptr dstDevice, uint16_t us, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD128Async		(VEDAdeviceptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD16			(VEDAdeviceptr dstDevice, uint16_t value, size_t N);
+VEDAresult	vedaMemsetD16Async		(VEDAdeviceptr dstDevice, uint16_t value, size_t N, VEDAstream hStream);
 VEDAresult	vedaMemsetD2D128		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height);
 VEDAresult	vedaMemsetD2D128Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t x, uint64_t y, size_t Width, size_t Height, VEDAstream hStream);
-VEDAresult	vedaMemsetD2D16			(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height);
-VEDAresult	vedaMemsetD2D16Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t us, size_t Width, size_t Height, VEDAstream hStream);
-VEDAresult	vedaMemsetD2D32			(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height);
-VEDAresult	vedaMemsetD2D32Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t ui, size_t Width, size_t Height, VEDAstream hStream);
-VEDAresult	vedaMemsetD2D64			(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height);
-VEDAresult	vedaMemsetD2D64Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t ul, size_t Width, size_t Height, VEDAstream hStream);
-VEDAresult	vedaMemsetD2D8			(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height);
-VEDAresult	vedaMemsetD2D8Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t uc, size_t Width, size_t Height, VEDAstream hStream);
-VEDAresult	vedaMemsetD32			(VEDAdeviceptr dstDevice, uint32_t ui, size_t N);
-VEDAresult	vedaMemsetD32Async		(VEDAdeviceptr dstDevice, uint32_t ui, size_t N, VEDAstream hStream);
-VEDAresult	vedaMemsetD64			(VEDAdeviceptr dstDevice, uint64_t ui, size_t N);
-VEDAresult	vedaMemsetD64Async		(VEDAdeviceptr dstDevice, uint64_t ui, size_t N, VEDAstream hStream);
-VEDAresult	vedaMemsetD8			(VEDAdeviceptr dstDevice, uint8_t uc, size_t N);
-VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t uc, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D16			(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t value, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D16Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint16_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D32			(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t value, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D32Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint32_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D64			(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t value, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D64Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint64_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD2D8			(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t value, size_t Width, size_t Height);
+VEDAresult	vedaMemsetD2D8Async		(VEDAdeviceptr dstDevice, size_t dstPitch, uint8_t value, size_t Width, size_t Height, VEDAstream hStream);
+VEDAresult	vedaMemsetD32			(VEDAdeviceptr dstDevice, uint32_t value, size_t N);
+VEDAresult	vedaMemsetD32Async		(VEDAdeviceptr dstDevice, uint32_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD64			(VEDAdeviceptr dstDevice, uint64_t value, size_t N);
+VEDAresult	vedaMemsetD64Async		(VEDAdeviceptr dstDevice, uint64_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaMemsetD8			(VEDAdeviceptr dstDevice, uint8_t value, size_t N);
+VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t value, size_t N, VEDAstream hStream);
 
 #ifdef __cplusplus
 }
@@ -196,12 +217,9 @@ inline typename std::enable_if<std::is_pointer<T>::value, VEDAresult>::type veda
 }
 
 template<typename T>
-inline typename std::enable_if<
-	!std::is_enum<T>::value &&
-	!std::is_pointer<T>::value
-, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
-	static_assert(!std::is_same<T, T>::value, "Illegal dtype in vedaArgsSet or vedaLaunchKernel detected! You can only use VEDAdeviceptr, VEDAhmemptr, VEDAstack, double, float, int16_t, int32_t, int64_t, int8_t, uint16_t, uint32_t, uint64_t, uint8_t or enum.");
-	return VEDA_ERROR_INVALID_VALUE;
+inline typename std::enable_if<!std::is_enum<T>::value && !std::is_pointer<T>::value, VEDAresult>::type vedaArgsSet(VEDAargs args, const int idx, const T value) {
+	static_assert(std::is_same<T, bool>::value, "You can't pass values of type bool to vedaArgsSet, as sizeof(bool) is 1B on VH and 4B on VE.");
+	return vedaArgsSetStack(args, idx, &value, VEDA_ARGS_INTENT_IN, sizeof(T));
 }
 
 inline VEDAresult __vedaLaunchKernel(VEDAfunction func, VEDAstream stream, uint64_t* result, VEDAargs args, const int idx) {

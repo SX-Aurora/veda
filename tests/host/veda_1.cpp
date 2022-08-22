@@ -4,6 +4,7 @@
 #include <cassert>
 
 #define CHECK(err) check(err, __FILE__, __LINE__)
+#define SYNC_ALL true
 
 void check(VEDAresult err, const char* file, const int line) {
 	if(err != VEDA_SUCCESS) {
@@ -89,6 +90,23 @@ int main(int argc, char** argv) {
 		VEDAptr<int> ptr;
 		CHECK(vedaMemAllocAsync(&ptr, size, 0));
 		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr, size, 0);
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+
+		CHECK(vedaCtxSynchronize());
+		printf("vedaCtxSynchronize()\n");
+
+		CHECK(vedaMemFreeAsync(ptr, 0));
+		printf("vedaMemFree(%p, %i)\n", (VEDAdeviceptr)ptr, 0);
+
+		CHECK(vedaCtxSynchronize());
+		printf("vedaCtxSynchronize()\n");
+
+		return 0;
 
 		CHECK(vedaMemcpyHtoDAsync(ptr, host, size, 0));
 		printf("vedaMemcpyHtoDAsync(%p, %p, %llu, %i)\n",	ptr, host, size, 0);
@@ -122,12 +140,15 @@ int main(int argc, char** argv) {
 		VEDAdeviceptr ptr2;
 		CHECK(vedaMemAllocAsync(&ptr2, 0, 0));
 		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr2, 0, 0);
+
+	#if 0
 		CHECK(vedaLaunchKernel(func, 0, ptr.ptr(), ptr2, cnt));
 		printf("vedaLaunchKernel(%p, %i, %p, %p, %llu)\n", func, 0, ptr, ptr2, cnt);
-
+	#else
 		uint64_t res = 0xDEADBEEF0C0FFEE0llu;
 		CHECK(vedaLaunchKernelEx(func, 0, &res, ptr.ptr(), ptr2, cnt));
 		printf("vedaLaunchKernelEx(%p, %i, %p, %p, %llu, %016llX)\n", func, 0, ptr, ptr2, cnt, res);
+	#endif
 
 		CHECK(vedaCtxSynchronize());
 		printf("vedaCtxSynchronize()\n");
@@ -135,7 +156,7 @@ int main(int argc, char** argv) {
 
 		CHECK(vedaMemcpyDtoHAsync(host, ptr2, size, 0));
 		printf("vedaMemcpyDtoHAsync(%p, %p, %llu, %i)\n", host, ptr2, size, 0);
-
+		
 		CHECK(vedaCtxSynchronize());
 		printf("vedaCtxSynchronize()\n");
 
@@ -148,10 +169,28 @@ int main(int argc, char** argv) {
 
 		CHECK(vedaModuleUnload(mod));
 		printf("vedaModuleUnload(%p)\n", mod);
+
+	#if SYNC_ALL
+		CHECK(vedaCtxSynchronize());
+		printf("vedaCtxSynchronize()\n");
+	#endif
+
 		CHECK(vedaMemFreeAsync(ptr, 0));
-		printf("vedaMemFree(%p, %i)\n", ptr, 0);
+		printf("vedaMemFree(%p, %i)\n", (VEDAdeviceptr)ptr, 0);
+
+	#if SYNC_ALL
+		CHECK(vedaCtxSynchronize());
+		printf("vedaCtxSynchronize()\n");
+	#endif
+
 		CHECK(vedaMemFreeAsync(ptr2, 0));
 		printf("vedaMemFree(%p, %i)\n", ptr2, 0);
+
+	#if SYNC_ALL
+		CHECK(vedaCtxSynchronize());
+		printf("vedaCtxSynchronize()\n");
+	#endif
+
 		CHECK(vedaCtxDestroy(ctx));
 		printf("vedaCtxDestroy(%p)\n", ctx);
 

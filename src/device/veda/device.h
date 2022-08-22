@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <veo_ve.h>
 #include <veda/enums.h>
 #include <veda/types.h>
 #include <veda/macros.h>
@@ -18,7 +17,6 @@
 #define __global__
 #endif
 
-__global__	VEDAresult	vedaAssingPtr		(void* ptr, VEDAdeviceptr vptr, const size_t size);
 __global__	VEDAresult	vedaGetErrorName	(VEDAresult error, const char** pStr);
 __global__	VEDAresult	vedaGetErrorString	(VEDAresult error, const char** pStr);
 __global__	VEDAresult	vedaMemAlloc		(VEDAdeviceptr vptr, const size_t size);

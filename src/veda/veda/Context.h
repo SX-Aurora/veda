@@ -22,6 +22,7 @@ namespace veda {
 			Streams			m_streams;
 			Device&			m_device;
 			veo_proc_handle*	m_handle;
+			int			m_aveoProcId;
 			VEDAmodule		m_lib;
 			VEDAidx			m_memidx;
 			VEDAdeviceptr		m_memOverride;
@@ -34,7 +35,7 @@ namespace veda {
 					Context			(const Context&) = delete;
 		Device&			device			(void);
 		Module*			moduleLoad		(const char* name);
-		Stream&			stream			(const VEDAstream stream);
+		StreamGuard		stream			(const VEDAstream stream);
 		VEDAcontext_mode	mode			(void) const;
 		VEDAhmemptr		hmemAlloc		(const size_t size);
 		VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
@@ -45,6 +46,7 @@ namespace veda {
 		VPtrTuple		memAllocPitch		(const size_t w_bytes, const size_t h, const uint32_t elementSize, VEDAstream stream);
 		bool			isActive		(void) const;
 		int			streamCount		(void) const;
+		int			aveoProcId		(void) const;
 		size_t			memUsed			(void);
 		void			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult, uint64_t* result);
 		void			call			(VEDAhost_function func, VEDAstream stream, void* userData, const bool checkResult, uint64_t* result);
@@ -57,23 +59,15 @@ namespace veda {
 		void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);
 		void			memcpyD2H		(void* dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);
 		void			memcpyH2D		(VEDAdeviceptr dst, const void* src, const size_t size, VEDAstream stream);
-		void			hmemcpyD2D		(VEDAhmemptr dst, VEDAhmemptr src, const size_t size);
-		void			hmemcpyD2H		(void* dst, VEDAhmemptr src, const size_t size);
-		void			hmemcpyH2D		(VEDAhmemptr dst, const void* src, const size_t size);
-		void			memset			(VEDAdeviceptr dst, const uint16_t value, const size_t size, VEDAstream stream);
-		void			memset			(VEDAdeviceptr dst, const uint32_t value, const size_t size, VEDAstream stream);
-		void			memset			(VEDAdeviceptr dst, const uint64_t value, const size_t size, VEDAstream stream);
-		void			memset			(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t size, VEDAstream stream);
-		void			memset			(VEDAdeviceptr dst, const uint8_t value, const size_t size, VEDAstream stream);
-		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint16_t value, const size_t w, const size_t h, VEDAstream stream);
-		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint32_t value, const size_t w, const size_t h, VEDAstream stream);
-		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint64_t value, const size_t w, const size_t h, VEDAstream stream);
-		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream stream);
-		void			memset2D		(VEDAdeviceptr dst, const size_t pitch, const uint8_t value, const size_t w, const size_t h, VEDAstream stream);
 		void			moduleUnload		(const Module* mod);
 		void			sync			(VEDAstream stream);
 		void			sync			(void);
 	const	char*			kernelName		(VEDAfunction func) const;
 	const	char*			kernelName		(const Kernel k) const;
+
+	template<typename D, typename T>	void memset	(D dst, const T value, const size_t size, VEDAstream stream);
+	template<typename D, typename T>	void memset2D	(D dst, const size_t pitch, const T value, const size_t w, const size_t h, VEDAstream stream);
+	template<typename D>			void memset	(D dst, const uint64_t x, const uint64_t y, const size_t size, VEDAstream stream);
+	template<typename D>			void memset2D	(D dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream stream);
 	};
 }
