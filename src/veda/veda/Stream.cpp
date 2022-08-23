@@ -15,6 +15,16 @@ Stream::Stream(veo_thr_ctxt* ctx) : m_ctx(ctx) {
 }
 
 //------------------------------------------------------------------------------
+void Stream::lock(void) {
+	veo_req_block_begin(m_ctx);
+}
+
+//------------------------------------------------------------------------------
+void Stream::unlock(void) {
+	veo_req_block_end(m_ctx);
+}
+
+//------------------------------------------------------------------------------
 void Stream::enqueue(const uint64_t req, const bool checkResult, uint64_t* result) {
 	m_calls.emplace_back(req, checkResult, result);
 }

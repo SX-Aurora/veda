@@ -18,7 +18,9 @@ public:
 	int		state	(void) const;
 	void		enqueue	(const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx);
 	void		enqueue	(const uint64_t req, const bool checkResult, uint64_t* result);
+	void		lock	(void);
 	void		sync	(void);
+	void		unlock	(void);
 
 	template<typename F, typename... Args>
 	inline void enqueue(F func, const bool checkResult, uint64_t* result, Args... args) {
@@ -42,12 +44,11 @@ public:
 
 //------------------------------------------------------------------------------
 class StreamGuard {
-	Stream&		m_stream;
-	std::mutex	m_mutex;
+	Stream&	m_stream;
 
 public:
-	inline			StreamGuard	(Stream& s) : m_stream(s)	{	m_mutex.lock();		}
-	inline			~StreamGuard	(void)				{	m_mutex.unlock();	}
+	inline			StreamGuard	(Stream& s) : m_stream(s)	{	m_stream.lock();	}
+	inline			~StreamGuard	(void)				{	m_stream.unlock();	}
 	inline	Stream*		operator->	(void)				{	return &m_stream;	}
 	inline	const Stream*	operator->	(void) const			{	return &m_stream;	}
 };
