@@ -13,6 +13,7 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <tr><td>v1.4.0</td><td>
 <ul>
 <li>Overhauled HMEM API</li>
+<li>Switched to new AVEO async malloc</li>
 <li>Fixed bug in CMake setting correct C++ standard flags</li>
 </ul>
 </td></tr>
