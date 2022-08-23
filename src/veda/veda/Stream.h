@@ -4,31 +4,25 @@ namespace veda {
 //------------------------------------------------------------------------------
 struct Stream {
 	using Calls = std::vector<std::tuple<uint64_t, bool, uint64_t*>>;
-	veo_thr_ctxt*	ctx;
-	Calls		calls;
 
-	inline Stream(void)	: ctx(0) {}
-	inline Stream(Stream&&)	: ctx(0) {}
-};
+private:
+	veo_thr_ctxt*	m_ctx;
+	Calls		m_calls;
 
-//------------------------------------------------------------------------------
-class StreamGuard {
-	Stream&			m_stream;
-	std::recursive_mutex	m_mutex;
+	uint64_t	wait	(const uint64_t id) const;
 
 public:
-				StreamGuard	(Stream& s);
-				~StreamGuard	(void);
-	const Stream::Calls&	calls		(void) const;
-	int			state		(void) const;
-	uint64_t		wait		(const int id) const;
-	void			clear		(void);
-	void			enqueue		(const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx);
-	void			enqueue		(const uint64_t req, const bool checkResult, uint64_t* result);
+	Stream(veo_thr_ctxt* ctx);
+
+	const Calls&	calls	(void) const;
+	int		state	(void) const;
+	void		enqueue	(const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx);
+	void		enqueue	(const uint64_t req, const bool checkResult, uint64_t* result);
+	void		sync	(void);
 
 	template<typename F, typename... Args>
 	inline void enqueue(F func, const bool checkResult, uint64_t* result, Args... args) {
-		uint64_t req = CREQ(func(m_stream.ctx, args...));
+		uint64_t req = CREQ(func(m_ctx, args...));
 		enqueue(req, checkResult, result);
 	}
 
@@ -44,6 +38,18 @@ public:
 		TVEDA(vedaArgsCreate(&args));
 		enqueue(checkResult, result, func, args, 0, vargs...);
 	}
+};
+
+//------------------------------------------------------------------------------
+class StreamGuard {
+	Stream&		m_stream;
+	std::mutex	m_mutex;
+
+public:
+	inline			StreamGuard	(Stream& s) : m_stream(s)	{	m_mutex.lock();		}
+	inline			~StreamGuard	(void)				{	m_mutex.unlock();	}
+	inline	Stream*		operator->	(void)				{	return &m_stream;	}
+	inline	const Stream*	operator->	(void) const			{	return &m_stream;	}
 };
 
 //------------------------------------------------------------------------------

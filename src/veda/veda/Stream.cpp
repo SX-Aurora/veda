@@ -2,36 +2,51 @@
 
 namespace veda {
 //------------------------------------------------------------------------------
-const Stream::Calls&	StreamGuard::calls	(void) const	{	return m_stream.calls;				}
-int			StreamGuard::state	(void) const	{	return veo_get_context_state(m_stream.ctx);	}
-void			StreamGuard::clear	(void) 		{	m_stream.calls.clear();				}
+const Stream::Calls&	Stream::calls	(void) const	{	return m_calls;				}
+int			Stream::state	(void) const	{	return veo_get_context_state(m_ctx);	}
 
 //------------------------------------------------------------------------------
-StreamGuard::StreamGuard(Stream& s) : m_stream(s) {
-	m_mutex.lock();
+Stream::Stream(veo_thr_ctxt* ctx) : m_ctx(ctx) {
+	// Create a new AVEO context, a pseudo thread and corresponding
+	// VE thread for the context.
+	VEDA_ASSERT(m_ctx, VEDA_ERROR_CANNOT_CREATE_STREAM);
+	m_calls.reserve(128);
+	ASSERT(m_calls.empty());	
 }
 
 //------------------------------------------------------------------------------
-StreamGuard::~StreamGuard(void) {
-	m_mutex.unlock();
+void Stream::enqueue(const uint64_t req, const bool checkResult, uint64_t* result) {
+	m_calls.emplace_back(req, checkResult, result);
 }
 
 //------------------------------------------------------------------------------
-void StreamGuard::enqueue(const uint64_t req, const bool checkResult, uint64_t* result) {
-	m_stream.calls.emplace_back(req, checkResult, result);
-}
-
-//------------------------------------------------------------------------------
-uint64_t StreamGuard::wait(const int id) const {
+uint64_t Stream::wait(const uint64_t id) const {
 	uint64_t res = 0;
-	TVEO(veo_call_wait_result(m_stream.ctx, id, &res));
+	TVEO(veo_call_wait_result(m_ctx, id, &res));
 	return res;
 }
 
 //------------------------------------------------------------------------------
-void StreamGuard::enqueue(const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx) {
+void Stream::enqueue(const bool checkResult, uint64_t* result, VEDAfunction func, VEDAargs args, const int idx) {
 	enqueue(veo_call_async, checkResult, result, func, args);
 	TVEDA(vedaArgsDestroy(args));
+}
+
+//------------------------------------------------------------------------------
+void Stream::sync(void) {
+	for(auto&& [id, checkResult, result] : m_calls) {
+		auto res = wait(id);
+
+		if(result)
+			*result = res;
+		
+		if(checkResult) {
+			auto veda = (VEDAresult)res;
+			VEDA_ASSERT(veda == VEDA_SUCCESS, veda);
+		}
+	}
+	
+	m_calls.clear();
 }
 
 //------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ typedef VEDAhmemptr_*	VEDAhmemptr;
 
 #if __cplusplus
 	template<typename T = char>
-	class VEDAptr {
+	class VEDAptr final {
 		VEDAdeviceptr m_ptr;
 
 	public:
@@ -79,7 +79,7 @@ typedef VEDAhmemptr_*	VEDAhmemptr;
 	};
 
 	template<typename T = char>
-	class HMEMptr {
+	class HMEMptr final {
 		VEDAhmemptr m_ptr;
 
 	public:

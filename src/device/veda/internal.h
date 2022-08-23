@@ -6,12 +6,10 @@
 #include <unordered_map>
 #include <cstring>
 #include <cstdlib>
-#include <tungl/c.h>
-#include <tungl/api.h>
-
-extern "C" { // Bugfix until Erich has fixed veo_ve.h header
 #include <veo_ve.h>
-}
+
+#define L_MODULE "VEDA-VE"
+#include <tungl/c.h>
 
 #define MAP_EMPLACE(KEY, ...) std::piecewise_construct, std::forward_as_tuple(KEY), std::forward_as_tuple(__VA_ARGS__)
 

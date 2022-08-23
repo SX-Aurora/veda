@@ -28,7 +28,7 @@ typedef uint64_t veo_lib;
 #include <functional>
 #include <dlfcn.h>
 
-#define L_MODULE "VEDA"
+#define L_MODULE "VEDA-VH"
 #include <tungl/c.h>
 
 #include "api.h"

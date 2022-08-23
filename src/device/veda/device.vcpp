@@ -16,12 +16,10 @@ static std::mutex veda_mutex;
 // Private
 //------------------------------------------------------------------------------
 VEDAresult vedaAssignPtr(VEDAdeviceptr vptr, void* ptr, const size_t size) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 	assert(size);
 	assert(vptr);
 	assert(ptr);
-	ptr = malloc(size); // TODO: REMOVE!!!
 
 	auto idx = VEDA_GET_IDX(vptr);
 	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
@@ -41,19 +39,16 @@ VEDAresult vedaAssignPtr(VEDAdeviceptr vptr, void* ptr, const size_t size) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaRemovePtr(VEDAdeviceptr vptr) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 	assert(vptr);
 	
 	auto idx = VEDA_GET_IDX(vptr);
 	if(idx == 0)			return VEDA_ERROR_UNKNOWN_VPTR;
 	if(VEDA_GET_OFFSET(vptr))	return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	
 	auto it = veda_ptrs.find(idx);
 	if(it == veda_ptrs.end())	return VEDA_ERROR_UNKNOWN_VPTR;
-	uint64_t* arg = (uint64_t*)it->second.ptr;
-	L_WARN("asdasd");
-	L_WARN("%llu", *arg);
-	L_WARN("BLAAA");
+
 	veda_ptrs.erase(it);
 	return VEDA_SUCCESS;
 }
@@ -62,7 +57,6 @@ VEDAresult vedaRemovePtr(VEDAdeviceptr vptr) {
 // Public
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size_t size) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 	assert(size);
 	assert(vptr);
@@ -87,14 +81,12 @@ __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAlloc(VEDAdeviceptr vptr, const size_t size) {
-	L_WARN(__FUNCTION__ );
 	void* ptr = 0;
 	return vedaMemAllocPtr(&ptr, vptr, size);
 }
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 	*ptr = 0;
 
@@ -103,12 +95,12 @@ __global__ VEDAresult vedaMemPtr(void** ptr, VEDAdeviceptr vptr) {
 		*ptr = ((char*)it->second.ptr) + VEDA_GET_OFFSET(vptr);
 		return VEDA_SUCCESS;
 	}
+
 	return VEDA_ERROR_UNKNOWN_VPTR;
 }
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vptr) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 	*ptr = 0;
 	*size = 0;
@@ -119,12 +111,12 @@ __global__ VEDAresult vedaMemPtrSize(void** ptr, size_t* size, VEDAdeviceptr vpt
 		*size = it->second.size;
 		return VEDA_SUCCESS;
 	}
+
 	return VEDA_ERROR_UNKNOWN_VPTR;
 }
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 
 	auto it = veda_ptrs.find(VEDA_GET_IDX(vptr));
@@ -137,7 +129,6 @@ __global__ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
-	L_WARN(__FUNCTION__ );
 	LOCK();
 
 	auto Aidx = VEDA_GET_IDX(A), Bidx = VEDA_GET_IDX(B);
