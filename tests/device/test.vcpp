@@ -52,8 +52,9 @@ template<typename T>
 static inline void ve_test_memset(VEDAdeviceptr _ptr, const T value, const size_t cnt) {
 	auto ptr = VEDAptr<T>(_ptr).ptr();
 	for(size_t i = 0; i < cnt; i++) {
-		if(ptr[i] != value) {
-			printf("FAILED vedaMemsetD%i, expected %llX but found %llX\n", sizeof(T) * 8, (int64_t)value, (int64_t)ptr[i]);
+		auto val = ptr[i];
+		if(val != value) {
+			printf("FAILED vedaMemsetD%i, expected %llX but found %llX in [%llu/%llu]\n", sizeof(T) * 8, (int64_t)value, (int64_t)val, i, cnt);
 			return;
 		}
 	}

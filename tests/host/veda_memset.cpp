@@ -105,22 +105,22 @@ int main(int argc, char** argv) {
 			CHECK(vedaLaunchKernel		(check_d8, 0, n8, x8, cnt   ));
 
 			CHECK(vedaMemsetD8Async		(             n8, (int8_t)x8, cnt, 0));
-			CHECK(vedaLaunchKernel		(check_d8, 0, n8, (int8_t)x8, cnt   ));
-		
+			CHECK(vedaLaunchKernel		(check_d8, 0, n8,         x8, cnt   ));
+	
 			CHECK(vedaMemsetD16Async	(              n16, x16, cnt, 0));
 			CHECK(vedaLaunchKernel		(check_d16, 0, n16, x16, cnt   ));
 
 			CHECK(vedaMemsetD16Async	(              n16, (int16_t)x16, cnt, 0));
-			CHECK(vedaLaunchKernel		(check_d16, 0, n16, (int16_t)x16, cnt   ));
+			CHECK(vedaLaunchKernel		(check_d16, 0, n16,          x16, cnt   ));
 
 			CHECK(vedaMemsetD32Async	(              n32,  x32, cnt, 0));
 			CHECK(vedaLaunchKernel		(check_d32, 0, n32,  x32, cnt   ));
 
 			CHECK(vedaMemsetD32Async	(              n32, (int32_t)x32, cnt, 0));
-			CHECK(vedaLaunchKernel		(check_d32, 0, n32, (int32_t)x32, cnt   ));
+			CHECK(vedaLaunchKernel		(check_d32, 0, n32,          x32, cnt   ));
 
 			CHECK(vedaMemsetD32Async	(              n32, (float)x32, cnt, 0));
-			CHECK(vedaLaunchKernel		(check_d32, 0, n32, (float)x32, cnt   ));
+			// TODO: CHECK(vedaLaunchKernel		(check_d32, 0, n32, (float)x32, cnt   ));
 
 			CHECK(vedaMemsetD64Async	(              n64, x64, cnt, 0));
 			CHECK(vedaLaunchKernel		(check_d64, 0, n64, x64, cnt));
