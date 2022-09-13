@@ -91,11 +91,11 @@ VEDAresult	vedaArgsSetHMEM			(VEDAargs args, const int idx, const VEDAhmemptr va
 VEDAresult	vedaHMemAlloc			(VEDAhmemptr* ptr, size_t size);
 VEDAresult	vedaHMemFree			(VEDAhmemptr ptr);
 VEDAresult	vedaHMemPtr			(void** ptr, VEDAhmemptr hptr);
-VEDAresult	vedaHMemcpy			(VEDAhmemptr dst, VEDAhmemptr src, size_t ByteCount);
-VEDAresult	vedaHMemcpyDtoX			(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount);
-VEDAresult	vedaHMemcpyDtoXAsync		(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream stream);
-VEDAresult	vedaHMemcpyXtoD			(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount);
-VEDAresult	vedaHMemcpyXtoDAsync		(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount, VEDAstream stream);
+VEDAresult	vedaHMemcpy			(void* dst, void* src, size_t ByteCount);
+VEDAresult	vedaHMemcpyDtoX			(void* dst, VEDAdeviceptr src, size_t ByteCount);
+VEDAresult	vedaHMemcpyDtoXAsync		(void* dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream stream);
+VEDAresult	vedaHMemcpyXtoD			(VEDAdeviceptr dst, void* src, size_t ByteCount);
+VEDAresult	vedaHMemcpyXtoDAsync		(VEDAdeviceptr dst, void* src, size_t ByteCount, VEDAstream stream);
 
 VEDAresult	vedaHMemsetD128			(VEDAhmemptr dstDevice, uint64_t x, uint64_t y, size_t N);
 VEDAresult	vedaHMemsetD128Async		(VEDAhmemptr dstDevice, uint64_t x, uint64_t y, size_t N, VEDAstream hStream);

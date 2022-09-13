@@ -6,7 +6,8 @@ typedef struct { uint64_t x; uint64_t y; } uint128_t;
 #define VLEN 256
 #define MODE 2 // NAIVE == 0, VECTOR == 1, OMP == 2
 
-constexpr size_t HEURISTIC = MODE == 2 ? (2 * 1024 * 1024) : size_t(-1);
+constexpr size_t MEMSET_HEURISTIC = MODE == 2 ? (2 * 1024 * 1024) : size_t(-1);
+constexpr size_t MEMCPY_HEURISTIC = MODE == 2 ? (2 * 1024 * 1024) : size_t(-1);
 
 //------------------------------------------------------------------------------
 template<typename T>
@@ -49,7 +50,7 @@ static inline void vedaMemsetDX(T* dst, const T value, size_t cnt) {
 		if(vector_cnt) {
 			const T vx[]			= {value, value, value, value};
 			const int64_t v64		= *(const int64_t*)&vx;
-			if((vector_cnt * sizeof(uint64_t)) >= HEURISTIC) {
+			if((vector_cnt * sizeof(uint64_t)) >= MEMSET_HEURISTIC) {
 				veda_omp_simd(vector_cnt, [&](const size_t min, const size_t max) {
 					memset_vectorized(((int64_t*)dst) + min, v64, max-min);
 				});
@@ -90,7 +91,7 @@ VEDAresult vedaMemsetD8(void* ptr, const uint8_t value, const size_t cnt) {
 #if MODE == 0
 	memset(ptr, value, cnt);
 #else
-	if((cnt * sizeof(uint8_t)) >= HEURISTIC) {
+	if((cnt * sizeof(uint8_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(cnt, [&](const size_t min, const size_t max) {
 			memset(((uint8_t*)ptr)+min, value, max-min);
 		});
@@ -118,7 +119,7 @@ VEDAresult vedaMemsetD64(void* _ptr, const uint64_t value, const size_t _cnt) {
 #if MODE == 0
 	memset_vectorized((uint64_t*)_ptr, value, _cnt);
 #else
-	if((_cnt * sizeof(uint64_t)) >= HEURISTIC) {
+	if((_cnt * sizeof(uint64_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(_cnt, [=](const size_t min, const size_t max) {
 			auto ptr = ((uint64_t*)_ptr) + min;
 			auto cnt = max - min;
@@ -144,7 +145,7 @@ VEDAresult vedaMemsetD128(void* _ptr, const uint64_t x, const uint64_t y, const 
 		ptr[i].y = y;
 	}
 #else
-	if((_cnt * sizeof(uint128_t)) >= HEURISTIC) {
+	if((_cnt * sizeof(uint128_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(_cnt, [=](const size_t min, const size_t max) {
 			auto ptr = ((uint128_t*)_ptr) + min;
 			auto cnt = max - min;
@@ -223,13 +224,13 @@ VEDAresult vedaMemsetD2D128(void* _ptr, const size_t pitch, const uint64_t x, co
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemcpy(void* dst, const void* src, const size_t bytes) {
-	if(bytes >= HEURISTIC) {
+VEDAresult vedaMemcpy(void* dst_, const void* src_, const size_t bytes) {
+	if(bytes >= MEMCPY_HEURISTIC) {
 		veda_omp_simd(bytes, [=](const size_t min, const size_t max) {
-			memcpy(((char*)dst) + min, ((char*)src) + min, max - min);
-		});
+			memcpy(((char*)dst_) + min, ((char*)src_) + min, max - min);
+		}, 256 * sizeof(uint64_t));
 	} else {
-		memcpy(dst, src, bytes);
+		memcpy(dst_, src_, bytes);
 	}
 	return VEDA_SUCCESS;
 }

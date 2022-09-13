@@ -24,7 +24,6 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
-
 #define STR(...) __STR(__VA_ARGS__)
 #define __STR(...) #__VA_ARGS__
 
@@ -37,7 +36,7 @@ void check(VEDAresult err, const char* file, const int line) {
 		auto start = time_ns();\
 		CHECK(FUNC(ptr, __VA_ARGS__, cnt));\
 		auto end = time_ns();\
-		auto time = (end - start) / 1000.0;\
+		auto time = (end - start) / 1000000.0;\
 		min = std::min(min, time);\
 		max = std::max(max, time);\
 		sum += time;\

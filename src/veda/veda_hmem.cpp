@@ -70,7 +70,7 @@ VEDAresult vedaHMemFree(VEDAhmemptr ptr) {
  * destination and source, respectively. ByteCount specifies the number of bytes
  * to copy.
  */
-VEDAresult vedaHMemcpy(VEDAhmemptr dst, VEDAhmemptr src, size_t ByteCount) {
+VEDAresult vedaHMemcpy(void* dst, void* src, size_t ByteCount) {
 	return veo_hmemcpy(dst, src, ByteCount) == 0 ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE;
 }
 
@@ -90,7 +90,7 @@ VEDAresult vedaHMemcpy(VEDAhmemptr dst, VEDAhmemptr src, size_t ByteCount) {
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
  */
-VEDAresult vedaHMemcpyXtoD(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount) {
+VEDAresult vedaHMemcpyXtoD(VEDAdeviceptr dst, void* src, size_t ByteCount) {
 	CVEDA(vedaHMemcpyXtoDAsync(dst, src, ByteCount, 0));
 	return vedaStreamSynchronize(0);
 }
@@ -111,7 +111,7 @@ VEDAresult vedaHMemcpyXtoD(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount)
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
  */
-VEDAresult vedaHMemcpyDtoX(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount) {
+VEDAresult vedaHMemcpyDtoX(void* dst, VEDAdeviceptr src, size_t ByteCount) {
 	CVEDA(vedaHMemcpyDtoXAsync(dst, src, ByteCount, 0));
 	return vedaStreamSynchronize(0);
 }
@@ -133,7 +133,7 @@ VEDAresult vedaHMemcpyDtoX(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount)
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
  */
-VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteCount, VEDAstream hStream) {
+VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, void* src, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::devices::get(dst).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyXtoDAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
@@ -160,7 +160,7 @@ VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, VEDAhmemptr src, size_t ByteC
  * pointers of the destination and source, respectively. ByteCount specifies the
  * number of bytes to copy.
  */
-VEDAresult vedaHMemcpyDtoXAsync(VEDAhmemptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream) {
+VEDAresult vedaHMemcpyDtoXAsync(void* dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::devices::get(src).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyDtoXAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
