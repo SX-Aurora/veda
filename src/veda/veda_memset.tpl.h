@@ -10,7 +10,7 @@
 #define VGEN_1D		VEDA_JOIN(VGEN_F, VGEN_B)
 #define VGEN_1D_ASYNC	VEDA_JOIN(VGEN_1D, Async)
 #define VGEN_2D		VEDA_JOIN(VEDA_JOIN(VGEN_F, D2), VGEN_B)
-#define VGEN_2D_ASYNC	VEDA_JOIN(VGEN_1D, Async)
+#define VGEN_2D_ASYNC	VEDA_JOIN(VGEN_2D, Async)
 
 //------------------------------------------------------------------------------
 /**
@@ -54,7 +54,6 @@ VEDAresult VGEN_1D_ASYNC(VGEN_P dstDevice, VGEN_T value, size_t N, VEDAstream hS
 	)
 }
 
-#if 0
 //------------------------------------------------------------------------------
 /**
  * @brief Initializes device memory.
@@ -93,7 +92,7 @@ VEDAresult VGEN_2D(VGEN_P dstDevice, size_t dstPitch, VGEN_T value, size_t Width
  *
  * Sets the memory range of N 64-bit values to the specified value.
  */
-VEDAresult VGEN_2D_ASYNC(VEDAhmemptr dstDevice, size_t dstPitch, VGEN_T value, size_t Width, size_t Height, VEDAstream hStream) {
+VEDAresult VGEN_2D_ASYNC(VGEN_P dstDevice, size_t dstPitch, VGEN_T value, size_t Width, size_t Height, VEDAstream hStream) {
 	GUARDED(
 		auto& ctx = veda::devices::get(dstDevice).ctx();
 		L_TRACE("[ve:%i] " VEDA_STR(VGEN_2D_ASYNC) "(%p, %llu, " VGEN_L ", %llu, %llu, %i)", ctx.device().vedaId(), dstDevice, dstPitch, VGEN_C value, Width, Height, hStream);
@@ -102,7 +101,6 @@ VEDAresult VGEN_2D_ASYNC(VEDAhmemptr dstDevice, size_t dstPitch, VGEN_T value, s
 }
 
 //------------------------------------------------------------------------------
-#endif
 
 #undef VGEN_1D
 #undef VGEN_1D_ASYNC

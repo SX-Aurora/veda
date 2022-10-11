@@ -25,9 +25,8 @@ static void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
-static const double	MB[]	= {0.1, 0.2, 0.4, 0.8, 1, 2, 3, 4, 8, 16, 32, 64, 128, 256};
-constexpr double	MAX_MB	= 256;
-constexpr int		RUNS	= 100;
+constexpr size_t	MAX_BYTES	= 256 * 1024 * 1024;
+constexpr int		RUNS		= 100;
 
 static void mmalloc(const int dev, VEDAdeviceptr* ptr, const size_t size) {
 	VEDAcontext ctx;
@@ -84,26 +83,31 @@ template<typename SRC, typename DST, typename FUNC>
 static void exec(const int devA, const int devB, FUNC func) {
 	auto A = device<SRC>(devA);
 	auto B = device<DST>(devB);
+	const auto sameDevice	= std::is_same<SRC, DST>::value && devA == devB;
+	const auto runs		= RUNS;
 
-	const auto size = size_t(MAX_MB * 1024 * 1024);
-	SRC src; mmalloc(devA, &src, size);
-	DST dst; mmalloc(devB, &dst, size);
+	SRC src; mmalloc(devA, &src, MAX_BYTES);
+	DST dst; mmalloc(devB, &dst, MAX_BYTES);
 
-	for(auto mb : MB) {
+	for(size_t bytes = 1; bytes <= MAX_BYTES; bytes *= 2) {
 		double min = DBL_MAX;
 		double max = 0;
 		double sum = 0;
-		const auto size = size_t(mb * 1024 * 1024);
-		for(int i = 0; i < RUNS; i++) {
+		for(int i = 0; i < runs; i++) {
 			auto start = time_ns();
-			func(dst, src, size);
+			func(dst, src, bytes);
 			auto end = time_ns();
-			auto time = (end - start) / 1000000.0;
+			auto time = (end - start) / 1000000.0; // ns to ms
 			min = std::min(min, time);
 			max = std::max(max, time);
 			sum += time;
 		}
-		printf("%s\t%s\t%f\t%f\t%f\t%f\n", A.c_str(), B.c_str(), mb, min, max, sum/RUNS);
+		double mb = bytes / 1024.0 / 1024.0; // B to MB
+		if(sameDevice)
+			mb *= 2; // in on-device memcpy we read+write MB
+		double s  = min/1000.0; // ms to s
+		double mbs = mb / s;
+		printf("%s\t%s\t%10llu\t%f\t%f\t%f\t%f\n", A.c_str(), B.c_str(), bytes, min, max, sum/RUNS, mbs);
 	}
 
 	mfree(devA, src);
@@ -133,7 +137,7 @@ int main(int argc, char** argv) {
 	CHECK(vedaGetVersion(&ver));
 	printf("VERSION: %s\n", ver);
 
-	printf("Src\tDst\tSize\t\tMin\t\tMax\t\tAvg\n");
+	printf("Src\tDst\tSize\t\tMin\t\tMax\t\tAvg\t\tMB/s\n");
 	for(int dev = 0; dev < devcnt; dev++)
 		traverse(dev, devcnt);
 

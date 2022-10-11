@@ -9,8 +9,8 @@ extern "C" {
  */
 /** @{ */
 //------------------------------------------------------------------------------
-#define VGEN_F		vedaMemset
-#define VGEN_P		VEDAdeviceptr
+#define VGEN_F	vedaMemset
+#define VGEN_P	VEDAdeviceptr
 #include "veda_memset.types.h"
 #undef VGEN_F
 #undef VGEN_P

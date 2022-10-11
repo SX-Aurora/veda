@@ -69,6 +69,10 @@ DESTINATION ${VEDA_INSTALL_PATH}/include)
 INSTALL(FILES
 	${CMAKE_CURRENT_BINARY_DIR}/veda/version.h
 	${CMAKE_CURRENT_LIST_DIR}/veda/api.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_memset.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_args.h
+	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_launch.h
+	# TODO: ${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_template.h
 	${CMAKE_CURRENT_LIST_DIR}/veda/enums.h
 	${CMAKE_CURRENT_LIST_DIR}/veda/macros.h
 	${CMAKE_CURRENT_LIST_DIR}/veda/types.h

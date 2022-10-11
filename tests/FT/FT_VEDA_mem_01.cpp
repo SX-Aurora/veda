@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 	}
 
 
-#if 0
+#if 1
 	host_2d = (int8_t*)malloc(sizeof(int64_t) *w*h);
 	{
 		printf("\nTEST CASE ID: FT_VEDA_MEM_08\n");
@@ -436,7 +436,8 @@ int main(int argc, char** argv) {
 	CHECK(vedaCtxSynchronize());
 	CHECK(vedaMemFree(ptr22));
 
-#if 0 // DISABLED
+// DISABLED, vedaMemHMEMSize no longer exists because VEDA no longer tracks HMEM ptrs
+#if 0 
 	printf("\nTEST CASE ID: FT_VEDA_MEM_23\n");
 	VEDAdeviceptr hmemPtr = NULL;
 	CHECK(vedaMemHMEM((void**)&hmemPtr, ptr));
