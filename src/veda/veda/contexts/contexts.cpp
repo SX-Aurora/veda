@@ -1,6 +1,9 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 namespace veda {
+	namespace contexts {
+//------------------------------------------------------------------------------
+// Static
 //------------------------------------------------------------------------------
 class Stacks;
 struct Stack : public std::list<VEDAcontext> {
@@ -72,9 +75,9 @@ inline Stack::~Stack(void) {
 thread_local Stack t_stack;
 
 //------------------------------------------------------------------------------
-// Contexts
+// Public
 //------------------------------------------------------------------------------
-VEDAcontext Contexts::current(void) {
+VEDAcontext current(void) {
 	if(t_stack.empty())
 		throw VEDA_ERROR_UNKNOWN_CONTEXT; // don't use VEDA_THROW to prevent polluting the log in case vedaCtxGetDevice is called
 	auto ctx = t_stack.back();
@@ -84,23 +87,23 @@ VEDAcontext Contexts::current(void) {
 }
 
 //------------------------------------------------------------------------------
-VEDAcontext Contexts::pop(void) {
+VEDAcontext pop(void) {
 	auto ctx = current();
 	t_stack.pop_back();
 	return ctx;
 }
 
 //------------------------------------------------------------------------------
-void Contexts::push(VEDAcontext ctx) {
+void push(VEDAcontext ctx) {
 	t_stack.emplace_back(ctx);
 }
 //------------------------------------------------------------------------------
-void Contexts::remove(VEDAcontext ctx) {
+void remove(VEDAcontext ctx) {
 	t_stack.remove(ctx);
 }
 
 //------------------------------------------------------------------------------
-int Contexts::countInstances(VEDAcontext ctx) {
+int countInstances(VEDAcontext ctx) {
 	int count = 0;
 	for(auto it : t_stack)
 		if(it == ctx)
@@ -109,7 +112,7 @@ int Contexts::countInstances(VEDAcontext ctx) {
 }
 
 //------------------------------------------------------------------------------
-void Contexts::set(VEDAcontext ctx) {
+void set(VEDAcontext ctx) {
 	if(ctx) {
 		if(t_stack.empty())	t_stack.emplace_back(ctx);
 		else 			t_stack.back() = ctx;
@@ -120,9 +123,10 @@ void Contexts::set(VEDAcontext ctx) {
 }
 
 //------------------------------------------------------------------------------
-void Contexts::shutdown(void) {
+void shutdown(void) {
 	s_stacks.clear();
 }
 
 //------------------------------------------------------------------------------
+	}
 }

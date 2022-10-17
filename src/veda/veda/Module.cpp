@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 namespace veda {
 //------------------------------------------------------------------------------

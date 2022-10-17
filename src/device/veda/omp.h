@@ -168,7 +168,7 @@ inline void veda_omp(const T cnt, F func) {
 
 //------------------------------------------------------------------------------
 template<typename T, typename F>
-inline void veda_omp_simd(const T cnt, const T vl, F func) {
+inline void veda_omp_simd(const T cnt, F func, const T vl = 256) {
 	if(__builtin_expect((cnt <= 0),0))
 		return;
 

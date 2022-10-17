@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 extern "C" {
 //------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ VEDAresult vedaInit(uint32_t Flags) {
 
 	TRY(
 		veda::setInitialized(true);
-		veda::Devices::init();
+		veda::devices::init();
 	)
 }
 
@@ -49,8 +49,8 @@ VEDAresult vedaExit(void) {
 	TRY(
 		veda::Semaphore::shutdown();
 		veda::setInitialized(false);
-		veda::Devices::shutdown();
-		veda::Contexts::shutdown();
+		veda::devices::shutdown();
+		veda::contexts::shutdown();
 	)
 }
 
@@ -102,7 +102,7 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
  */
 VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs, uint64_t* result) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaLaunchKernelEx(%p, %i, ..., %i, %p)", ctx->device().vedaId(), f, stream, destroyArgs, result);
 		ctx->call(f, stream, args, destroyArgs != 0, false, result);
 	)
@@ -142,7 +142,7 @@ VEDAresult vedaLaunchHostFunc(VEDAstream stream, VEDAhost_function fn, void* use
  */ 
 VEDAresult vedaLaunchHostFuncEx(VEDAstream stream, VEDAhost_function fn, void* userData, uint64_t* result) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaLaunchHostFuncEx(%i, %p, %p, %p)", ctx->device().vedaId(), stream, fn, userData, result);
 		ctx->call(fn, stream, userData, false, result);
 	)

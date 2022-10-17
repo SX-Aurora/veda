@@ -4,9 +4,10 @@
 	"platform":		"linux_x86_64",
 	"summary":		"VEDA",
 	"readme":		"veda/README.md",
-	"author":		"Nicolas Weber <nicolas.weber@neclab.eu>",
+	"author":		"__GIT__",
+	"author-email":		"__GIT__",
 	"license":		"3 BSD-License",
-	"requires-python":	">=3.7",
+	"requires-python":	">=3.6",
 	"download-url":		"https://github.com/sx-aurora/veda/tags",
 	"classifier": [
 		"License :: OSI Approved :: BSD License",

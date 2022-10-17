@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 //------------------------------------------------------------------------------
 extern "C" {
@@ -37,7 +37,7 @@ VEDAresult vedaCtxDestroy(VEDAcontext ctx) {
 
 	L_TRACE("[ve:%i] vedaCtxDestroy(%p)", ctx->device().vedaId(), ctx);
 	GUARDED(
-		veda::Contexts::remove(ctx);
+		veda::contexts::remove(ctx);
 		ctx->destroy();
 	)
 }
@@ -74,7 +74,7 @@ VEDAresult vedaCtxGetApiVersion(VEDAcontext ctx, uint32_t* version) {
  */
 VEDAresult vedaCtxGetCurrent(VEDAcontext* pctx) {
 	GUARDED(
-		*pctx = veda::Contexts::current();
+		*pctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaCtxGetCurrent(%p, %u)", (*pctx)->device().vedaId(), *pctx);
 	)
 }
@@ -94,7 +94,7 @@ VEDAresult vedaCtxGetCurrent(VEDAcontext* pctx) {
 VEDAresult vedaCtxGetDevice(VEDAdevice* device) {
 	GUARDED(
 		*device = -1; // initialize with some value in case we throw VEDA_ERROR_UNKNOWN_CONTEXT
-		*device = veda::Contexts::current()->device().vedaId();
+		*device = veda::contexts::current()->device().vedaId();
 		L_TRACE("[ve:%i] vedaCtxGetDevice(%i)", *device, *device);
 	)
 }
@@ -119,7 +119,7 @@ VEDAresult vedaCtxGetDevice(VEDAdevice* device) {
  */
 VEDAresult vedaCtxPopCurrent(VEDAcontext* pctx) {
 	GUARDED(
-		*pctx = veda::Contexts::pop();
+		*pctx = veda::contexts::pop();
 		L_TRACE("[ve:%i] vedaCtxPopCurrent(%p)", (*pctx)->device().vedaId(), *pctx);
 	)
 }
@@ -143,7 +143,7 @@ VEDAresult vedaCtxPushCurrent(VEDAcontext ctx) {
 		return VEDA_ERROR_INVALID_CONTEXT;
 	GUARDED(
 		L_TRACE("[ve:%i] vedaCtxPushCurrent(%p)", ctx->device().vedaId(), ctx);
-		veda::Contexts::push(ctx);
+		veda::contexts::push(ctx);
 	)
 }
 
@@ -169,7 +169,7 @@ VEDAresult vedaCtxSetCurrent(VEDAcontext ctx) {
 		return VEDA_ERROR_INVALID_CONTEXT;
 	GUARDED(
 		L_TRACE("[ve:%i] vedaCtxSetCurrent(%p)", ctx->device().vedaId(), ctx);
-		veda::Contexts::set(ctx);
+		veda::contexts::set(ctx);
 	)
 }
 
@@ -187,7 +187,7 @@ VEDAresult vedaCtxSetCurrent(VEDAcontext ctx) {
  */
 VEDAresult vedaCtxStreamCnt(int* cnt) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		*cnt = ctx->streamCount();
 		L_TRACE("[ve:%i] vedaCtxStreamCnt(%i)", ctx->device().vedaId(), *cnt);
 	)
@@ -207,7 +207,7 @@ VEDAresult vedaCtxStreamCnt(int* cnt) {
  */
 VEDAresult vedaCtxSynchronize(void) {
 	GUARDED(
-		auto ctx = veda::Contexts::current();
+		auto ctx = veda::contexts::current();
 		L_TRACE("[ve:%i] vedaCtxSynchronize()", ctx->device().vedaId());
 		ctx->sync();
 	)
@@ -246,10 +246,10 @@ VEDAresult vedaCtxSynchronize(void) {
  */
 VEDAresult vedaCtxCreate(VEDAcontext* pctx, int mode, VEDAdevice dev) {
 	GUARDED(
-		*pctx = &veda::Devices::get(dev).ctx();
+		*pctx = &veda::devices::get(dev).ctx();
 		L_TRACE("[ve:%i] vedaCtxCreate(%p, %i, %i)", dev, *pctx, mode, dev);
 		(*pctx)->init((VEDAcontext_mode)mode);
-		veda::Contexts::push(*pctx);
+		veda::contexts::push(*pctx);
 	)
 }
 /** @} */

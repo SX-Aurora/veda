@@ -1,4 +1,4 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
 
 #define SENSOR_BUFFER_SIZE 16
 
@@ -27,7 +27,7 @@ int		Device::versionAbi	(void) const					{	return m_versionAbi;							}
 int		Device::versionFirmware	(void) const					{	return m_versionFirmware;						}
 size_t		Device::memorySize	(void) const					{	return m_memorySize;							}
 int		Device::type		(void) const					{	return m_type;								}
-uint64_t	Device::readSensor	(const char* file, const bool isHex) const	{	return Devices::readSensor(sensorId(), file, isHex);			}
+uint64_t	Device::readSensor	(const char* file, const bool isHex) const	{	return devices::readSensor(sensorId(), file, isHex);			}
 
 //------------------------------------------------------------------------------
 Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, const int numaId) :

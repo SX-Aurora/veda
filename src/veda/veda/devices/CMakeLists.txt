@@ -1,0 +1,3 @@
+LIST(APPEND VEDA_SRC
+	${CMAKE_CURRENT_LIST_DIR}/devices.cpp
+)

@@ -1,61 +1,18 @@
-#include "veda/internal.h"
+#include <veda/internal.h>
+#include <veo_hmem_macros.h>
 
 #define SYS_CLASS_VE_BUFFER_SIZE 128
 
 namespace veda {
+	namespace devices {
 //------------------------------------------------------------------------------
-std::deque<Device> Devices::s_devices;
+// Static
+//------------------------------------------------------------------------------
+static std::deque<Device>	s_devices;
+static std::vector<Device*>	s_mapping(VEO_MAX_HMEM_PROCS);
 
 //------------------------------------------------------------------------------
-int Devices::count(void) {
-	return (int)s_devices.size();
-}
-
-//------------------------------------------------------------------------------
-void Devices::shutdown(void) {
-	for(auto& device : s_devices) {
-		auto& ctx = device.ctx();
-		if(ctx.isActive())
-			ctx.destroy();
-	}
-	s_devices.clear();
-}
-
-//------------------------------------------------------------------------------
-void Devices::memReport(void) {
-	for(auto& d : s_devices)
-		d.ctx().memReport();
-}
-
-//------------------------------------------------------------------------------
-void Devices::report(void) {
-	for(auto& d : s_devices)
-		d.report();
-}
-
-//------------------------------------------------------------------------------
-Device& Devices::get(const VEDAdeviceptr vptr) {
-	if(!vptr)
-		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
-	return get(VEDA_GET_DEVICE(vptr));
-}
-
-//------------------------------------------------------------------------------
-Device& Devices::get(const VEDAdevice device) {
-	if(device < 0 || device >= count())
-		VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
-	return s_devices[device];
-}
-
-//------------------------------------------------------------------------------
-void Devices::init(void) {
-	std::set<int> devices;
-	initCount	(devices);
-	initMapping	(devices);
-}
-
-//------------------------------------------------------------------------------
-void Devices::initCount(std::set<int>& devices) {
+static void initCount(std::set<int>& devices) {
 	assert(devices.empty());
 
 	struct dirent* dp = 0;
@@ -75,7 +32,7 @@ void Devices::initCount(std::set<int>& devices) {
 }
 
 //------------------------------------------------------------------------------
-void Devices::initMapping(const std::set<int>& devices) {
+static void initMapping(const std::set<int>& devices) {
 	if(devices.empty())
 		return;
 
@@ -170,7 +127,57 @@ void Devices::initMapping(const std::set<int>& devices) {
 }
 
 //------------------------------------------------------------------------------
-uint64_t Devices::readSensor(const int sensorId, const char* file, const bool isHex) {
+// Public
+//------------------------------------------------------------------------------
+int count(void) {
+	return (int)s_devices.size();
+}
+
+//------------------------------------------------------------------------------
+void shutdown(void) {
+	for(auto& device : s_devices) {
+		auto& ctx = device.ctx();
+		if(ctx.isActive())
+			ctx.destroy();
+	}
+	s_devices.clear();
+}
+
+//------------------------------------------------------------------------------
+void memReport(void) {
+	for(auto& d : s_devices)
+		d.ctx().memReport();
+}
+
+//------------------------------------------------------------------------------
+void report(void) {
+	for(auto& d : s_devices)
+		d.report();
+}
+
+//------------------------------------------------------------------------------
+Device& get(const VEDAdeviceptr vptr) {
+	if(!vptr)
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+	return get(VEDA_GET_DEVICE(vptr));
+}
+
+//------------------------------------------------------------------------------
+Device& get(const VEDAdevice device) {
+	if(device < 0 || device >= count())
+		VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
+	return s_devices[device];
+}
+
+//------------------------------------------------------------------------------
+void init(void) {
+	std::set<int> devices;
+	initCount	(devices);
+	initMapping	(devices);
+}
+
+//------------------------------------------------------------------------------
+uint64_t readSensor(const int sensorId, const char* file, const bool isHex) {
 	if(file == 0)
 		VEDA_THROW(VEDA_ERROR_NO_SENSOR_FILE);
 
@@ -189,4 +196,37 @@ uint64_t Devices::readSensor(const int sensorId, const char* file, const bool is
 }
 
 //------------------------------------------------------------------------------
+Device& get(const VEDAhmemptr ptr) {
+	if(!ptr || !IS_VE(ptr))
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+
+	auto aveoProcId = GET_PROC_IDENT(ptr);
+	if(aveoProcId < 0 || aveoProcId >= VEO_MAX_HMEM_PROCS)
+		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+
+	auto& ref = s_mapping[aveoProcId];
+	if(!ref)
+		VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
+	
+	return *ref;
+}
+
+//------------------------------------------------------------------------------
+void map(const int aveoProcId, Device& dev) {
+	ASSERT(aveoProcId >= 0 && aveoProcId < VEO_MAX_HMEM_PROCS);
+	auto& ref = s_mapping[aveoProcId];
+	assert(ref == 0);
+	ref = &dev;
+}
+
+//------------------------------------------------------------------------------
+void unmap(const int aveoProcId) {
+	auto& ref = s_mapping[aveoProcId];
+	assert(ref);
+	ref = 0;
+}
+
+
+//------------------------------------------------------------------------------
+	}
 }

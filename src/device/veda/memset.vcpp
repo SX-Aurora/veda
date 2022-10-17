@@ -4,74 +4,70 @@
 typedef struct { uint64_t x; uint64_t y; } uint128_t;
 
 #define VLEN 256
-constexpr size_t HEURISTIC = (2 * 1024 * 1024);
+#define MODE 2 // NAIVE == 0, VECTOR == 1, OMP == 2
+
+constexpr size_t MEMSET_HEURISTIC = MODE == 2 ? (2 * 1024 * 1024) : size_t(-1);
+constexpr size_t MEMCPY_HEURISTIC = MODE == 2 ? (2 * 1024 * 1024) : size_t(-1);
 
 //------------------------------------------------------------------------------
 template<typename T>
-static inline void vedaMemsetAlign(T*& ptr, const T value, size_t& cnt) {
-	// If there ptr % size == 0, everything is aligned
-	if(auto byteOffset = ((size_t)ptr) % sizeof(uint64_t)) {
-		/**
-		 * Explanaition:
-		 * ptr = ***XXXXX --> alignCnt == 3
-		 * so we need to fill up 8-3 = 5 elements
-		 */
-		auto alignCnt = (sizeof(uint64_t) - byteOffset) / sizeof(T);
-		for(size_t i = 0; i < alignCnt; i++)
-			ptr[i] = value;
-		ptr += alignCnt;
-		cnt -= alignCnt;
-	}
-}
-
-//------------------------------------------------------------------------------
-template<typename T>
-static inline void vedaMemsetOMPBatched(T*& ptr, const T value, size_t& cnt) {
-	static_assert(sizeof(T) > 1 && sizeof(T) < 8);
-	const T raw[]	= {value, value, value, value};
-	auto batchValue	= ((const uint64_t*)raw)[0];
-
-	auto batchSize	= sizeof(uint64_t) / sizeof(T);
-	auto batchCnt	= cnt / batchSize;
-
-	vedaMemsetD64(ptr, batchValue, batchCnt);
-
-	ptr += batchCnt * batchSize;
-	cnt -= batchCnt * batchSize;
-}
-
-//------------------------------------------------------------------------------
-template<typename T>
-static inline void vedaMemsetBatched(T*& ptr, const T value, size_t& cnt) {
-	static_assert(sizeof(T) > 1 && sizeof(T) < 8);
-	T raw[]		= {value, value, value, value};
-	auto batchValue	= ((const uint64_t*)raw)[0];
-
-	auto batchSize	= sizeof(uint64_t) / sizeof(T);
-	auto batchCnt	= cnt / batchSize;
-
-	auto uptr = (uint64_t*)ptr;
-	#pragma _NEC vector
-	for(size_t i = 0; i < batchCnt; i++)
-		uptr[i] = batchValue;
-
-	ptr += batchCnt * batchSize;
-	cnt -= batchCnt * batchSize;
-}
-
-//------------------------------------------------------------------------------
-template<typename T>
-static inline void vedaMemsetRemaining(T*& ptr, const T value, size_t& cnt) {
+static inline void memset_sequential(T* dst, const T value, const size_t cnt) {
+	#pragma _NEC novector
 	for(size_t i = 0; i < cnt; i++)
-		ptr[i] = value;
+		dst[i] = value;
 }
 
 //------------------------------------------------------------------------------
 template<typename T>
-static inline void vedaMemsetDX(T* ptr, const T value, size_t cnt) {
-	vedaMemsetAlign		(ptr, value, cnt);
-	vedaMemsetOMPBatched	(ptr, value, cnt);
-	vedaMemsetRemaining	(ptr, value, cnt);
+static inline void memset_vectorized(T* dst, const T value, const size_t cnt) {
+	#pragma _NEC select_vector
+	for(size_t i = 0; i < cnt; i++)
+		dst[i] = value;
+}
+
+//------------------------------------------------------------------------------
+template<typename T>
+static inline void vedaMemsetDX(T* dst, const T value, size_t cnt) {
+	static_assert(sizeof(T) > 1 && sizeof(T) < 8);
+
+#if MODE == 0
+	memset_vectorized(dst, value, cnt);
+#else
+	auto byte_offset = ((size_t)dst) % sizeof(int64_t);
+	
+	// set values sequentially until ptr is aligned
+	auto alignment_cnt = std::min((sizeof(int64_t) - byte_offset) / sizeof(T), cnt);
+	if(alignment_cnt) {
+		memset_sequential<T>(dst, value, alignment_cnt);
+		dst += alignment_cnt;
+		cnt -= alignment_cnt;
+	}
+	
+	// set values vectorized using 64-bit dtype
+	if(cnt) {
+		auto items_per_iteration		= sizeof(int64_t) / sizeof(T);
+		auto vector_cnt				= cnt / items_per_iteration;
+		if(vector_cnt) {
+			const T vx[]			= {value, value, value, value};
+			const int64_t v64		= *(const int64_t*)&vx;
+			if((vector_cnt * sizeof(uint64_t)) >= MEMSET_HEURISTIC) {
+				veda_omp_simd(vector_cnt, [&](const size_t min, const size_t max) {
+					memset_vectorized(((int64_t*)dst) + min, v64, max-min);
+				});
+			} else {
+				memset_vectorized((int64_t*)dst, v64, vector_cnt);
+			}
+			
+			dst += vector_cnt * items_per_iteration;
+			cnt -= vector_cnt * items_per_iteration;
+		}
+	}
+
+	// set remaining items sequentially
+	if(cnt) {
+		memset_sequential<T>(dst, value, cnt);
+	}
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -81,10 +77,7 @@ static inline void vedaMemsetD2DX(T* _ptr, const size_t pitch, const T value, co
 		#pragma _NEC novector
 		for(size_t h = min; h < max; h++) {
 			auto ptr = _ptr + (h * pitch / sizeof(T));
-			auto cnt = w;
-			vedaMemsetAlign		(ptr, value, cnt);
-			vedaMemsetBatched	(ptr, value, cnt);
-			vedaMemsetRemaining	(ptr, value, cnt);
+			vedaMemsetDX(ptr, value, w);
 		}
 	});
 }
@@ -94,14 +87,18 @@ extern "C" {
 //------------------------------------------------------------------------------
 // 1D MemSet
 //------------------------------------------------------------------------------
-VEDAresult vedaMemsetD8(void* ptr, const uint8_t  value, const size_t cnt) {
-	if((cnt * sizeof(uint8_t)) >= HEURISTIC) {
+VEDAresult vedaMemsetD8(void* ptr, const uint8_t value, const size_t cnt) {
+#if MODE == 0
+	memset(ptr, value, cnt);
+#else
+	if((cnt * sizeof(uint8_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(cnt, [&](const size_t min, const size_t max) {
 			memset(((uint8_t*)ptr)+min, value, max-min);
 		});
 	} else {
 		memset(ptr, value, cnt);
 	}
+#endif
 	return VEDA_SUCCESS;
 }
 
@@ -119,7 +116,10 @@ VEDAresult vedaMemsetD32(void* ptr, const uint32_t value, const size_t cnt) {
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD64(void* _ptr, const uint64_t value, const size_t _cnt) {
-	if((_cnt * sizeof(uint64_t)) >= HEURISTIC) {
+#if MODE == 0
+	memset_vectorized((uint64_t*)_ptr, value, _cnt);
+#else
+	if((_cnt * sizeof(uint64_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(_cnt, [=](const size_t min, const size_t max) {
 			auto ptr = ((uint64_t*)_ptr) + min;
 			auto cnt = max - min;
@@ -129,17 +129,23 @@ VEDAresult vedaMemsetD64(void* _ptr, const uint64_t value, const size_t _cnt) {
 				ptr[i] = value;
 		}, size_t(256));
 	} else {
-		auto ptr = (uint64_t*)_ptr;
-		#pragma _NEC vector
-		for(size_t i = 0; i < _cnt; i++)
-			ptr[i] = value;
+		memset_vectorized((uint64_t*)_ptr, value, _cnt);
 	}
+#endif
 	return VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 VEDAresult vedaMemsetD128(void* _ptr, const uint64_t x, const uint64_t y, const size_t _cnt) {
-	if((_cnt * sizeof(uint128_t)) >= HEURISTIC) {
+#if MODE == 0
+	auto ptr = (uint128_t*)_ptr;
+	#pragma _NEC select_vector
+	for(size_t i = 0; i < _cnt; i++) {
+		ptr[i].x = x;
+		ptr[i].y = y;
+	}
+#else
+	if((_cnt * sizeof(uint128_t)) >= MEMSET_HEURISTIC) {
 		veda_omp_simd(_cnt, [=](const size_t min, const size_t max) {
 			auto ptr = ((uint128_t*)_ptr) + min;
 			auto cnt = max - min;
@@ -157,6 +163,7 @@ VEDAresult vedaMemsetD128(void* _ptr, const uint64_t x, const uint64_t y, const 
 			ptr[i].y = y;
 		}
 	}
+#endif
 	return VEDA_SUCCESS;
 }
 
@@ -217,13 +224,13 @@ VEDAresult vedaMemsetD2D128(void* _ptr, const size_t pitch, const uint64_t x, co
 }
 
 //------------------------------------------------------------------------------
-VEDAresult vedaMemcpy(void* dst, const void* src, const size_t bytes) {
-	if(bytes >= HEURISTIC) {
+VEDAresult vedaMemcpy(void* dst_, const void* src_, const size_t bytes) {
+	if(bytes >= MEMCPY_HEURISTIC) {
 		veda_omp_simd(bytes, [=](const size_t min, const size_t max) {
-			memcpy(((char*)dst) + min, ((char*)src) + min, max - min);
-		});
+			memcpy(((char*)dst_) + min, ((char*)src_) + min, max - min);
+		}, 256 * sizeof(uint64_t));
 	} else {
-		memcpy(dst, src, bytes);
+		memcpy(dst_, src_, bytes);
 	}
 	return VEDA_SUCCESS;
 }

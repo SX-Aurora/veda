@@ -32,15 +32,15 @@ int main(int argc, char** argv) {
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
 	int cnt=5;
-        VEDAptr<int> vebuf;
-        int ret = vedaMemAlloc(&vebuf, sizeof(int)*cnt );
+        HMEMptr<int> vebuf;
+        int ret = vedaHMemAlloc(&vebuf, sizeof(int)*cnt );
         if (ret != 0) {
-            fprintf(stderr, "veo_alloc_hmem failed: %d", ret);
+            fprintf(stderr, "vedaHMemAlloc failed: %d", ret);
             exit(1);
         }
-	    
-        void* vptr = vebuf.hmem();
-        ret = vedaArgsSetHMEM(args, 0, vptr );
+
+        VEDAhmemptr vptr = vebuf;
+        ret = vedaArgsSetHMEM(args, 0, vptr);
         if (ret != VEDA_SUCCESS) {
             fprintf(stderr, "vedaArgsSetHMEM failed: %d", ret);
             exit(1);
@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
 		printf("Passed\n");
 	}
 	printf("test_HMEM return \n");
+
 	VEDA(vedaExit());
 
 	return 0;

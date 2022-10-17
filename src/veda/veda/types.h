@@ -16,15 +16,15 @@ typedef uint64_t		VEDAfunction;
 typedef uint64_t (*VEDAhost_function)(void*);
 typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
 
-typedef struct {
-	int8_t _;
-} VEDAdeviceptr_;
+typedef struct { int8_t _; } VEDAdeviceptr_;
+typedef struct { int8_t _; } VEDAhmemptr_;
 
-typedef VEDAdeviceptr_* VEDAdeviceptr;
+typedef VEDAdeviceptr_*	VEDAdeviceptr;
+typedef VEDAhmemptr_*	VEDAhmemptr;
 
 #if __cplusplus
 	template<typename T = char>
-	class VEDAptr {
+	class VEDAptr final {
 		VEDAdeviceptr m_ptr;
 
 	public:
@@ -34,7 +34,7 @@ typedef VEDAdeviceptr_* VEDAdeviceptr;
 			inline Tuple(T* _ptr, const size_t _size) : ptr(_ptr), size(_size) {}
 		};
 
-		class Ref {
+		class Ref final {
 			const VEDAdeviceptr m_ptr;
 
 		public:
@@ -42,7 +42,7 @@ typedef VEDAdeviceptr_* VEDAdeviceptr;
 			inline VEDAptr<T>	operator&	(void) const				{ return {m_ptr};	}
 		};
 
-		class Ptr {
+		class Ptr final {
 			VEDAptr<T>& m_ref;
 		public:
 			inline		Ptr			(VEDAptr<T>& ref) : m_ref(ref)	{			}
@@ -76,11 +76,48 @@ typedef VEDAdeviceptr_* VEDAdeviceptr;
 		inline operator VEDAptr<TT> (void) const {
 			return m_ptr;
 		}
+	};
 
-	#ifndef __NEC__
-				operator void*		(void) const;
-		void*		hmem			(void) const;
-	#endif
+	template<typename T = char>
+	class HMEMptr final {
+		VEDAhmemptr m_ptr;
+
+	public:
+		class Ref final {
+			const VEDAhmemptr m_ptr;
+
+		public:
+			inline 			Ref		(const VEDAhmemptr ptr) : m_ptr(ptr)	{			}
+			inline HMEMptr<T>	operator&	(void) const				{ return {m_ptr};	}
+		};
+
+		class Ptr final {
+			HMEMptr<T>& m_ref;
+		public:
+			inline		Ptr			(HMEMptr<T>& ref) : m_ref(ref)	{			}
+			inline operator const VEDAhmemptr*	(void) const			{ return &m_ref.m_ptr;	}
+			inline operator VEDAhmemptr*		(void)				{ return &m_ref.m_ptr;	}
+		};
+
+		inline			HMEMptr			(const VEDAhmemptr ptr = 0)	: m_ptr(ptr)	{									}
+		inline			HMEMptr			(const HMEMptr<T>& o)		: m_ptr(o.m_ptr){									}
+		inline			operator VEDAhmemptr	(void) const					{	return m_ptr;							}
+		inline	Ptr		operator&		(void) 						{	return {*this};							}
+		inline	Ref		operator*		(void) const					{	return {m_ptr};							}
+		inline	Ref		operator[]		(const size_t offset) const			{	return m_ptr + offset * sizeof(T);				}
+		inline	HMEMptr<T>	operator+		(const size_t offset) const			{	return m_ptr + offset * sizeof(T);				}
+		inline	HMEMptr<T>	operator++		(int)						{	auto o = m_ptr; m_ptr += sizeof(T); return o;			}
+		inline	HMEMptr<T>	operator--		(int)						{	auto o = m_ptr; m_ptr -= sizeof(T); return o;			}
+		inline	HMEMptr<T>&	operator++		(void)						{	return *this += 1;						}
+		inline	HMEMptr<T>&	operator+=		(const size_t offset)				{	m_ptr += offset * sizeof(T); return *this;			}
+		inline	HMEMptr<T>&	operator--		(void)						{	return *this -= 1;						}
+		inline	HMEMptr<T>&	operator-=		(const size_t offset)				{	m_ptr -= offset * sizeof(T); return *this;			}
+			T*		ptr			(void) const;
+
+		template<typename TT>
+		inline operator HMEMptr<TT> (void) const {
+			return m_ptr;
+		}
 	};
 #endif
 

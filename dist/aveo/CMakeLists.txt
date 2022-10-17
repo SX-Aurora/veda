@@ -3,7 +3,11 @@ SET(AVEO_PATH		${CMAKE_CURRENT_BINARY_DIR}/aveo)
 SET(AVEO_GIT_TAG	"master")
 SET(AVEO_NFORT		"/opt/nec/ve/bin/nfort" CACHE STRING "NFORT Version used to compile AVEO")
 
+SET(libexecdir "@libexecdir@")
+SET(velibdir "@velibdir@")
 CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/aveo.patch ${CMAKE_CURRENT_BINARY_DIR}/aveo.patch @ONLY)
+UNSET(libexecdir)
+UNSET(velibdir)
 
 INCLUDE(ExternalProject)
 ExternalProject_Add(aveo

@@ -15,6 +15,7 @@ inline void veda_throw [[noreturn]] (VEDAresult err, const char* file, const int
 
 //------------------------------------------------------------------------------
 #define VEDA_THROW(...) veda_throw(__VA_ARGS__, __FILE__, __LINE__)
+#define VEDA_ASSERT(COND, ...) if(!(COND)) VEDA_THROW(__VA_ARGS__)
 #define CVEO(...)	{ int err = __VA_ARGS__;	if(err != VEO_COMMAND_OK)	return veda::VEOtoVEDA(err);		}
 #define TVEO(...)	{ int err = __VA_ARGS__;	if(err != VEO_COMMAND_OK)	VEDA_THROW(veda::VEOtoVEDA(err));	}
 #define TVEDA(...)	{ VEDAresult err = __VA_ARGS__;	if(err != VEDA_SUCCESS)		VEDA_THROW(err);			}

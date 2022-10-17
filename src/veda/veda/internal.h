@@ -1,5 +1,10 @@
 #pragma once
 #include <ve_offload.h>
+
+#if VEO_API_VERSION < 14
+#error "VEO_API_VERSION >= 14 required"
+#endif
+
 typedef uint64_t veo_sym;
 typedef uint64_t veo_lib;
 
@@ -23,7 +28,7 @@ typedef uint64_t veo_lib;
 #include <functional>
 #include <dlfcn.h>
 
-#define L_MODULE "VEDA"
+#define L_MODULE "VEDA-VH"
 #include <tungl/c.h>
 
 #include "api.h"
@@ -35,6 +40,7 @@ namespace veda {
 	class Device;
 	class NUMA;
 	struct Stream;
+	class StreamGuard;
 }
 
 #include "internal_macros.h"
@@ -42,9 +48,9 @@ namespace veda {
 #include "Kernel.h"
 #include "Module.h"
 #include "Context.h"
-#include "Contexts.h"
+#include "contexts/contexts.h"
 #include "Device.h"
-#include "Devices.h"
+#include "devices/devices.h"
 #include "Stream.h"
 
 //------------------------------------------------------------------------------
