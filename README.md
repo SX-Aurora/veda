@@ -6,9 +6,53 @@ the functionality is identical to the [CUDA Driver
 API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) and [CUDA Runtime
 API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 
+[![Github](https://img.shields.io/github/v/tag/sx-aurora/veda?display_name=tag&sort=semver)](https://github.com/sx-aurora/veda)
+[![PyPI](https://img.shields.io/pypi/v/veda)](https://pypi.org/project/veda)
+[![License](https://img.shields.io/pypi/l/veda)](https://pypi.org/project/veda)
+![Python Versions](https://img.shields.io/pypi/pyversions/veda)
+![Linux](https://svgshare.com/i/Zhy.svg)
+![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+![Maintenance](https://img.shields.io/pypi/dm/veda)
+
+**Sitemap:**
+- [Release Notes](#veda_1)
+- [Differences between VEDA and CUDA Driver API](#veda_2)
+- [Differences between VERA and CUDA Runtime API](#veda_3)
+- [VEDA/VERA Unique Features](#veda_4)
+	- [Delayed Memory Allocation](#veda_41)
+	- [OMP Threads vs Streams (experimental)](#veda_42)
+	- [Advanced VEDA C++ Ptr](#veda_43)
+	- [VEDA-NEC MPI integration](#veda_44)
+	- [NUMA Support](#veda_45)
+	- [VEDA-smi](#veda_46)
+	- [Profiling API](#veda_47)
+	- [C++ API *(Experimental!)*](#veda_48)
+		- [Error Handling](#veda_481)
+		- [Fetching a Device handle](#veda_482)
+		- [Loading Modules](#veda_483)
+		- [Memory Buffer Objects](#veda_484)
+		- [Fetching Functions](#veda_485)
+- [Limitations/Known Problems](#veda_5)
+- [How to build](#veda_6)
+- [How to use](#veda_7)
+	- [VEDA Hybrid Offloading](#veda_71)
+	- [VE Native applications](#veda_72)
+	- [VE Native Injection](#veda_73)
+
+---
+
+<a name="veda_1"></a>
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+
+<tr><td>v2.0.0</td><td>
+<ul>
+<li>Breaking C-ABI changes</li>
+<li><a href="#veda_48">Added Experimental C++ API</a></li>
+<li><a href="#veda_47">Added VEDA profiling API</a></li>
+</ul>
+</td></tr>
 
 <tr><td>v1.4.0</td><td>
 <ul>
@@ -136,6 +180,9 @@ First stable release.
 <tr><td>v0.6</td><td>initial VEDA release</td></tr>
 </table>
 
+---
+
+<a name="veda_2"></a>
 ## Differences between VEDA and CUDA Driver API:
 1. [VEDA] Additionally to ```vedaInit(0)``` in the beginning, ```vedaExit()``` needs to be called at the end of the application, to ensure that no dead device processes stay alive.
 1. All function calls start with: [VEDA] ```veda*``` instead of ```cu*``` and [VERA] ```vera*``` instead of ```cuda*```
@@ -167,7 +214,7 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 	VEDAmodule mod;
 	VEDAfunction func;
 	vedaModuleLoad(&mod, "mylib.vso");
-	vedaModuleGetFunctions(&func, mod, "my_function");
+	vedaModuleGetFunction(&func, mod, "my_function");
 
 	// Kernel Call Version 1: allows to reuse VEDAargs object
 	VEDAstream stream = 0;
@@ -203,6 +250,9 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 1. VEDA streams differ from CUDA streams. See chapter "OMP Threads vs Streams" for more details.
 1. VEDA uses the env var ```VEDA_VISIBLE_DEVICES``` in contrast to ```CUDA_VISIBLE_DEVICES```.
 
+---
+
+<a name="veda_3"></a>
 ## Differences between VERA and CUDA Runtime API:
 1. All function calls start with ```vera*``` instead of ```cuda*```
 1. Objects start with ```vera*``` instead of ```cuda*```
@@ -212,7 +262,12 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 1. As the programming model of the SX-Aurora differs from NVIDIA GPUs, launching kernels looks different.
 1. Similar to CUDA Runtime API, calls from VEDA and VERA can be mixed!
 
+---
+
+<a name="veda_4"></a>
 ## VEDA/VERA Unique Features:
+
+<a name="veda_41"></a>
 ### Delayed Memory Allocation
 VEDA does not need to allocate memory from the host, but can do that directly from the device. For this, the host only needs to create an empty VEDAdeviceptr.
 ```cpp
@@ -233,29 +288,54 @@ void mykernel(VEDAdeviceptr vptr, size_t cnt) {
 }
 ```
 
+---
+
+<a name="veda_42"></a>
 ### OMP Threads vs Streams (experimental):
-In CUDA streams can be used to create different execution queues, to overlap compute with memcopy. VEDA supports two stream modes which differ from the CUDA behavior. These can be defined by ```vedaCtxCreate(&ctx, MODE, device)```.
+In CUDA streams can be used to create different execution queues, to overlap
+compute with memcopy. VEDA supports two stream modes which differ from the CUDA
+behavior. These can be defined by ```vedaCtxCreate(&ctx, MODE, device)```.
 
 1. ```VEDA_CONTEXT_MODE_OMP``` (default): All cores will be assigned to the default stream (=0). This mode only supports a single stream.
-1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different stream. This mode allows to use each core independently with different streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how many streams are available.
+1. ```VEDA_CONTEXT_MODE_SCALAR```: Every core gets assigned to a different
+   stream. This mode allows to use each core independently with different
+   streams. Use the function ```vedaCtxStreamCnt(&streamCnt)``` to determine how
+   many streams are available.
 
-Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal number of cores that get use for either mode. If the env var is not set, VEDA uses all available cores of the hardware.
+Both methods use the env var ```VE_OMP_NUM_THREADS``` to determine the maximal
+number of cores that get use for either mode. If the env var is not set, VEDA
+uses all available cores of the hardware.
 
+---
+
+<a name="veda_43"></a>
 ### Advanced VEDA C++ Ptr
-When you use C++, you can use the ```VEDAptr<typename>``` that gives you more directly control over the ```VEDAdeviceptr```, i.e. you can use ```vptr.size()```, ```vptr.device()```, ... . The ```typename``` is used to automatically determine the correct offsets when executing ```vptr += offset;```.
+When you use C++, you can use the ```VEDAptr<typename>``` that gives you more
+directly control over the ```VEDAdeviceptr```, i.e. you can use
+```vptr.size()```, ```vptr.device()```, ... . The ```typename``` is used to
+automatically determine the correct offsets when executing ```vptr +=
+offset;```.
 
+---
+
+<a name="veda_44"></a>
 ### VEDA-NEC MPI integration
-The VEO-aware NEC MPI ( https://www.hpc.nec/forums/topic?id=pgmcA8 ) enables to much easier implement hybrid VE applications. For this, so called HMEM pointers have been introduced in VEO. Starting with v1.4.0 VEDA introduced a new HMEM API: ```vedaHMEM*```. See following example:
+The VEO-aware NEC MPI ( https://www.hpc.nec/forums/topic?id=pgmcA8 ) enables to
+much easier implement hybrid VE applications. For this, so called HMEM pointers
+have been introduced in VEO. Starting with v1.4.0 VEDA introduced a new HMEM
+API: ```vedaHMEM*```. See following example:
 
 ```cpp
 VEDAhmemptr hmem;
 vedaHMemAlloc(&hmem, size);
-vedaHMemcpy(hmem, hostr_ptr, size);
+vedaHMemcpy(hmem, host_ptr, size);
 mpi_send(hmem, ...);
 ```
 
+<a name="veda_45"></a>
 ### NUMA Support
-VEDA supports VE NUMA nodes since v0.10. To enable NUMA on your system you need to execute (set ```-N ?``` to specific device index):
+VEDA supports VE NUMA nodes since v0.10. To enable NUMA on your system you need
+to execute (set ```-N ?``` to specific device index):
 ```bash
 VCMD="sudo /opt/nec/ve/bin/vecmd -N ?"
 $VCMD vconfig set partitioning_mode on
@@ -264,7 +344,10 @@ $VCMD state set mnt
 $VCMD reset card
 ```
 
-VEDA then recognizes each NUMA node as a separate device, i.e. with 2 physical devices in NUMA mode, VEDA would show 4 devices. You can use ```VEDAresult vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB)``` to determine the relationship of two VEDAdevices.
+VEDA then recognizes each NUMA node as a separate device, i.e. with 2 physical
+devices in NUMA mode, VEDA would show 4 devices. You can use ```VEDAresult
+vedaDeviceDistance(float* distance, VEDAdevice devA, VEDAdevice devB)``` to
+determine the relationship of two VEDAdevices.
 
 ```
 distance == 0.0; // same device
@@ -272,8 +355,14 @@ distance == 0.5; // same physical device, different NUMA node
 distance == 1.0; // differeny physical device
 ```
 
+---
+
+<a name="veda_46"></a>
 ### VEDA-smi
-The executable ```veda-smi``` displays available VEDA devices in your system. It uses the ```VEDA_VISIBLE_DEVICES``` env var and therefore only shows the devices that your VEDA application would be able to use. Use ```VEDA_VISIBLE_DEVICES= veda-smi``` to ensure that you see all installed devices.
+The executable ```veda-smi``` displays available VEDA devices in your system. It
+uses the ```VEDA_VISIBLE_DEVICES``` env var and therefore only shows the devices
+that your VEDA application would be able to use. Use ```VEDA_VISIBLE_DEVICES=
+veda-smi``` to ensure that you see all installed devices.
 
 ```
 ╔ veda-smi ═════════════════════════════════════════════════════════════════════╗
@@ -314,12 +403,283 @@ The executable ```veda-smi``` displays available VEDA devices in your system. It
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+<a name="veda_47"></a>
+### Profiling API
+Since v1.5.0 VEDA supports to add a profiling callback using
+`vedaProfilerSetCallback(...)`. The callback needs to have the signature `void
+(*)(VEDAprofiler_data* data, int enter)`. If `enter` is non-zero, the callback
+got called right before issuing the command. If it's zero, it just ended.
+
+The data provides the following fields:
+1. `type`: An enum that identifies which kind function got called (kernel, memcpy, ...)
+2. `device_id`: VEDA device id
+3. `stream_id`: VEDA stream id
+4. `req_id`: ID of the request
+5. `user_data`: `void*` that allows to store data between `enter` and `exit` of
+   the event. This should be deleted by the user when `enter==0` to prevent
+   memleaks.
+
+Depending on the `type`, you can cast the `data` to one of the following data
+types to get access to further information.
+
+1. `type in [VEDA_PROFILER_MEM_ALLOC, VEDA_PROFILER_HMEM_ALLOC]`: `VEDAprofiler_vedaMemAlloc`
+	1. `bytes`: number of bytes to be allocated
+1. `type in [VEDA_PROFILER_MEM_FREE, VEDA_PROFILER_HMEM_FREE]`: `VEDAprofiler_vedaMemFree`
+	1. `ptr`: pointer to be freed
+1. `type in [VEDA_PROFILER_MEM_CPY_HTOD, VEDA_PROFILER_MEM_CPY_DTOH, VEDA_PROFILER_HMEM_CPY]`: `VEDAprofiler_vedaMemcpy`
+	1. `dst`: destination pointer
+	1. `src`: source pointer
+	1. `bytes`: number of bytes transfered
+1. `type == VEDA_PROFILER_LAUNCH_KERNEL`: `VEDAprofiler_vedaLaunchKernel`
+	1. `func`: function pointer that gets called
+	1. `kernel`: name of the kernel that gets called
+1. `type == VEDA_PROFILER_LAUNCH_HOST`: `VEDAprofiler_vedaLaunchHostFunc`
+	1. `func`: function pointer that gets called
+
+---
+
+<a name="veda_48"></a>
+### C++ API *(Experimental!)*
+Starting with v1.5.0 we introduce a new experimental and lightweight C++ API.
+This API aims for easier usage of VEDA, with much more comfort in C++
+applications.
+
+To include the new API just use `#include <veda/cpp/api.h>`.
+
+<a name="veda_481"></a>
+#### Error Handling
+Instead of the C-API, the C++ API uses exceptions, which can be used like this:
+```cpp
+try {
+	...
+} catch(const veda::Exception& e) {
+	std::cerr << e.what() << " @ " << e.file() << " (" << e.line() << ")";
+}
+```
+
+<a name="veda_482"></a>
+#### Fetching a Device handle
+To get a handle to a device, just create an instance using:
+```cpp
+veda::Device device(0);
+```
+
+In contrast to the C-API, the `veda::Device` incorporates the `VEDAdevice` and
+`VEDAcontext` into a single object. We use a lazy scheme, which will not boot up
+the device context until you allocate memory, load a model, or similar.
+
+The device provides the following attributes and metrics: `isActive, current,
+currentEdge, distance, power, temp, voltage, voltageEdge, abi, aveoId, cacheL1d,
+cacheL1i, cacheL2, cacheLLC, clockBase, clockMemory, clockRate, cores, firmware,
+model, numaId, physicalId, singleToDoublePerfRatio, streamCnt, vedaId, totalMem,
+usedMem`.
+
+If your application requires to do the CUDA-style programming, where you bind
+the device to a specific thread, you can use `device.pushCurrent()`,
+`device.setCurrent()` and `auto device = Device::getCurrent()` or `auto device =
+Device::popCurrent()`.
+
+To synchronize the execution use `device.sync()` or `device.sync(stream)`.
+
+<a name="veda_483"></a>
+#### Loading Modules
+Just do:
+```cpp
+auto mod = dev.load("libmymodule.vso");
+```
+
+<a name="veda_484"></a>
+#### Memory Buffer Objects
+The new C++ API uses buffer objects instead of raw pointers. These can be
+allocated using `dev.alloc<float>(cnt)`, which will allocate `sizeof(T) * cnt`
+bytes of memory.
+
+If you want to use a different stream, just use `dev.alloc<float>(cnt, stream)`.
+
+To allocate HMEM memory, use `dev.alloc<float, veda::HMEM>(size)`.
+
+To copy data between different Buffers, or the host and the VE, just use:
+```cpp
+auto VE = dev.alloc<float>(cnt);
+auto VH = malloc(sizeof(float) * cnt);
+
+VE.to(VH);              // copies all items from VE to VH
+VE.to(VH, 1);           // copies the first item from VE to VH
+VE[4].to(VH + 4, 1);    // copies the 5th item from VE to VH
+VE.from(VH);            // copies all items from VH to VE
+
+auto V2 = dev.alloc<float>(cnt);
+V2.to(VE);              // copies all items from V2 to VE
+VE.from(V2);            // copies all items from V2 to VE
+```
+
+To memset data use:
+```cpp
+VE.memset(3.1415);      // set all items
+VE[5].memset(3.1415);   // set all items starting the 6th
+VE[5].memset(3.1415, 1);// set only the 6th item
+```
+
+To cast a buffer object to another type:
+```cpp
+auto Float = dev.alloc<float>(cnt);
+auto Int32 = Float.cast<int32_t>(); // Float.cnt() == Int32.cnt()
+auto Int16 = Float.cast<int16_t>(); // Float.cnt() == Int16.cnt()*2
+```
+
+All buffer objects use shared pointer semantics. When all objects using the same
+source pointer are destroyed, it will be automatically freed.
+
+To pass on pointers between methods just pass on the buffer object:
+
+```cpp
+veda::Ptr<VEDA, float> func(...) {
+	...
+	auto ptr = dev.alloc<float>(cnt);
+	...
+	return ptr;
+}
+```
+
+<a name="veda_485"></a>
+#### Fetching Functions
+For fetching functions we provide three helper functions.
+
+1. **C-style or `extern "C"` functions**:
+	```cpp
+	// VE
+	extern "C" int name(int, float, VEDAdeviceptr);
+
+	// VH
+	using namespace veda;
+	auto func = CFunction::Return<int>(mod, "name");
+	auto result = func(0, 3.14f, ptr);
+	printf("%i\n", int(result));
+	```
+	
+	The `CFunction::Return<int>` returns you an executable object to an
+	C-function on the VE. Whenever you call `func(...)` it issues a kernel
+	call. By default we use the stream #0, but you can use
+	`func[stream](...)` to define the stream yourself.
+
+	`result` is a future object. When you call `result.wait()` or fetch the
+	result using `(TYPE)result` or `result.get()`, it will synchronize the
+	execution and provide the return value.
+
+	The `::Return<...>` can be omitted when no return value is expected.
+
+2. **C++-style functions**:
+	```cpp
+	// VE
+	int name(int, float, VEDAdeviceptr);
+
+	// VH
+	using namespace veda;
+	auto func = Function::Return<int>::Args<int, float, VEDAdeviceptr>(mod, "name");
+	auto result = func(0, 3.14f, ptr);
+	printf("%i\n", int(result));
+	```
+
+	For C++-style functions use `Function` instead of `CFunction`. In this
+	case you also need to provide the types of all arguments using
+	`Args<...>`.
+
+	Again `::Return<...>` can be omitted when no return value is expected.
+
+	Also struct types can be used as arguments:
+	```cpp
+	// VE + VH
+	namespace whatever {
+		template<typename T>
+		struct complex {
+			T x, y;
+		};
+	}
+
+	// VE
+	void name(VEDAdeviceptr, whatever::complex<float>);
+
+	// VH
+	auto func = Function::Args<VEDAdeviceptr, whatever::complex<float>>(mod, "name");
+	whatever::complex<float> x = {3.0f, 4.0f};
+	func(ptr, x);
+	```
+
+3. **Template functions**:
+	```cpp
+	// VE
+	template<typename T, typename D>
+	T name(T, float, D);
+
+	template int name<int, VEDAdeviceptr>(int, float, VEDAdeviceptr);
+
+	// VH
+	using namespace veda;
+	auto func = Template<int, VEDAdeviceptr>::Return<_0>::Args<_0, float, _1>(mod, "name");
+	```
+
+	Last, we also support to fetch templated functions. Here it is
+	important, that in the VE code, the template gets explicitly
+	instantiated using the `template ... name<...>(...);` syntax. Otherwise
+	the compiler will not generate this specific templated function.
+
+	On the VH, we first define the template parameters using
+	`Template<...>`. Next, as before the return type. If it is
+	`::Return<void>`, it can be omitted. And last the arguments, similar as
+	before for the `Function`.
+
+	In the code above you see `veda::_0` and `veda::_1`. These correspond to
+	the template parameters, `_0` is the 0th, `_1` the 1st, and so on. It is
+	necessary to use these template placeholders within `Return<...>` and
+	`Args<...>` at the same locations as within the C++ code.
+
+	If your template uses literals, such as:
+	```cpp
+	template<int i, typename T>
+	T name(T a) { return a + i; }
+
+	template float name<0>(float);
+	template float name<5>(float);
+	template int   name<5>(int);
+	```
+
+	You can to use the following code on VH:
+	```cpp
+	auto name_f0 = Template<Literal<0>, float>::Return<_1>::Args<_1>(...);
+	auto name_f5 = Template<Literal<5>, float>::Return<_1>::Args<_1>(...);
+	auto name_i0 = Template<Literal<5>, int>  ::Return<_1>::Args<_1>(...);
+	```
+
+	It's important that the data type you pass to `Literal<...>` matches the
+	data type you use in your `template<...>`. I.e., if you use
+	`template<char...>`, then you need to use `Literal('x')` or
+	`Literal(char(15))`.
+
+	Only integer-like types (char, short, ...) can be used as template
+	literals.
+
+For all function fetching methods it's important, that function arguments match
+exactly the ones you use in your VE C++ code. Otherwise fetching the function
+will fail at runtime!
+
+---
+
+<a name="veda_5"></a>
 ## Limitations/Known Problems:
 1. VEDA only supports one ```VEDAcontext``` per device.
 1. No unified memory space (yet).
-1. VEDA by default uses the current workdirectory for loading modules. This behavior can be changed by using the env var ```VE_LD_LIBRARY_PATH```.
-1. Due to compiler incompatibilities it can be necessary to adjust the CMake variable ```${AVEO_NFORT}``` to another compiler.
+1. VEDA by default uses the current workdirectory for loading modules. This
+   behavior can be changed by using the env var ```VE_LD_LIBRARY_PATH```.
+1. Due to compiler incompatibilities it can be necessary to adjust the CMake
+variable ```${AVEO_NFORT}``` to another compiler.
+1. The C++ API can only return fundamental (void, int, short, ...) values.
+1. The C++ API cannot compile `...::Args<void>`. Use `...:::Args<>` instead.
 
+---
+
+<a name="veda_6"></a>
 ## How to build:
 ```bash
 git clone https://github.com/SX-Aurora/veda/
@@ -340,9 +700,15 @@ illyrian cmake3 -DVEDA_DIST_TYPE=PYTHON ..
 cmake3 --build . --target dist
 ```
 
+---
+
+<a name="veda_7"></a>
 ## How to use:
 VEDA has an own CMake find script. This supports 3 modes. The script uses the compilers installed in ```/opt/nec/ve/bin```. You can modify the ```CMAKE_[LANG]_COMPILER``` flags to change that behavior. See the Hello World examples in the [Examples Folder](example)
 
+---
+
+<a name="veda_71"></a>
 ### 1. VEDA Hybrid Offloading:
 This mode is necessary for VEDA offloading applications. It enables to compile host and device code within the same CMake project. For this it is necessary to use different file extensions for the VE code. All ```*.vc``` files get compiled using NCC, ```*.vcpp``` using NC++ and ```*.vf``` with NFORT.
 
@@ -356,6 +722,9 @@ ADD_EXECUTABLE(myApp mycode.vc mycode.vcpp)
 TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
 ```
 
+---
+
+<a name="veda_72"></a>
 ### 2. VE Native applications:
 This mode enables to compile VE native applications.
 
@@ -366,6 +735,9 @@ ENABLE_LANGUAGE(VEDA_C VEDA_CXX)
 ADD_EXECUTABLE(myApp mycode.c mycode.cpp)
 ```
 
+---
+
+<a name="veda_73"></a>
 ### 3. VE Native Injection:
 If you have a CPU application and you don't want to modify the CMake script you can build your project using:
 ```

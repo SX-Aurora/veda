@@ -53,7 +53,10 @@ enum VEDAresult_enum {
 	VEDA_ERROR_UNKNOWN,
 	VEDA_ERROR_INVALID_DTYPE,
 	VEDA_ERROR_OFFSET_NOT_ALLOWED,
-	VEDA_ERROR_UNKNOWN_HMEM
+	VEDA_ERROR_UNKNOWN_HMEM,
+	VEDA_ERROR_UNKNOWN_CALLBACK,
+	VEDA_ERROR_CALLBACK_ALREADY_REGISTERED,
+	VEDA_ERROR_MEMORY_MISALIGNED
 };
 
 enum VEDAdevice_attribute_enum {
@@ -82,8 +85,23 @@ enum VEDAcontext_mode_enum {
 	VEDA_CONTEXT_MODE_SCALAR	= 1
 };
 
+enum VEDAprofiler_type_enum {
+	// Unique ID + Mask which function arguments to copy
+	VEDA_PROFILER_MEM_ALLOC		= 0 | (0x1 << 24),	// 001
+	VEDA_PROFILER_MEM_FREE		= 1 | (0x1 << 24),	// 001
+	VEDA_PROFILER_MEM_CPY_HTOD	= 2 | (0x7 << 24),	// 111
+	VEDA_PROFILER_MEM_CPY_DTOH	= 3 | (0x7 << 24),	// 111
+	VEDA_PROFILER_LAUNCH_KERNEL	= 4 | (0x5 << 24),	// 101
+	VEDA_PROFILER_LAUNCH_HOST	= 5 | (0x1 << 24),	// 001
+	VEDA_PROFILER_HMEM_CPY		= 6 | (0x7 << 24),	// 111
+	VEDA_PROFILER_HMEM_ALLOC	= 7 | (0x4 << 24),	// 100
+	VEDA_PROFILER_HMEM_FREE		= 8 | (0x1 << 24)	// 001
+};
+
+typedef enum VEDAprofiler_type_enum	VEDAprofiler_type;
 typedef enum VEDAresult_enum		VEDAresult;
 typedef enum VEDAdevice_attribute_enum	VEDAdevice_attribute;
 typedef enum VEDAargs_intent_enum	VEDAargs_intent;
 typedef enum VEDAcontext_mode_enum	VEDAcontext_mode;
 
+static_assert(sizeof(VEDAprofiler_type) == 4, "");

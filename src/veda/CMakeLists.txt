@@ -1,7 +1,4 @@
 ## Build VEDA ------------------------------------------------------------------
-CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda_version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp)
-CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/veda/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/veda/version.h)
-
 FIND_LIBRARY(LIBUDEV_LIBRARY "libudev.so.1" REQUIRED)
 FIND_FILE(LIBUDEV_H "libudev.h")
 IF(NOT LIBUDEV_H)
@@ -11,7 +8,6 @@ ENDIF()
 MARK_AS_ADVANCED(LIBUDEV_H LIBUDEV_LIBRARY)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${AVEO_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${Tungl_INCLUDE_DIRS})
 
@@ -27,20 +23,6 @@ ENDIF()
 
 SET(VEDA_SRC)
 INCLUDE(${CMAKE_CURRENT_LIST_DIR}/veda/CMakeLists.txt)
-
-LIST(APPEND VEDA_SRC
-	${CMAKE_CURRENT_BINARY_DIR}/veda_version.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_args.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_context.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_device.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_hmem.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_hmemset.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_mem.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_memset.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_module.cpp
-	${CMAKE_CURRENT_LIST_DIR}/veda_stream.cpp
-)
 
 ADD_LIBRARY(veda ${VEDA_BUILD_TYPE} ${VEDA_SRC})
 ILLYRIAN_TARGET_OPTIONS(veda LINK_MAP ${VEDA_DIST_TYPE}
@@ -66,15 +48,3 @@ INSTALL(FILES
 	${CMAKE_CURRENT_LIST_DIR}/veda_ptr.h
 DESTINATION ${VEDA_INSTALL_PATH}/include)
 
-INSTALL(FILES
-	${CMAKE_CURRENT_BINARY_DIR}/veda/version.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/api.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_memset.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_args.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_launch.h
-	# TODO: ${CMAKE_CURRENT_LIST_DIR}/veda/api_cpp_template.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/enums.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/macros.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/types.h
-	${CMAKE_CURRENT_LIST_DIR}/veda/ptr.h
-DESTINATION ${VEDA_INSTALL_PATH}/include/veda)

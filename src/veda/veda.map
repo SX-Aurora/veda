@@ -1,4 +1,6 @@
 LIBVEDA_0 {
-	global: veda*;
-	local: *;
+	global:
+		veda*;
+		*4veda3cpp*;
+	local:	*;
 };

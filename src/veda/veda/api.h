@@ -165,6 +165,25 @@ VEDAresult	vedaMemsetD64Async		(VEDAdeviceptr dstDevice, uint64_t value, size_t 
 VEDAresult	vedaMemsetD8			(VEDAdeviceptr dstDevice, uint8_t value, size_t N);
 VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t value, size_t N, VEDAstream hStream);
 
+// Profiling API ---------------------------------------------------------------
+VEDAresult	vedaProfilerSetCallback		(VEDAprofiler_callback callback);
+VEDAresult	vedaProfilerGetCallback		(VEDAprofiler_callback* callback);
+VEDAresult	vedaProfilerTypeName		(VEDAprofiler_type type, const char** name);
+
+// Inlined API -----------------------------------------------------------------
+inline VEDAresult vedaFunctionGetName(VEDAfunction func, const char** name) {
+	*name = func.kernel;
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+inline VEDAresult vedaFunctionGetPtr(VEDAfunction func, void** ptr) {
+	*ptr = (void*)func.ptr;
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+
 #ifdef __cplusplus
 }
 
@@ -177,6 +196,5 @@ VEDAresult	vedaMemsetD8Async		(VEDAdeviceptr dstDevice, uint8_t value, size_t N,
 #include "api_cpp_args.h"
 #include "api_cpp_launch.h"
 #include "api_cpp_memset.h"
-//#include "api_cpp_template.h"
 
 #endif

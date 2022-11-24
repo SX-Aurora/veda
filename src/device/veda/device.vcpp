@@ -10,7 +10,7 @@ static std::unordered_map<int, VEDAdeviceptrInfo> veda_ptrs;
 static std::mutex veda_mutex;
 
 //------------------------------------------------------------------------------
-#include <veda_error.inc.cpp>
+#include <veda/veda_error.inc.cpp>
 
 //------------------------------------------------------------------------------
 // Private

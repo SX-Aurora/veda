@@ -2,7 +2,7 @@
 
 #include "device.h"
 #include "omp.h"
-#include <veda/internal_types.h>
+#include <veda/internal/types.h>
 #include <unordered_map>
 #include <cstring>
 #include <cstdlib>

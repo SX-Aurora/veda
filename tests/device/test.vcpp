@@ -10,6 +10,9 @@
 		printf("%s @ %s (%i)\n", str, __FILE__, __LINE__);\
 	}
 
+// -----------------------------------------------------------------------------
+// Basic Tests
+// -----------------------------------------------------------------------------
 extern "C" uint64_t ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
 	int* out;
 	CHECK(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
@@ -20,6 +23,28 @@ extern "C" uint64_t ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
 
 	return 0x0123456789ABCDEFllu;
 }
+
+struct complex {
+	float x, y;
+};
+
+uint64_t ve_test_cpp(int* vptr, VEDAdeviceptr newPtr, const size_t cnt, complex x) {
+	int* out;
+	CHECK(vedaMemAllocPtr((void**)&out, newPtr, cnt * sizeof(int)));
+
+	#pragma _NEC ivdep
+	for(size_t i = 0; i < cnt; i++)
+		out[i] = cnt - 1 - i;
+
+	return 0x0123456789ABCDEFllu;
+}
+
+template<typename T>
+T ve_test_tmpl(T x, int* y, double z) {
+	printf("%f, %p, %f\n", x, y, z);
+	return x + 1;
+}
+template float ve_test_tmpl<float>(float, int*, double);
 
 extern "C" void ve_hello_world(int stream) {
 	#pragma omp parallel
@@ -34,6 +59,9 @@ extern "C" int ve_hello_world_fault(int stream) {
 	return -1;
 }
 
+// -----------------------------------------------------------------------------
+// Memset Tests
+// -----------------------------------------------------------------------------
 struct uint128_t {
 	uint64_t x;
 	uint64_t y;
@@ -67,4 +95,29 @@ extern "C" void ve_test_memset_d64	(VEDAdeviceptr ptr, const uint64_t value, con
 extern "C" void ve_test_memset_d128	(VEDAdeviceptr ptr, const uint64_t x, const uint64_t y, const size_t cnt) {
 	uint128_t value = {x, y};
 	ve_test_memset(ptr, value, cnt);
+}
+
+// -----------------------------------------------------------------------------
+// Template Tests
+// -----------------------------------------------------------------------------
+struct A {};
+
+template<int X>
+struct B{};
+
+template<typename X>
+struct C{};
+
+namespace bla {
+	template<typename T>
+	struct complex {
+		T x, y;
+	};
+}
+
+#include "tmpl.h"
+namespace ns {
+	namespace veda {
+		#include "tmpl.h"
+	}
 }

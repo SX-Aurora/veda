@@ -24,6 +24,7 @@
 		"veda/cmake/nec/inject/*.cmake",
 		"veda/include/*.h",
 		"veda/include/veda/*.h",
+		"veda/include/veda/cpp/*.h",
 		"veda/lib64/libveda.so*",
 		"veda/lib64/libveo.so*",
 		"veda/libve/libveda.vso",
@@ -31,6 +32,6 @@
 		"veda/libexec/aveorun-ftrace"
 	],
 	"requires-dist": [
-		"tungl (>= @Tungl_VERSION_MIN@, < @Tungl_VERSION_MAX@)"
+		"tungl (>= @Tungl_VERSION@, < @Tungl_VERSION_NEXT_MINOR@)"
 	]
 }

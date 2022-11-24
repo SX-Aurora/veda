@@ -12,9 +12,50 @@ typedef int			VEDAdevice;
 typedef uint32_t		VEDAidx;
 typedef uint64_t		VEDAoffset;
 typedef int			VEDAstream;
-typedef uint64_t		VEDAfunction;
 typedef uint64_t (*VEDAhost_function)(void*);
 typedef void (*VEDAstream_callback)(VEDAstream, VEDAresult, void*);
+
+typedef struct VEDAfunction_struct {
+	uint64_t	ptr;
+	const char*	kernel;
+
+#if __cplusplus
+	inline VEDAfunction_struct(void) : ptr(0), kernel(0) {}
+	inline operator bool(void) const {
+		return ptr != 0;
+	}
+#endif
+} VEDAfunction;
+
+#define VEDA_PROFILER_STRUCT				\
+/* 32-bit */	const VEDAprofiler_type	type;		\
+		const int		device_id;	\
+		const int		stream_id;	\
+/* 64-bit */	uint64_t		req_id;		\
+		void* 			user_data;
+// put 64bit vars last, so we ensure alignment with Data<...>
+
+typedef struct VEDAprofiler_data_struct {
+	VEDA_PROFILER_STRUCT
+
+#if __cplusplus
+	inline VEDAprofiler_data_struct(const VEDAprofiler_type _type, const int _device_id, const int _stream_id) :
+		req_id		(-1),
+		user_data	(0),
+		type		(_type),
+		device_id	(_device_id),
+		stream_id	(_stream_id)
+	{}
+#endif
+} VEDAprofiler_data;
+
+typedef struct	{	VEDA_PROFILER_STRUCT	void* const dst; void* const src; const size_t bytes;	}	VEDAprofiler_vedaMemcpy;
+typedef struct	{	VEDA_PROFILER_STRUCT	void* const func; const char* const kernel;		}	VEDAprofiler_vedaLaunchKernel;
+typedef struct	{	VEDA_PROFILER_STRUCT	void* const func; 					}	VEDAprofiler_vedaLaunchHostFunc;
+typedef struct	{	VEDA_PROFILER_STRUCT	const size_t bytes;					}	VEDAprofiler_vedaMemAlloc;
+typedef struct	{	VEDA_PROFILER_STRUCT	void* const ptr;					}	VEDAprofiler_vedaMemFree;
+
+typedef void (*VEDAprofiler_callback)(VEDAprofiler_data* data, const int enter);
 
 typedef struct { int8_t _; } VEDAdeviceptr_;
 typedef struct { int8_t _; } VEDAhmemptr_;
@@ -123,12 +164,14 @@ typedef VEDAhmemptr_*	VEDAhmemptr;
 
 #ifdef __cplusplus
 	namespace veda {
-		class Module;
-		class Context;
+		namespace internal {
+			class Module;
+			class Context;
+		}
 	}
 
-	typedef veda::Context*		VEDAcontext;
-	typedef veda::Module*		VEDAmodule;
+	using VEDAcontext = veda::internal::Context*;
+	using VEDAmodule  = veda::internal::Module*;
 #else
 	struct __VEDAcontext;
 	struct __VEDAmodule;

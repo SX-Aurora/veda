@@ -1,86 +1,55 @@
-#include <veda.h>
+#include <veda/cpp/api.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
 
-#define CHECK(err) check(err, __FILE__, __LINE__)
-
-void check(VEDAresult err, const char* file, const int line) {
-	if(err != VEDA_SUCCESS) {
-		const char* name = 0;
-		vedaGetErrorName(err, &name);
-		printf("Error: %i %s @ %s (%i)\n", err, name, file, line);
-		assert(false);
-		exit(1);
-	}
-}
-
 int main(int argc, char** argv) {
-	CHECK(vedaInit(0));
+	using namespace veda;
+	try {
+		init();
 	
-	const char* aveo = 0;
-	CHECK(vedaDriverGetVersion(&aveo));
-	printf("╔ veda-smi ═════════════════════════════════════════════════════════════════════╗\n");
-	printf("║ VEDA Version: %-10s AVEO Version: %-10s                             ║\n", VEDA_VERSION, aveo);
-	printf("╚═══════════════════════════════════════════════════════════════════════════════╝\n\n");
-	
-	int cnt = 0;
-	CHECK(vedaDeviceGetCount(&cnt));
-
-	char name[256];
-
-	for(int dev = 0; dev < cnt; dev++) {
-		CHECK(vedaDeviceGetName(name, sizeof(name), dev));
-		size_t total = 0;
-		CHECK(vedaDeviceTotalMem(&total, dev));
-
-		int physical = 0, aveo = 0, numa = 0;
-		CHECK(vedaDeviceGetPhysicalId	(&physical, dev));
-		CHECK(vedaDeviceGetAVEOId	(&aveo, dev));
-		CHECK(vedaDeviceGetNUMAId	(&numa, dev));
-
-		int cores, clock_rate, clock_base, clock_memory, l1d, l1i, l2, llc, firmware;
-		CHECK(vedaDeviceGetAttribute(&cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, dev));
-		CHECK(vedaDeviceGetAttribute(&clock_rate,	VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE, dev));
-		CHECK(vedaDeviceGetAttribute(&clock_base,	VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE, dev));
-		CHECK(vedaDeviceGetAttribute(&clock_memory,	VEDA_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, dev));
-		CHECK(vedaDeviceGetAttribute(&l1d,		VEDA_DEVICE_ATTRIBUTE_L1D_CACHE_SIZE, dev));
-		CHECK(vedaDeviceGetAttribute(&l1i,		VEDA_DEVICE_ATTRIBUTE_L1I_CACHE_SIZE, dev));
-		CHECK(vedaDeviceGetAttribute(&l2,		VEDA_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, dev));
-		CHECK(vedaDeviceGetAttribute(&llc,		VEDA_DEVICE_ATTRIBUTE_LLC_CACHE_SIZE, dev));
-		CHECK(vedaDeviceGetAttribute(&firmware,		VEDA_DEVICE_ATTRIBUTE_FIREWARE_VERSION, dev));
-
-		printf("┌── #%-2i %s ", dev, name);
-		size_t len = strlen(name) + 8;
-		for(size_t i = 0; i < (79-len); i++)
-			printf("─");
-		printf("┐\n");
-		printf("  ┌ Physical: %1i.%1i\n", physical, numa);
-		printf("  ├ AVEO:     %1i.%1i\n", aveo, numa);
-		printf("  ├ Clock:    current: %i MHz, base: %i MHz, memory: %i MHz\n", clock_rate, clock_base, clock_memory);
-		printf("  ├ Firmware: %i\n", firmware);
-		printf("  ├ Memory:   %llu MiB\n", total/1024/1024);
-		printf("  ├ Cache:    LLC: %ikB, L2: %ikB, L1d: %ikB, L1i: %ikB\n", llc, l2, l1d, l1i);
-		printf("  ├ Temp:     ");
+		auto aveo = driverVersion().begin();
+		printf("╔ veda-smi ═════════════════════════════════════════════════════════════════════╗\n");
+		printf("║ VEDA Version: %-10s AVEO Version: %-10s                             ║\n", VEDA_VERSION, aveo);
+		printf("╚═══════════════════════════════════════════════════════════════════════════════╝\n\n");
 		
-		for(int i = 0; i < cores; i++) {
-			float temp = 0;
-			CHECK(vedaDeviceGetTemp(&temp, i, dev));
-			printf("%2.1f°C ", temp);
+		auto cnt = Device::count();
+
+		for(int i = 0; i < cnt; i++) {
+			Device dev(i);
+
+			const auto name = dev.name();
+			printf("┌── #%-2i %s ", dev.vedaId(), name.c_str());
+			size_t len = name.size() + 8;
+			for(size_t i = 0; i < (79-len); i++)
+				printf("─");
+			printf("┐\n");
+			printf("  ┌ IDs:      VEDA: %1i, AVEO: %1i, Physical: %1i", dev.vedaId(), dev.aveoId(), dev.physicalId());
+			if(dev.isNUMA())
+				printf(", NUMA: %1i/%1i", dev.numaId(), dev.numaCnt());
+			printf("\n");
+			printf("  ├ Cores:    %i\n", dev.cores());
+			printf("  ├ Clock:    current: %i MHz, base: %i MHz, memory: %i MHz\n", dev.clockRate(), dev.clockBase(), dev.clockMemory());
+			printf("  ├ Firmware: %i\n", dev.firmware());
+			printf("  ├ Memory:   %llu MiB", dev.totalMem()/1024/1024);
+			if(dev.isNUMA())
+				printf(", NUMA MemBlockSize: %llu MiB", dev.numaMemBlockSize()/1024/1024);
+			printf("\n");
+			printf("  ├ Cache:    LLC: %ikB, L2: %ikB, L1d: %ikB, L1i: %ikB\n", dev.cacheLLC(), dev.cacheL2(), dev.cacheL1d(), dev.cacheL1i());
+			printf("  ├ Temp:     ");
+			
+			auto cores = dev.cores();
+			for(int i = 0; i < cores; i++)
+				printf("%2.1f°C ", dev.temp(i));
+			printf("\n");
+			printf("  └ Power:    %3.1fW (AUX: %3.1fV, %3.1fA Edge: %3.1fV, %3.1fA)\n", dev.power(), dev.voltage(), dev.current(), dev.voltageEdge(), dev.currentEdge());
+			printf("└───────────────────────────────────────────────────────────────────────────────┘\n\n");
 		}
-		printf("\n");
 
-		float power = 0, current = 0, voltage = 0, current_edge = 0, voltage_edge = 0;
-		CHECK(vedaDeviceGetPower(&power, dev));
-		CHECK(vedaDeviceGetCurrent(&current, dev));
-		CHECK(vedaDeviceGetVoltage(&voltage, dev));
-		CHECK(vedaDeviceGetCurrentEdge(&current_edge, dev));
-		CHECK(vedaDeviceGetVoltageEdge(&voltage_edge, dev));
-		printf("  └ Power:    %3.1fW (AUX: %3.1fV, %3.1fA Edge: %3.1fV, %3.1fA)\n", power, voltage, current, voltage_edge, current_edge);
-		printf("└───────────────────────────────────────────────────────────────────────────────┘\n\n");
+		exit();
+	} catch(const Exception& e) {
+		printf("[Error] %s @ %s (%i)", e.what().begin(), e.file().begin(), e.line());
 	}
-
-	CHECK(vedaExit());
 	return 0;
 }

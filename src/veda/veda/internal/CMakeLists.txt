@@ -1,0 +1,12 @@
+LIST(APPEND VEDA_SRC
+	${CMAKE_CURRENT_LIST_DIR}/Device.cpp
+	${CMAKE_CURRENT_LIST_DIR}/Context.cpp
+	${CMAKE_CURRENT_LIST_DIR}/Module.cpp
+	${CMAKE_CURRENT_LIST_DIR}/Semaphore.cpp
+	${CMAKE_CURRENT_LIST_DIR}/Stream.cpp
+	${CMAKE_CURRENT_LIST_DIR}/veda.cpp
+)
+
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/devices/CMakeLists.txt)
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/contexts/CMakeLists.txt)
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/profiler/CMakeLists.txt)
