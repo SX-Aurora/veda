@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 		CHECK(vedaMemAllocAsync(&ptr, size, 0));
 //		printf("vedaMemAllocAsync(%p, %llu, %i)\n", ptr, size, 0);
 		VEDAmodule mod;
-		const char* modName = "libveda_ecm_device.vso";
+		const char* modName = "./libveda_ecm_device.vso";
 		CHECK(vedaModuleLoad(&mod, modName));
 //		printf("vedaModuleLoad(%p, \"%s\")\n", mod, modName);
 

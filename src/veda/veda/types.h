@@ -31,6 +31,7 @@ typedef struct VEDAfunction_struct {
 /* 32-bit */	const VEDAprofiler_type	type;		\
 		const int		device_id;	\
 		const int		stream_id;	\
+		const int		async;		\
 /* 64-bit */	uint64_t		req_id;		\
 		void* 			user_data;
 // put 64bit vars last, so we ensure alignment with Data<...>
@@ -39,12 +40,13 @@ typedef struct VEDAprofiler_data_struct {
 	VEDA_PROFILER_STRUCT
 
 #if __cplusplus
-	inline VEDAprofiler_data_struct(const VEDAprofiler_type _type, const int _device_id, const int _stream_id) :
-		req_id		(-1),
-		user_data	(0),
+	inline VEDAprofiler_data_struct(const VEDAprofiler_type _type, const int _device_id, const int _stream_id, const bool _async) :
 		type		(_type),
 		device_id	(_device_id),
-		stream_id	(_stream_id)
+		stream_id	(_stream_id),
+		async		(_async),
+		req_id		(-1),
+		user_data	(0)
 	{}
 #endif
 } VEDAprofiler_data;
@@ -55,7 +57,7 @@ typedef struct	{	VEDA_PROFILER_STRUCT	void* const func; 					}	VEDAprofiler_veda
 typedef struct	{	VEDA_PROFILER_STRUCT	const size_t bytes;					}	VEDAprofiler_vedaMemAlloc;
 typedef struct	{	VEDA_PROFILER_STRUCT	void* const ptr;					}	VEDAprofiler_vedaMemFree;
 
-typedef void (*VEDAprofiler_callback)(VEDAprofiler_data* data, const int enter);
+typedef void (*VEDAprofiler_callback)(VEDAprofiler_data* data, const VEDAprofiler_event event);
 
 typedef struct { int8_t _; } VEDAdeviceptr_;
 typedef struct { int8_t _; } VEDAhmemptr_;

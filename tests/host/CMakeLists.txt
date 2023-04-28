@@ -60,7 +60,32 @@ ADD_EXECUTABLE(veda_profiler ${CMAKE_CURRENT_LIST_DIR}/veda_profiler.cpp)
 TARGET_LINK_LIBRARIES(veda_profiler veda)
 SET_TARGET_PROPERTIES(veda_profiler PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
 
-INSTALL(TARGETS veda_test1 veda_test2 veda_test3 veda_test4 veda_test5 veda_test6 veda_test7 veda_mpi veda_memset veda_memcpy veda_template veda_env veda_cnt veda_profiler veda_cpp RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
+ADD_EXECUTABLE(veda_perf ${CMAKE_CURRENT_LIST_DIR}/veda_perf.cpp)
+TARGET_LINK_LIBRARIES(veda_perf veda)
+SET_TARGET_PROPERTIES(veda_perf PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
+
+ADD_EXECUTABLE(issue_836 ${CMAKE_CURRENT_LIST_DIR}/issue_836.cpp)
+TARGET_LINK_LIBRARIES(issue_836 veda)
+SET_TARGET_PROPERTIES(issue_836 PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN/../lib64")
+
+INSTALL(TARGETS
+	veda_test1
+	veda_test2
+	veda_test3
+	veda_test4
+	veda_test5
+	veda_test6
+	veda_test7
+	veda_mpi
+	veda_memset
+	veda_memcpy
+	veda_template
+	veda_env
+	veda_cnt
+	veda_profiler
+	veda_cpp
+	issue_836
+RUNTIME DESTINATION ${VEDA_INSTALL_PATH}/tests)
 INSTALL(FILES ${CMAKE_CURRENT_LIST_DIR}/veda_env.sh DESTINATION ${VEDA_INSTALL_PATH}/tests PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 IF(VEDA_WITH_VERA)

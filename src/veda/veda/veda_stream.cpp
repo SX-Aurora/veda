@@ -89,8 +89,8 @@ VEDAresult vedaStreamAddCallback(VEDAstream stream, VEDAstream_callback callback
 		VEDAresult res = VEDA_SUCCESS;
 		try {
 			ctx->sync(stream);
-		} catch(VEDAresult r) {
-			res = r;
+		} catch(const veda::cpp::Exception& e) {
+			res = e.error();
 		}
 		callback(stream, res, userData);
 	);

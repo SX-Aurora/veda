@@ -26,7 +26,7 @@ void run(VEDAcontext_mode omp, VEDAdevice device) {
 	printf("vedaCtxCreate(%p, %i, %i)\n", ctx, omp, device);
 
 	VEDAmodule mod;
-	const char* modName = "libveda_sm_device.vso";
+	const char* modName = "./libveda_sm_device.vso";
 	CHECK(vedaModuleLoad(&mod, modName));
 	printf("vedaModuleLoad(%p, \"%s\")\n", mod, modName);
 

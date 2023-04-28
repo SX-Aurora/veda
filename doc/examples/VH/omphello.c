@@ -24,14 +24,15 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libomphello.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libomphello.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "omp_hello"));
 
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
-	VEDA(vedaLaunchKernelEx(func, 0, args, 1));
+	VEDA(vedaLaunchKernel(func, 0, args));
+	VEDA(vedaArgsDestroy(args));
 	
 	VEDA(vedaCtxSynchronize());
 	VEDA(vedaExit());

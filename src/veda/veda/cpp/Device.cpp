@@ -93,16 +93,75 @@ VEDAcontext_mode Device::mode(void) const {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult Device::query(const StreamId stream) const {
+	return ctx()->query(stream);
+}
+
+//------------------------------------------------------------------------------
 template<> VEDA Device::alloc_<VEDA>(const size_t size, const StreamId stream) const {
-	L_TRACE("veda::VEDA::malloc(%llu, %i)", size, stream);
-	return ctx()->memAlloc(size, stream);
+	auto ptr = ctx()->memAlloc(size, stream);
+	L_TRACE("%p = veda::VEDA::malloc(%llu, %i)", ptr, size, stream);
+	return ptr;
 }
 
 //------------------------------------------------------------------------------
 template<> HMEM Device::alloc_<HMEM>(const size_t size, const StreamId stream) const {
-	L_TRACE("veda::HMEM::malloc(%llu, %i)", size);
-	return ctx()->hmemAlloc(size);
+	auto ptr = ctx()->hmemAlloc(size);
+	L_TRACE("%p = veda::HMEM::malloc(%llu, %i)", ptr, size, stream);
+	return ptr;
 }
+
+//------------------------------------------------------------------------------
+template<> void Device::free_<VEDA>(const VEDA ptr, const StreamId stream) const {
+	L_TRACE("veda::VEDA::free(%p, %i)", ptr, stream);
+	return ctx()->memFree(ptr, stream);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::free_<HMEM>(const HMEM ptr, const StreamId stream) const {
+	L_TRACE("veda::HMEM::free(%p, %i)", ptr);
+	internal::hmemfree(ptr);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<VEDA, VEDA>(VEDA dst, VEDA src, const size_t size, const StreamId stream) const {
+	internal::memcpy(dst, src, size, stream);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<void*, VEDA>(void* dst, VEDA src, const size_t size,const StreamId stream) const {
+	ctx()->memcpyD2H(dst, src, size, stream);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<VEDA, void*>(VEDA dst, void* src, const size_t size, const StreamId stream) const {
+	ctx()->memcpyH2D(dst, src, size, stream);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<HMEM, HMEM>(HMEM dst, HMEM src, const size_t size, const StreamId stream) const {
+	internal::hmemcpy(dst, src, size);	
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<void*, HMEM>(void* dst, HMEM src, const size_t size, const StreamId stream) const {
+	internal::hmemcpy((HMEM)dst, src, size);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memcpy_<HMEM, void*>(HMEM dst, void* src, const size_t size, const StreamId stream) const {
+	internal::hmemcpy(dst, (HMEM)src, size);
+}
+
+//------------------------------------------------------------------------------
+template<> void Device::memset_(HMEM ptr, const uint16_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(HMEM ptr, const uint32_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(HMEM ptr, const uint64_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(HMEM ptr, const uint8_t  value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(VEDA ptr, const uint16_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(VEDA ptr, const uint32_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(VEDA ptr, const uint64_t value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
+template<> void Device::memset_(VEDA ptr, const uint8_t  value, const size_t cnt, const StreamId stream) const	{	ctx()->memset(ptr, value, cnt, stream);	}
 
 //------------------------------------------------------------------------------
 	}

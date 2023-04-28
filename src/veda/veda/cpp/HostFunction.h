@@ -10,7 +10,7 @@ protected:
 	Future::ReqId launch(const StreamId stream, VEDAhost_function func, void* data, Future::Ptr ptr) const;
 
 public:
-		HostFunctionBase(const Device& dev);
+	HostFunctionBase(const Device& dev);
 
 	template<typename R>
 	inline RType<R> launch(const StreamId stream, VEDAhost_function func, void* data) const {
@@ -29,7 +29,7 @@ template<typename R, typename... A>
 struct HostFunction final : public HostFunctionBase {
 	static_assert(std::is_fundamental<R>::value, "Only fundamental return types are allowed");
 
-	using Func	= uint64_t(*)(A...);
+	using Func	= R(*)(A...);
 	using Tuple	= typename std::tuple<A...>;
 
 	struct Data {
@@ -57,9 +57,16 @@ struct HostFunction final : public HostFunctionBase {
 
 	template<int... S>
 	static inline uint64_t launch(Data* data, seq<S...>) {
-		return data->func(std::get<S>(data->tuple)...);
+		if constexpr (std::is_same<R, void>::value) {
+			data->func(std::get<S>(data->tuple)...);
+			return 0;
+		} else {
+			uint64_t out = 0;
+			((R*)&out)[sizeof(uint64_t) / sizeof(R) - 1] = data->func(std::get<S>(data->tuple)...);
+			return out;
+		}
 	}
-
+	
 	static inline uint64_t callback(void* data_) {
 		auto data	= (Data*)data_;
 		auto res	= launch(data, typename gens<sizeof...(A)>::type());

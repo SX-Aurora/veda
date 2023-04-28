@@ -18,6 +18,8 @@
  * This document describes public APIs for VEDA.
  * The page "Modules" shows a list of VEDA API functions.
  * The page "Examples" shows a list of all example.
+ * The page "VEDA vs CUDA" shows the differences and similarities between 
+ * VEDA and CUDA, also shows some unique features of VEDA.
  *
  * @author NEC Laboratories Europe
  *
@@ -28,17 +30,59 @@
  *      Revision,
  *      Date,
  *      Updates/Remarks
+ *
+ * @par
+ *      Rev.5,
+ *      Jan 2023,
+ * @n   This revision covers veoffload-veda-2.14.0 or later.
+ * @n   Added support of below new VEDA APIs
+ * @n   vedaHMemsetD2D128Async(),vedaHMemsetD2D128(),vedaHMemsetD2D16Async(),
+ *      vedaHMemsetD2D16(),vedaHMemsetD2D32Async(),vedaHMemsetD2D32(),       
+ *      vedaHMemsetD2D64Async(),vedaHMemsetD2D64(),vedaHMemsetD2D8Async(),
+ *      vedaHMemsetD2D8()        
+ * @n   Enabled support for vedaMemsetD2D* set of APIs after Bugfix.
+ * @par
+ *      Rev.4,
+ *      Nov 2022,
+ * @n   This revision covers veoffload-veda-2.13.0 or later.
+ * @n   Added support of below new VEDA APIs
+ * @n   vedaLaunchHostFuncEx(),vedaMemSwap(),vedaMemSwapAsync(),
+ *      vedaLaunchKernelEx_compat(),vedaMemsetD128(),vedaMemsetD128Async(),
+ *      vedaMemAllocOverrideOnce()
+ * @n   Added support of below new VEDA HMEM APIs
+ *      vedaHMemAlloc(), vedaHMemcpyDtoXAsync(), vedaHMemcpyDtoX(),
+ *      vedaHMemcpy(), vedaHMemcpyXtoDAsync(), vedaHMemcpyXtoD(),
+ *      vedaHMemPtr(), vedaHMemsetD128Async(), vedaHMemsetD128(),
+ *      vedaHMemsetD16(), vedaHMemsetD32Async(), vedaHMemsetD32(), 
+ *      vedaHMemsetD64Async(), vedaHMemsetD64(), vedaHMemsetD8(), 
+ *      vedaHMemsetD16Async(),
+ *      vedaHMemFree(), vedaHMemsetD8Async()
+ * @n   Replaced "bool checkResult" with "int64_t* result" in
+ *      vedaLaunchKernelEx() to receive return value of kernel.
+ * @n   Replaced "const void *value" to "const VEDAhmemptr value" in
+ *      vedaArgsSetHMEM().
+ * @n   Modified VEDAdeviceptr to prevent segmentation fault.
+ * @n   Below APIs are removed
+ * @n   vedaMemGetRawPointer(), vedaMemGetHMEMPointer(), vedaMemHMEM(), 
+        vedaMemHMEMSize()
+ * @n   Disabled support for vedaMemsetD2D* set of APIs.
+ * @n   Added support of below new VERA APIs
+ * @n   veraLaunchHostFuncEx()
+ * @n   Program linking libveda.so needs to be re-compiled when veoffload-veda
+ *      is updated to v2.13 or later
  * @par
  *      Rev.3,
- *      Feb. 2022,
- * @n   This revision covers veoffload-veda-2.11 or later.
+ *      July 2022,
+ * @n   This revision covers veoffload-veda-2.11.1 or later.
+ * @n   Fixed build error, loading library error and missing invocation
+ *      of vedaArgsDestroy() in example programs
+ * @par
+ *      Rev.2,
+ *      Mar. 2022,
+ * @n   This revision covers veoffload-veda-2.11.1 or later.
  * @n   Updated VEDA API similar to CUDA.
  * @n   Difference points between VEDA and CUDA
  * @n   Unique features of VEDA.
- * @par
- *      Rev.2,
- *      Jan. 2022,
- * @n   This revision covers veoffload-veda-2.10.1 or later.
  * @n   Updated environment variable usage/description.
  * @n   Suppressed extra error messages.
  * @par

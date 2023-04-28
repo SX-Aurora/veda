@@ -27,7 +27,7 @@ VEDAresult vedaModuleGetFunction(VEDAfunction* hfunc, VEDAmodule hmod, const cha
 		hfunc->kernel	= "#N/A";
 		hfunc->ptr	= 0;
 		*hfunc = hmod->getFunction(name);
-		L_TRACE("[ve:%i] vedaModuleGetFunction(%p, %p, %s)", hmod->ctx()->device().vedaId(), *hfunc, hmod, name);
+		L_TRACE("[ve:%i] vedaModuleGetFunction(%p, %p, %s)", hmod->ctx()->device().vedaId(), hfunc->ptr, hmod, hfunc->kernel);
 	)
 }
 

@@ -3,6 +3,7 @@
 #include <thread>
 #include <tungl/c.h>
 #include <tungl/api.h>
+#include <veo_hmem_macros.h>
 
 #define LOCK() std::lock_guard<std::mutex> __lock__(veda_mutex)
 
@@ -57,17 +58,22 @@ VEDAresult vedaRemovePtr(VEDAdeviceptr vptr) {
 // Public
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size_t size) {
+	if(ptr == 0 || size == 0 || vptr == 0)	return VEDA_ERROR_INVALID_ARGS;
+	
 	LOCK();
-	assert(size);
-	assert(vptr);
-
+	*ptr = 0;
+	
 	auto idx = VEDA_GET_IDX(vptr);
 	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
 	if(VEDA_GET_OFFSET(vptr))		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
 	auto it = veda_ptrs.find(idx);
 	if(it != veda_ptrs.end()) {
-		if(it->second.size == size)	return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
-		else				return VEDA_ERROR_INVALID_VALUE;
+		if(it->second.size == size) {
+			*ptr = it->second.ptr;
+			return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
+		} else {
+			return VEDA_ERROR_INVALID_VALUE;
+		}
 	}
 
 	*ptr = malloc(size);
@@ -152,3 +158,23 @@ __global__ VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
 }
 
 //------------------------------------------------------------------------------
+inline int veo_is_ve_addr(const void *addr) {
+  return IS_VE(addr) ? 1 : 0;
+}
+
+//------------------------------------------------------------------------------
+inline void* veo_get_hmem_addr(void *addr) {
+	if(veo_is_ve_addr(addr))
+		return (void *)(~VEIDENT_MBITS & (uint64_t)addr);
+	else
+		return addr;
+}
+
+//------------------------------------------------------------------------------
+__global__ VEDAresult vedaHMemPtr(void** ptr, VEDAhmemptr hptr) {
+        *ptr = veo_get_hmem_addr(hptr);
+        return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+

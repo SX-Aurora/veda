@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libvefortran.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libvefortran.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "sub1_"));
@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
 	VEDA(vedaArgsSetStack(args, 0, &x, VEDA_ARGS_INTENT_IN, sizeof(x)));
 	VEDA(vedaArgsSetStack(args, 1, &y, VEDA_ARGS_INTENT_OUT, sizeof(y)));
 	VEDA(vedaLaunchKernel(func, 0, args));
+	VEDA(vedaArgsDestroy(args));
 	VEDA(vedaCtxSynchronize());
 	printf("SUB1 return %lu\n",y);
 	VEDA(vedaExit());

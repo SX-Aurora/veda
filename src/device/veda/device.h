@@ -36,5 +36,6 @@ __global__	VEDAresult	vedaMemsetD2D8		(void* ptr, const size_t pitch, const uint
 __global__	VEDAresult	vedaMemsetD32		(void* ptr, const uint32_t value, const size_t cnt);
 __global__	VEDAresult	vedaMemsetD64		(void* ptr, const uint64_t value, const size_t cnt);
 __global__	VEDAresult	vedaMemsetD8		(void* ptr, const uint8_t  value, const size_t cnt);
+__global__	VEDAresult	vedaHMemPtr			(void** ptr, VEDAhmemptr hptr);
 
 #include <veda/ptr.h>

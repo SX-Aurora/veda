@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libomphello.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libompfortran.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "omp_hello_"));
@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
 	VEDA(vedaLaunchKernel(func, 0, args));
+	VEDA(vedaArgsDestroy(args));
 	
 	VEDA(vedaCtxSynchronize());
 	VEDA(vedaExit());

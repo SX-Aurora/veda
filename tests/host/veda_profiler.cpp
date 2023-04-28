@@ -5,6 +5,8 @@
 #include <chrono>
 #include <string_view>
 #include <typeinfo>
+#include <thread>
+#include <mutex>
 
 #define CHECK(err) check(err, __FILE__, __LINE__)
 
@@ -18,61 +20,74 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
+inline void sleep(const int64_t time) {
+	std::this_thread::sleep_for(std::chrono::seconds(time));
+}
+
 inline uint64_t time_ns(void) {
 	auto duration = std::chrono::system_clock::now().time_since_epoch();
 	return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
 }
 
-static void callback(VEDAprofiler_data* data, const int enter) {
+static void callback(VEDAprofiler_data* data, const VEDAprofiler_event event) {
+	static std::mutex s_mutex;
+	std::lock_guard<std::mutex> lock(s_mutex);
+
 	auto end = time_ns();
 	
 	const char* tname;
-	CHECK(vedaProfilerTypeName(data->type, &tname));
-	if(data->device_id == -1)	printf("[host  ] ");
-	else				printf("[ve:%i:%i] ", data->device_id, data->stream_id);
-	printf("%-6s %-19s ", enter ? "Enter:" : "Exit:", tname);
+	CHECK(vedaProfilerTypeName(data->type, &tname, data->stream_id));
+	if(data->device_id == -1)	printf("[host]         ");
+	else				printf("[ve:%i:%i:%ssync] ", data->device_id, data->stream_id, data->async ? "a" : "");
+	printf("%-6s %-19s ", event == VEDA_PROFILER_EVENT_ISSUE ? "Issue:" : event == VEDA_PROFILER_EVENT_BEGIN ? "Begin:" : "End:", tname);
 	if(data->req_id == -1)	printf("      ");
 	else			printf("#%3llu, ", data->req_id);
 
-	if(!enter) {
+	if(event != VEDA_PROFILER_EVENT_ISSUE) {
 		auto start	= *(uint64_t*)&data->user_data;
 		auto ns 	= end - start;
 		auto ms		= ns / (1024.0*1024.0);
 		
 		printf("time: %.3fms", ms);
-		
-		switch(data->type) {
-			case VEDA_PROFILER_MEM_CPY_HTOD:
-			case VEDA_PROFILER_MEM_CPY_DTOH:
-			case VEDA_PROFILER_HMEM_CPY: {
-				auto args	= (const VEDAprofiler_vedaMemcpy*)data;
-				auto GB		= args->bytes	/(1024.0*1024.0*1024.0);
-				auto s		= ns		/(1000.0*1000.0*1000.0);
-				auto GBs	= GB/s;
-				printf(", %p -> %p, %.2fGB/s", args->src, args->dst, GBs);
-			} break;
 
-			case VEDA_PROFILER_MEM_ALLOC:
-			case VEDA_PROFILER_HMEM_ALLOC: {
-				auto args = (const VEDAprofiler_vedaMemAlloc*)data;
-				printf(", malloc(%lluB)", args->bytes);
-			} break;
+		if(event == VEDA_PROFILER_EVENT_END) {
+			switch(data->type) {
+				case VEDA_PROFILER_MEM_CPY_HTOD:
+				case VEDA_PROFILER_MEM_CPY_DTOH:
+				case VEDA_PROFILER_HMEM_CPY: {
+					auto args	= (const VEDAprofiler_vedaMemcpy*)data;
+					auto GB		= args->bytes	/(1024.0*1024.0*1024.0);
+					auto s		= ns		/(1000.0*1000.0*1000.0);
+					auto GBs	= GB/s;
+					printf(", %p -> %p, %.2fGB/s", args->src, args->dst, GBs);
+				} break;
 
-			case VEDA_PROFILER_MEM_FREE:
-			case VEDA_PROFILER_HMEM_FREE: {
-				auto args = (const VEDAprofiler_vedaMemFree*)data;
-				printf(", %p", args->ptr);
-			} break;
+				case VEDA_PROFILER_MEM_ALLOC:
+				case VEDA_PROFILER_HMEM_ALLOC: {
+					auto args = (const VEDAprofiler_vedaMemAlloc*)data;
+					printf(", malloc(%lluB)", args->bytes);
+				} break;
+
+				case VEDA_PROFILER_MEM_FREE:
+				case VEDA_PROFILER_HMEM_FREE: {
+					auto args = (const VEDAprofiler_vedaMemFree*)data;
+					printf(", %p", args->ptr);
+				} break;
+				
+				case VEDA_PROFILER_LAUNCH_KERNEL: {
+					auto args = (const VEDAprofiler_vedaLaunchKernel*)data;
+					printf(", kernel: %s, func: %p", args->kernel, args->func);
+				} break;
 			
-			case VEDA_PROFILER_LAUNCH_KERNEL: {
-				auto args = (const VEDAprofiler_vedaLaunchKernel*)data;
-				printf(", kernel: %s, func: %p", args->kernel, args->func);
-			} break;
-		
-			case VEDA_PROFILER_LAUNCH_HOST: {
-				auto args = (const VEDAprofiler_vedaLaunchHostFunc*)data;
-				printf(", func: %p", args->func);
-			} break;
+				case VEDA_PROFILER_LAUNCH_HOST: {
+					auto args = (const VEDAprofiler_vedaLaunchHostFunc*)data;
+					printf(", func: %p", args->func);
+				} break;
+
+				case VEDA_PROFILER_SYNC: {
+
+				} break;
+			}
 		}
 	}
 	
@@ -88,10 +103,10 @@ static uint64_t some_host_func(void*) {
 }
 
 int main(int argc, char** argv) {
-	CHECK(vedaInit(0));
 	CHECK(vedaProfilerSetCallback(&callback));
 	CHECK(vedaProfilerSetCallback(0));
 	CHECK(vedaProfilerSetCallback(&callback));
+	CHECK(vedaInit(0));
 
 	int devcnt;
 	CHECK(vedaDeviceGetCount(&devcnt));
@@ -111,10 +126,15 @@ int main(int argc, char** argv) {
 
 		VEDAptr<int> ptr;
 		CHECK(vedaMemAllocAsync(&ptr, size, 0));
+		sleep(3);
 		CHECK(vedaMemcpyHtoDAsync(ptr, host, size, 0));
+		sleep(3);
 		CHECK(vedaMemsetD32Async(ptr, 0xDEADBEEF, cnt, 0));
+		sleep(3);
 		CHECK(vedaMemcpyDtoHAsync(host, ptr, size, 0));
+		sleep(3);
 		CHECK(vedaLaunchHostFunc(0, &some_host_func, 0));
+		sleep(3);
 
 		VEDAmodule mod;
 		const char* modName = "libveda_test.vso";

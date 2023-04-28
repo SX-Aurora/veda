@@ -87,17 +87,25 @@ enum VEDAcontext_mode_enum {
 
 enum VEDAprofiler_type_enum {
 	// Unique ID + Mask which function arguments to copy
-	VEDA_PROFILER_MEM_ALLOC		= 0 | (0x1 << 24),	// 001
-	VEDA_PROFILER_MEM_FREE		= 1 | (0x1 << 24),	// 001
-	VEDA_PROFILER_MEM_CPY_HTOD	= 2 | (0x7 << 24),	// 111
-	VEDA_PROFILER_MEM_CPY_DTOH	= 3 | (0x7 << 24),	// 111
-	VEDA_PROFILER_LAUNCH_KERNEL	= 4 | (0x5 << 24),	// 101
-	VEDA_PROFILER_LAUNCH_HOST	= 5 | (0x1 << 24),	// 001
-	VEDA_PROFILER_HMEM_CPY		= 6 | (0x7 << 24),	// 111
-	VEDA_PROFILER_HMEM_ALLOC	= 7 | (0x4 << 24),	// 100
-	VEDA_PROFILER_HMEM_FREE		= 8 | (0x1 << 24)	// 001
+	VEDA_PROFILER_MEM_ALLOC		=  0 | (0x1 << 24),	// 001
+	VEDA_PROFILER_MEM_FREE		=  1 | (0x1 << 24),	// 001
+	VEDA_PROFILER_MEM_CPY_HTOD	=  2 | (0x7 << 24),	// 111
+	VEDA_PROFILER_MEM_CPY_DTOH	=  3 | (0x7 << 24),	// 111
+	VEDA_PROFILER_LAUNCH_KERNEL	=  4 | (0x5 << 24),	// 101
+	VEDA_PROFILER_LAUNCH_HOST	=  5 | (0x1 << 24),	// 001
+	VEDA_PROFILER_HMEM_CPY		=  6 | (0x7 << 24),	// 111
+	VEDA_PROFILER_HMEM_ALLOC	=  7 | (0x4 << 24),	// 100
+	VEDA_PROFILER_HMEM_FREE		=  8 | (0x1 << 24),	// 001
+	VEDA_PROFILER_SYNC		=  9 | (0x0 << 24)	// 000
 };
 
+enum VEDAprofiler_event_enum {
+	VEDA_PROFILER_EVENT_ISSUE	= 0,
+	VEDA_PROFILER_EVENT_BEGIN	= 1,
+	VEDA_PROFILER_EVENT_END		= 2
+};
+
+typedef enum VEDAprofiler_event_enum	VEDAprofiler_event;
 typedef enum VEDAprofiler_type_enum	VEDAprofiler_type;
 typedef enum VEDAresult_enum		VEDAresult;
 typedef enum VEDAdevice_attribute_enum	VEDAdevice_attribute;

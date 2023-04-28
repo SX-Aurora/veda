@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libQIP_VEDA_03_ve.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libQIP_VEDA_03_ve.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "test_HMEM"));

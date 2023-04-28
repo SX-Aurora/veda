@@ -54,7 +54,9 @@ VEDAresult vedaHMemPtr(void** ptr, VEDAhmemptr hptr) {
  * previous call to vedaHMemAlloc().
  */
 VEDAresult vedaHMemFree(VEDAhmemptr ptr) {
-	return veda::internal::profiler::wrap(veo_free_hmem, ptr) == 0 ? VEDA_SUCCESS : VEDA_ERROR_UNKNOWN_HMEM;
+	GUARDED(
+		veda::internal::hmemfree(ptr);
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -72,7 +74,7 @@ VEDAresult vedaHMemFree(VEDAhmemptr ptr) {
  */
 VEDAresult vedaHMemcpy(void* dst, void* src, size_t ByteCount) {
 	GUARDED(
-		return veda::internal::profiler::wrap(veo_hmemcpy, (VEDAhmemptr)dst, (VEDAhmemptr)src, ByteCount) == 0 ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE;
+		veda::internal::hmemcpy((VEDAhmemptr)dst, (VEDAhmemptr)src, ByteCount);
 	)
 }
 

@@ -24,14 +24,15 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libhello_world_device.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libhello_world_device.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "hello_world_"));
 
 	VEDAargs args;
 	VEDA(vedaArgsCreate(&args));
-	VEDA(vedaLaunchKernelEx(func, 0, args, 1));
+	VEDA(vedaLaunchKernel(func, 0, args));
+	VEDA(vedaArgsDestroy(args));
 	
 	VEDA(vedaCtxSynchronize());
 	VEDA(vedaExit());

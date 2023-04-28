@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	VEDA(vedaCtxPushCurrent(ctx));
 
 	VEDAmodule mod;
-	VEDA(vedaModuleLoad(&mod, "libvefortran.vso"));
+	VEDA(vedaModuleLoad(&mod, "./libvefortran.vso"));
 
 	VEDAfunction func;
 	VEDA(vedaModuleGetFunction(&func, mod, "sub1_"));

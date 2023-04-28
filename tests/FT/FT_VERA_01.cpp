@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 		}
 
 		veraModule_t mod;
-		const char* modName = "libvera_device.vso";
+		const char* modName = "./libvera_device.vso";
         	printf("\nTEST CASE ID: FT_VERA_38:");
 	        veraError_t ret1 = veraModuleLoad(&mod, "");
         	if(ret1 == VEDA_ERROR_INVALID_VALUE)

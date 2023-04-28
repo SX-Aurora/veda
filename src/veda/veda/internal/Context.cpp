@@ -10,6 +10,7 @@ VEDAcontext_mode	Context::mode		(void) const	{	return m_mode;			}
 bool			Context::isActive	(void) const	{	return m_handle != 0;		}
 int			Context::aveoProcId	(void) const	{	return m_aveoProcId;		}
 int			Context::streamCnt	(void) const	{	return (int)m_streams.size();	}
+void			Context::sync		(void)		{	sync(-1);			}
 
 //------------------------------------------------------------------------------
 void Context::setMemOverride(VEDAdeviceptr vptr) {
@@ -74,8 +75,8 @@ void Context::memReport(void) {
 // Stream
 //------------------------------------------------------------------------------
 StreamGuard Context::stream(const VEDAstream stream) {
-	VEDA_ASSERT(stream >= 0 && stream <= m_streams.size(), VEDA_ERROR_UNKNOWN_STREAM);
-	return m_streams[stream];
+	VEDA_ASSERT((stream >= -1) && (stream < (VEDAstream)m_streams.size()), VEDA_ERROR_UNKNOWN_STREAM);
+	return {m_streams[std::max(stream, 0)], stream < 0};
 }
 
 //------------------------------------------------------------------------------
@@ -170,10 +171,11 @@ void Context::syncPtrs(void) {
 			// if size is == 0, then no malloc call had been issued, so we need to fetch the info
 			// is size is != 0, then we only need to wait till the malloc reports back the ptr
 			if(info->size == 0) {
+				// TODO: this issues many kernel calls when lazy allocation is used!
 				auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
 				auto s = stream(0);
-				s->enqueue(false, Result(&info->ptr),  kernel(VEDA_KERNEL_MEM_PTR),  vptr);
-				s->enqueue(false, Result(&info->size), kernel(VEDA_KERNEL_MEM_SIZE), vptr);
+				s.enqueue(false, Result(&info->ptr),  kernel(VEDA_KERNEL_MEM_PTR),  vptr);
+				s.enqueue(false, Result(&info->size), kernel(VEDA_KERNEL_MEM_SIZE), vptr);
 			}
 			syn = true;
 		}
@@ -204,7 +206,10 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 		
 		if(it == m_ptrs.end())	VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
 		auto info = it->second;
-		if(info->size != size)	VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+		if(info->size != size) {
+			L_TRACE("[ve:%i] Cannot override pointer using %lluB, expected %lluB", device().vedaId(), size, info->size);
+			VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+		}
 		if(info->ptr  == 0)	VEDA_THROW(VEDA_ERROR_UNKNOWN_PPTR);
 
 		return VEDA_SET_PTR(dev, idx, 0);
@@ -222,8 +227,8 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 
 	if(size) {
 		auto s	= stream(_stream);
-		s->enqueue(veo_alloc_mem_async, false, {}, 0, size);
-		s->enqueue(false, Result(&info->ptr), kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, size);
+		s.enqueue(veo_alloc_mem_async, false, {}, 0, size);
+		s.enqueue(false, Result(&info->ptr), kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, size);
 	}
 
 	return vptr;
@@ -245,7 +250,7 @@ void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream _stream) {
 	};
 
 	std::swap(get(A)->second, get(B)->second);
-	stream(_stream)->enqueue(true, {}, kernel(VEDA_KERNEL_MEM_SWAP), A, B);
+	stream(_stream).enqueue(true, {}, kernel(VEDA_KERNEL_MEM_SWAP), A, B);
 }
 
 //------------------------------------------------------------------------------
@@ -272,8 +277,8 @@ void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream) {
 
 	if(info->size) {
 		auto s = stream(_stream);
-		s->enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
-		s->enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info->ptr);
+		s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
+		s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info->ptr);
 	}
 
 	m_ptrs.erase(it);
@@ -299,7 +304,7 @@ VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr) {
 // Function Calls
 //------------------------------------------------------------------------------
 ReqId Context::call(VEDAfunction func, VEDAstream _stream, VEDAargs args, const bool destroyArgs, const bool checkResult, ResultPtr result) {
-	auto id = stream(_stream)->enqueue(veo_call_async, checkResult, result, func.kernel, func.ptr, args);
+	auto id = stream(_stream).enqueue(veo_call_async, checkResult, result, func.kernel, func.ptr, args);
 	if(destroyArgs)
 		TVEDA(vedaArgsDestroy(args));
 	return id;
@@ -307,7 +312,7 @@ ReqId Context::call(VEDAfunction func, VEDAstream _stream, VEDAargs args, const 
 
 //------------------------------------------------------------------------------
 ReqId Context::call(VEDAhost_function func, VEDAstream _stream, void* userData, const bool checkResult, ResultPtr result) {
-	return stream(_stream)->enqueue(veo_call_async_vh, checkResult, result, 0, func, userData);
+	return stream(_stream).enqueue(veo_call_async_vh, checkResult, result, 0, func, userData);
 }
 
 //------------------------------------------------------------------------------
@@ -316,8 +321,7 @@ ReqId Context::call(VEDAhost_function func, VEDAstream _stream, void* userData, 
 void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream _stream) {
 	if(!dst || !src)
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
-
-	stream(_stream)->enqueue(true, {}, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
+	stream(_stream).enqueue(true, {}, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
 }
 
 //------------------------------------------------------------------------------
@@ -332,7 +336,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 	if((bytes + VEDA_GET_OFFSET(src)) > size)
 		VEDA_THROW(VEDA_ERROR_OUT_OF_BOUNDS);
 
-	stream(_stream)->enqueue(veo_async_read_mem, false, {}, 0, dst, (veo_ptr)ptr, bytes);
+	stream(_stream).enqueue(veo_async_read_mem, false, {}, 0, dst, (veo_ptr)ptr, bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -345,18 +349,28 @@ void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, 
 
 	VEDA_ASSERT((bytes + VEDA_GET_OFFSET(dst)) <= size, VEDA_ERROR_OUT_OF_BOUNDS);
 
-	stream(_stream)->enqueue(veo_async_write_mem, false, {}, 0, (veo_ptr)ptr, src, bytes);
-}
-
-//------------------------------------------------------------------------------
-void Context::sync(void) {
-	for(int i = 0; i < m_streams.size(); i++)
-		sync(i);
+	stream(_stream).enqueue(veo_async_write_mem, false, {}, 0, (veo_ptr)ptr, src, bytes);
 }
 
 //------------------------------------------------------------------------------
 void Context::sync(VEDAstream _stream, const ReqId until) {
-	stream(_stream)->sync(until);
+	auto sync = _stream >= 0 ?
+		(std::function<void(void)>)[this, _stream, until] {
+			stream(_stream)->sync(until);
+		} :
+		(std::function<void(void)>)[this] {
+			for(int i = 0; i < m_streams.size(); i++)
+				stream(i)->sync();
+		};
+
+	if(auto data = profiler::data(device().vedaId(), _stream, false, VEDA_PROFILER_SYNC)) {
+		profiler::callbackIssue(data);
+		profiler::callbackBegin(data);
+		sync();
+		profiler::callbackEnd(data);
+	} else {
+		sync();
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -453,40 +467,44 @@ void Context::destroy(void) {
 //------------------------------------------------------------------------------
 // Memset
 //------------------------------------------------------------------------------
-#define VEDA_MEMSET()\
-	VEDA_MEMSET_KERNEL(VEDAdeviceptr, 1, VEDA_KERNEL_MEMSET_U8)\
-	VEDA_MEMSET_KERNEL(VEDAdeviceptr, 2, VEDA_KERNEL_MEMSET_U16)\
-	VEDA_MEMSET_KERNEL(VEDAdeviceptr, 4, VEDA_KERNEL_MEMSET_U32)\
-	VEDA_MEMSET_KERNEL(VEDAdeviceptr, 8, VEDA_KERNEL_MEMSET_U64)\
-	VEDA_MEMSET_KERNEL(VEDAhmemptr, 1, VEDA_KERNEL_RAW_MEMSET_U8)\
-	VEDA_MEMSET_KERNEL(VEDAhmemptr, 2, VEDA_KERNEL_RAW_MEMSET_U16)\
-	VEDA_MEMSET_KERNEL(VEDAhmemptr, 4, VEDA_KERNEL_RAW_MEMSET_U32)\
-	VEDA_MEMSET_KERNEL(VEDAhmemptr, 8, VEDA_KERNEL_RAW_MEMSET_U64)
-
 #define VEDA_MEMSET_KERNEL(d, t, k) \
 template<typename D, typename T>\
 inline typename std::enable_if<std::is_same<D, d>::value && (sizeof(T)) == t, Kernel>::type memset_kernel(void) {\
 	return k;\
 }
 
-VEDA_MEMSET()
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 1, VEDA_KERNEL_MEMSET_U8)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 2, VEDA_KERNEL_MEMSET_U16)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 4, VEDA_KERNEL_MEMSET_U32)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 8, VEDA_KERNEL_MEMSET_U64)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 1, VEDA_KERNEL_RAW_MEMSET_U8)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 2, VEDA_KERNEL_RAW_MEMSET_U16)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 4, VEDA_KERNEL_RAW_MEMSET_U32)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 8, VEDA_KERNEL_RAW_MEMSET_U64)
 
 #undef VEDA_MEMSET_KERNEL
 
+//------------------------------------------------------------------------------
 #define VEDA_MEMSET_KERNEL(d, t, k)\
 template<typename D, typename T>\
 inline typename std::enable_if<std::is_same<D, d>::value && (sizeof(T)) == t, Kernel>::type memset2d_kernel(void) {\
 	return k;\
 }
 
-VEDA_MEMSET()
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 1, VEDA_KERNEL_MEMSET_U8_2D)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 2, VEDA_KERNEL_MEMSET_U16_2D)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 4, VEDA_KERNEL_MEMSET_U32_2D)
+VEDA_MEMSET_KERNEL(VEDAdeviceptr, 8, VEDA_KERNEL_MEMSET_U64_2D)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 1, VEDA_KERNEL_RAW_MEMSET_U8_2D)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 2, VEDA_KERNEL_RAW_MEMSET_U16_2D)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 4, VEDA_KERNEL_RAW_MEMSET_U32_2D)
+VEDA_MEMSET_KERNEL(VEDAhmemptr, 8, VEDA_KERNEL_RAW_MEMSET_U64_2D)
 #undef VEDA_MEMSET_KERNEL
-#undef VEDA_MEMSET
 
 //------------------------------------------------------------------------------
 template<typename D, typename T>
 void Context::memset(D dst, const T value, const size_t cnt, VEDAstream _stream) {
-	stream(_stream)->enqueue(true, {}, kernel(memset_kernel<D, T>()), dst, value, cnt);
+	stream(_stream).enqueue(true, {}, kernel(memset_kernel<D, T>()), dst, value, cnt);
 }
 
 template void Context::memset<VEDAdeviceptr, uint8_t> (VEDAdeviceptr, const uint8_t,  const size_t, VEDAstream);
@@ -503,7 +521,7 @@ template void Context::memset<VEDAhmemptr,   uint64_t>(VEDAhmemptr,   const uint
 //------------------------------------------------------------------------------
 template<typename D>
 void Context::memset(D dst, const uint64_t x, const uint64_t y, const size_t cnt, VEDAstream _stream) {
-	stream(_stream)->enqueue(true, {}, kernel(std::is_same<D, VEDAdeviceptr>::value ? VEDA_KERNEL_MEMSET_U128 : VEDA_KERNEL_RAW_MEMSET_U128), dst, x, y, cnt);
+	stream(_stream).enqueue(true, {}, kernel(std::is_same<D, VEDAdeviceptr>::value ? VEDA_KERNEL_MEMSET_U128 : VEDA_KERNEL_RAW_MEMSET_U128), dst, x, y, cnt);
 }
 
 template void Context::memset<VEDAdeviceptr>(VEDAdeviceptr, const uint64_t, const uint64_t, const size_t, VEDAstream);
@@ -514,7 +532,7 @@ template void Context::memset<VEDAhmemptr>  (VEDAhmemptr,   const uint64_t, cons
 //------------------------------------------------------------------------------
 template<typename D, typename T>
 void Context::memset2D(D dst, const size_t pitch, const T value, const size_t w, const size_t h, VEDAstream _stream) {
-	stream(_stream)->enqueue(true, {}, kernel(memset2d_kernel<D, T>()), dst, pitch, value, w, h);
+	stream(_stream).enqueue(true, {}, kernel(memset2d_kernel<D, T>()), dst, pitch, value, w, h);
 }
 
 template void Context::memset2D<VEDAdeviceptr, uint8_t> (VEDAdeviceptr, const size_t, const uint8_t,  const size_t, const size_t, VEDAstream);
@@ -531,7 +549,7 @@ template void Context::memset2D<VEDAhmemptr,   uint64_t>(VEDAhmemptr,   const si
 //------------------------------------------------------------------------------
 template<typename D>
 void Context::memset2D(D dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h, VEDAstream _stream) {
-	stream(_stream)->enqueue(true, {}, kernel(std::is_same<D, VEDAdeviceptr>::value ? VEDA_KERNEL_MEMSET_U128_2D : VEDA_KERNEL_RAW_MEMSET_U128_2D), dst, pitch, x, y, w, h);
+	stream(_stream).enqueue(true, {}, kernel(std::is_same<D, VEDAdeviceptr>::value ? VEDA_KERNEL_MEMSET_U128_2D : VEDA_KERNEL_RAW_MEMSET_U128_2D), dst, pitch, x, y, w, h);
 }
 
 template void Context::memset2D<VEDAdeviceptr>(VEDAdeviceptr, const size_t, const uint64_t, const uint64_t, const size_t, const size_t, VEDAstream);

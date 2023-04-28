@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
 			CHECK(vedaLaunchKernel		(check_d32, 0, n32,          x32, cnt   ));
 
 			CHECK(vedaMemsetD32Async	(              n32, (float)x32, cnt, 0));
-			// TODO: CHECK(vedaLaunchKernel		(check_d32, 0, n32, (float)x32, cnt   ));
+			CHECK(vedaLaunchKernel		(check_d32, 0, n32, (float)x32, cnt   ));
 
 			CHECK(vedaMemsetD64Async	(              n64, x64, cnt, 0));
 			CHECK(vedaLaunchKernel		(check_d64, 0, n64, x64, cnt));

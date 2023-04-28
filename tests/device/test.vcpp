@@ -24,6 +24,10 @@ extern "C" uint64_t ve_test(int* vptr, VEDAdeviceptr newPtr, const size_t cnt) {
 	return 0x0123456789ABCDEFllu;
 }
 
+extern "C" void ve_empty(void) {
+	
+}
+
 struct complex {
 	float x, y;
 };

@@ -46,9 +46,9 @@ int main(int argc, char **argv) {
     CHECK(veraMalloc(&d_a, MAX_LEN*sizeof(int)));
     CHECK(veraMemset(d_a, 0x00, MAX_LEN));
     veraModule_t mod;
-    const char* modName = "libST_VEDA_02_ve.vso";
+    const char* modName = "./libST_VEDA_02_ve.vso";
     CHECK(veraModuleLoad(&mod, modName));
-    printf("vedaModuleLoad(%p, \"%s\")\n", mod, modName);
+    printf("veraModuleLoad(%p, \"%s\")\n", mod, modName);
 
     veraFunction_t func;
     const char* funcName = "testST_VEDA_02";

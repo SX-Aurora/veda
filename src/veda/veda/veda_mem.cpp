@@ -38,9 +38,7 @@ VEDAresult vedaMemSwapAsync(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream)
 		if(ctxA != ctxB)
 			return VEDA_ERROR_INVALID_CONTEXT;
 		L_TRACE("[ve:%i] vedaMemSwapAsync(%p, %p, %i)", ctxA->device().vedaId(), A, B, stream);
-		ctxA->memSwap(A, B, std::max(stream, 0));
-		if(stream < 0)
-			ctxA->sync();
+		ctxA->memSwap(A, B, stream);
 	)
 }
 
@@ -127,10 +125,8 @@ VEDAresult vedaMemAllocOverrideOnce(VEDAdeviceptr ptr) {
 VEDAresult vedaMemAllocAsync(VEDAdeviceptr* ptr, size_t size, VEDAstream stream) {
 	GUARDED(
 		auto ctx = veda::internal::contexts::current();
-		*ptr = ctx->memAlloc(size, std::max(stream, 0));
+		*ptr = ctx->memAlloc(size, stream);
 		L_TRACE("[ve:%i] vedaMemAllocAsync(%p, %llu, %i)", ctx->device().vedaId(), *ptr, size, stream);
-		if(stream < 0)
-			ctx->sync();
 	)
 }
 
@@ -199,12 +195,10 @@ VEDAresult vedaMemAllocPitch(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthIn
 VEDAresult vedaMemAllocPitchAsync(VEDAdeviceptr* dptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream) {
 	GUARDED(
 		auto ctx = veda::internal::contexts::current();
-		auto&& [ptr, pitch] = ctx->memAllocPitch(WidthInBytes, Height, ElementSizeByte, std::max(stream, 0));
+		auto&& [ptr, pitch] = ctx->memAllocPitch(WidthInBytes, Height, ElementSizeByte, stream);
 		*dptr	= ptr;
 		*pPitch	= pitch;
 		L_TRACE("[ve:%i] vedaMemAllocPitchAsync(%p, %llu, %llu, %llu, %u, %i)", ctx->device().vedaId(), *dptr, *pPitch, WidthInBytes, Height, ElementSizeByte, stream);
-		if(stream < 0)
-			ctx->sync();
 	)
 }
 
@@ -245,9 +239,7 @@ VEDAresult vedaMemFreeAsync(VEDAdeviceptr ptr, VEDAstream stream) {
 	GUARDED(
 		auto& ctx = veda::internal::devices::get(ptr).ctx();
 		L_TRACE("[ve:%i] vedaMemFreeAsync(%p, %i)", ctx.device().vedaId(), ptr, stream);
-		ctx.memFree(ptr, std::max(stream, 0));
-		if(stream < 0)
-			ctx.sync();
+		ctx.memFree(ptr, stream);
 	)
 }
 
@@ -401,34 +393,11 @@ VEDAresult vedaMemcpyDtoD(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size
 VEDAresult vedaMemcpyDtoDAsync(VEDAdeviceptr dst, VEDAdeviceptr src, size_t size, VEDAstream hStream) {
 	auto ddst = VEDA_GET_DEVICE(dst);
 	auto dsrc = VEDA_GET_DEVICE(src);
-
 	L_TRACE("[ve:%i>%i] vedaMemcpyDtoDAsync(%p, %p, %llu, %i)", dsrc, ddst, dst, src, size, hStream);
 
-	if(ddst == dsrc) {
-		GUARDED(
-			auto& ctx = veda::internal::devices::get(dst).ctx();
-			ctx.memcpyD2D(dst, src, size, std::max(hStream, 0));
-			if(hStream < 0)
-				ctx.sync();
-		)
-	} else {
-		GUARDED(
-			auto& sctx = veda::internal::devices::get(src).ctx();
-			auto& dctx = veda::internal::devices::get(dst).ctx();
-
-			void* host = malloc(size);
-			if(!host)
-				VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
-			
-			sctx.memcpyD2H(host, src, size, 0);
-			sctx.sync(0);
-
-			dctx.memcpyH2D(dst, host, size, 0);
-			dctx.sync(0);
-			
-			free(host);
-		)
-	}
+	GUARDED(
+		veda::internal::memcpy(dst, src, size, hStream);
+	)
 }
 
 //------------------------------------------------------------------------------
@@ -472,9 +441,7 @@ VEDAresult vedaMemcpyDtoHAsync(void* dstHost, VEDAdeviceptr srcDevice, size_t By
 	GUARDED(
 		auto& ctx = veda::internal::devices::get(srcDevice).ctx();
 		L_TRACE("[ve:%i] vedaMemcpyDtoHAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dstHost, srcDevice, ByteCount, hStream);
-		ctx.memcpyD2H(dstHost, srcDevice, ByteCount, std::max(hStream, 0));
-		if(hStream < 0)
-			ctx.sync();
+		ctx.memcpyD2H(dstHost, srcDevice, ByteCount, hStream);
 	)
 }
 
@@ -519,9 +486,7 @@ VEDAresult vedaMemcpyHtoDAsync(VEDAdeviceptr dstDevice, const void* srcHost, siz
 	GUARDED(
 		auto& ctx = veda::internal::devices::get(dstDevice).ctx();
 		L_TRACE("[ve:%i] vedaMemcpyHtoDAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dstDevice, srcHost, ByteCount, hStream);
-		ctx.memcpyH2D(dstDevice, srcHost, ByteCount, std::max(hStream, 0));
-		if(hStream < 0)
-			ctx.sync();
+		ctx.memcpyH2D(dstDevice, srcHost, ByteCount, hStream);
 	)
 }
 

@@ -73,6 +73,10 @@ static inline void vedaMemsetDX(T* dst, const T value, size_t cnt) {
 //------------------------------------------------------------------------------
 template<typename T>
 static inline void vedaMemsetD2DX(T* _ptr, const size_t pitch, const T value, const size_t w, const size_t h) {
+	/**
+	 * pitch / sizeof(T) is correct, because according to CUDA documentation:
+	 * "- Pitch in bytes of 2D device memory(Unused if height is 1)"
+	 */
 	veda_omp(h, [&](const size_t min, const size_t max) {
 		#pragma _NEC novector
 		for(size_t h = min; h < max; h++) {
@@ -198,7 +202,7 @@ VEDAresult vedaMemsetD2D64(void* _ptr, const size_t pitch, const uint64_t value,
 	veda_omp(h, [=](const size_t min, const size_t max) {
 		#pragma _NEC novector
 		for(size_t h = min; h < max; h++) {
-			auto ptr = ((uint64_t*)_ptr) + (h * pitch);
+			auto ptr = ((uint64_t*)_ptr) + (h * pitch / sizeof(uint64_t));
 			#pragma _NEC vector
 			for(size_t i = 0; i < w; i++)
 				ptr[i] = value;

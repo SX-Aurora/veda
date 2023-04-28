@@ -1,0 +1,15 @@
+#include <veda_device.h>
+#include <cstdio>
+#include <functional>
+
+#define CHECK(err) if(err != VEDA_SUCCESS) {\
+		const char* str = 0;\
+		vedaGetErrorName(err, &str);\
+		printf("%s @ %s (%i)\n", str, __FILE__, __LINE__);\
+	}
+
+extern "C" void test_HMEMPTR(VEDAhmemptr hptr) {
+        void *raw;
+        CHECK(vedaHMemPtr(&raw, hptr));
+        printf("HPTR: 0x%016llx, Raw: 0x%016llx\n", hptr, raw);
+}

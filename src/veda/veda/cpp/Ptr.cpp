@@ -47,7 +47,7 @@ template<> void Base<VEDA>::Deleter::operator()(const VEDA ptr) const {
 //------------------------------------------------------------------------------
 template<> void Base<HMEM>::Deleter::operator()(const HMEM ptr) const {
 	L_TRACE("veda::HMEM::free(%p)", ptr);
-	VEDA_THROW_IF(internal::profiler::wrap(veo_free_hmem, ptr) == 0 ? VEDA_SUCCESS : VEDA_ERROR_UNKNOWN_HMEM);
+	internal::hmemfree(ptr);
 }
 
 //------------------------------------------------------------------------------
@@ -73,21 +73,11 @@ template<> void Copy::copy_<void*, VEDA>(void* dst, VEDA src, const size_t size,
 }
 
 //------------------------------------------------------------------------------
-template<typename D, typename S>
-static void hmemcpy(D dst, S src, const size_t size) {
-	static_assert(std::is_same_v<D, HMEM> || std::is_same_v<D, void*>);
-	static_assert(std::is_same_v<S, HMEM> || std::is_same_v<S, void*>);
-
-	auto res = veda::internal::profiler::wrap(veo_hmemcpy, dst, src, size);
-	VEDA_THROW_IF(res == 0 ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE);
-}
-
-//------------------------------------------------------------------------------
 // HMEM <> HMEM
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<HMEM, HMEM>(HMEM dst, HMEM src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::d2d(%p > %p, %lli, %i)", src, dst, size, stream);
-	hmemcpy(dst, src, size);
+	internal::hmemcpy(dst, src, size);
 }
 
 //------------------------------------------------------------------------------
@@ -95,14 +85,14 @@ template<> void Copy::copy_<HMEM, HMEM>(HMEM dst, HMEM src, const size_t size, c
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<HMEM, void*>(HMEM dst, void* src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::h2d(%p, %p, %lli, %i)", dst, src, size, stream);
-	hmemcpy(dst, src, size);
+	internal::hmemcpy(dst, (HMEM)src, size);
 }
 
 
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<void*, HMEM>(void* dst, HMEM src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::d2h(%p, %p, %lli, %i)", dst, src, size, stream);
-	hmemcpy(dst, src, size);
+	internal::hmemcpy((HMEM)dst, src, size);
 }
 
 //------------------------------------------------------------------------------
@@ -111,14 +101,14 @@ template<> void Copy::copy_<void*, HMEM>(void* dst, HMEM src, const size_t size,
 template<> void Copy::copy_<HMEM, VEDA>(HMEM dst, VEDA src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::d2d(%p > %p, %lli, %i)", src, dst, size, stream);
 	auto info = internal::devices::get(src).ctx().getPtr(src);
-	hmemcpy(dst, info.ptr, size);
+	internal::hmemcpy(dst, (HMEM)info.ptr, size);
 }
 
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<VEDA, HMEM>(VEDA dst, HMEM src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::h2d(%p, %p, %lli, %i)", dst, src, size, stream);
 	auto info = internal::devices::get(dst).ctx().getPtr(dst);
-	hmemcpy(info.ptr, src, size);
+	internal::hmemcpy((HMEM)info.ptr, src, size);
 }
 
 //------------------------------------------------------------------------------

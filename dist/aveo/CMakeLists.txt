@@ -1,6 +1,6 @@
 SET(AVEO_REPO		"https://github.com/SX-Aurora/aveo")
 SET(AVEO_PATH		${CMAKE_CURRENT_BINARY_DIR}/aveo)
-SET(AVEO_GIT_TAG	"master")
+SET(AVEO_GIT_TAG	"ef/progress-thread-tuned")
 SET(AVEO_NFORT		"/opt/nec/ve/bin/nfort" CACHE STRING "NFORT Version used to compile AVEO")
 
 SET(libexecdir "@libexecdir@")

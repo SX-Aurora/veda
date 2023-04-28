@@ -221,9 +221,7 @@ int main(int argc, char** argv) {
 			printf("FT_VEDA_CONTEXT_12 failed\n");
 			exit(0);
 		}
-		CHECK(vedaCtxSetCurrent(NULL));
-		current=0;
-		if(vedaCtxGetCurrent(&current) != VEDA_ERROR_UNKNOWN_CONTEXT)
+		if(vedaCtxSetCurrent(NULL) != VEDA_ERROR_INVALID_CONTEXT)
 		{
 			printf("FT_VEDA_CONTEXT_12 failed\n");
 			exit(0);
@@ -279,7 +277,7 @@ int main(int argc, char** argv) {
 	}
 	printf("TEST CASE ID: FT_VEDA_CONTEXT_18\n");
 	VEDAmodule mod;
-	const char* modName = "libveda_test.vso";
+	const char* modName = "./libveda_test.vso";
 	CHECK(vedaModuleLoad(&mod, modName));
 	VEDAfunction func;
 	const char* funcName = "ve_hello_world";

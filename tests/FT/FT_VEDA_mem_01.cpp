@@ -20,6 +20,41 @@ void check(VEDAresult err, const char* file, const int line) {
 	}
 }
 
+template<typename T>
+void test_memset_2d(const T value, const size_t w, const size_t h) {
+	VEDAdeviceptr ptr;
+	CHECK(vedaMemAllocAsync(&ptr, w * h * sizeof(T), 0));
+	printf("\nTEST CASE ID: FT_VEDA_MEM_08/%llu\n", sizeof(T) * 8);
+
+	auto items = w * h;
+	auto bytes = items * sizeof(T);
+
+	auto host = new T[items];
+	memset(host, 0, bytes);
+
+	auto pitch_size = h * sizeof(T);
+	if constexpr (sizeof(T) == 1)	CHECK(vedaMemsetD2D8 (ptr, pitch_size, value, w, h));
+	if constexpr (sizeof(T) == 2)	CHECK(vedaMemsetD2D16(ptr, pitch_size, value, w, h));
+	if constexpr (sizeof(T) == 4)	CHECK(vedaMemsetD2D32(ptr, pitch_size, value, w, h));
+	if constexpr (sizeof(T) == 8)	CHECK(vedaMemsetD2D64(ptr, pitch_size, value, w, h));
+
+	CHECK(vedaMemcpyDtoH(host, ptr, bytes));
+
+	for(size_t H = 0; H < h; H++) {
+		for(size_t W = 0; W < w; W++) {
+			auto x = host[W + H * pitch_size / sizeof(T)];
+			printf("%llu ", int64_t(x));
+			if(x != value) {
+				printf("TEST CASE ID: FT_VEDA_MEM_08/%llu failed, expected %llX, but found %llX at index %llux%llu\n", sizeof(T) * 8, int64_t(value), int64_t(x), W, H);
+				exit(0);
+			}
+		}
+		printf("\n");
+	}
+	CHECK(vedaMemFreeAsync(ptr, 0));
+	delete[] host;
+}
+
 int main(int argc, char** argv) {
 	CHECK(vedaInit(0));
 
@@ -29,6 +64,7 @@ int main(int argc, char** argv) {
 	printf("\nTEST CASE ID: FT_VEDA_MEM_01\n");
     	VEDAcontext c1, c2;
 	CHECK(vedaCtxCreate(&c1, VEDA_CONTEXT_MODE_SCALAR, 0));
+	size_t allocated = 0;
 	int8_t *h8, *host_2d;
 	int32_t *h32;
 	int64_t *h64;
@@ -43,6 +79,7 @@ int main(int argc, char** argv) {
 
 	VEDAptr<char> ptr = 0;
 	CHECK(vedaMemAlloc(&ptr, size_1d));
+	allocated += size_1d;
 	if(ptr.size() != 64)
 	{
 		printf("TEST CASE ID: FT_VEDA_MEM_01 failed\n");
@@ -56,6 +93,7 @@ int main(int argc, char** argv) {
 	}
 	printf("\nTEST CASE ID: FT_VEDA_MEM_02\n");
 	CHECK(vedaMemAllocPitch(&ptr_2d, &pitch_size, sizeof(char)*w, h, sizeof(char)));
+	allocated += w*h*sizeof(char);
 	if(pitch_size != sizeof(char)*w)
 	{
 		printf("TEST CASE ID: FT_VEDA_MEM_02 failed\n");
@@ -141,73 +179,10 @@ int main(int argc, char** argv) {
 		}
 	}
 
-
-#if 1
-	host_2d = (int8_t*)malloc(sizeof(int64_t) *w*h);
-	{
-		printf("\nTEST CASE ID: FT_VEDA_MEM_08\n");
-		memset(host_2d, 0x00, sizeof(int8_t) *w*h);
-		CHECK(vedaMemsetD2D8(ptr_2d, pitch_size, (int8_t)0x12, w, h));
-		CHECK(vedaMemcpyDtoH(host_2d, ptr_2d, sizeof(int8_t) *w*h));
-		auto h8 = (int8_t*)host_2d;
-		for(size_t W = 0; W < w; W++) {
-			for(size_t H = 0; H < h; H++) {
-				if(h8[W + H * pitch_size] != 0x12) {
-					printf("TEST CASE ID: FT_VEDA_MEM_08 failed\n");
-					exit(0);
-				}
-			}
-		}
-	}
-	{
-		printf("\nTEST CASE ID: FT_VEDA_MEM_09\n");
-		memset(host_2d, 0x00, sizeof(int16_t) *w*h);
-		CHECK(vedaMemsetD2D16(ptr_2d, pitch_size, 0x1234, w, h));
-		CHECK(vedaMemcpyDtoH(host_2d,ptr_2d, sizeof(int16_t) *w*h));
-		auto h16 = (int16_t*)host_2d;
-		for(size_t W = 0; W < w; W++) {
-			for(size_t H = 0; H < h; H++) {
-				if(h16[W + H * pitch_size] != 0x1234) {
-					printf("TEST CASE ID: FT_VEDA_MEM_09 failed\n");
-					exit(0);
-				}
-			}
-		}
-	}
-	{
-		printf("\nTEST CASE ID: FT_VEDA_MEM_10\n");
-		memset(host_2d, 0x00, sizeof(int32_t) *w*h);
-		int32_t value = (int32_t)0x12345678u;
-		CHECK(vedaMemsetD2D16(ptr_2d, pitch_size, value, w, h));
-		CHECK(vedaMemcpyDtoH(host_2d,ptr_2d, sizeof(int32_t) *w*h));
-		auto h32 = (int32_t*)host_2d;
-		for(size_t W = 0; W < w; W++) {
-			for(size_t H = 0; H < h; H++) {
-				if(h32[W + H * pitch_size] != value) {
-					printf("TEST CASE ID: FT_VEDA_MEM_10 failed\n");
-					exit(0);
-				}
-			}
-		}
-	}
-	{
-		printf("\nTEST CASE ID: FT_VEDA_MEM_11\n");
-		memset(host_2d, 0x00, sizeof(int64_t) *w*h);
-		int64_t value = (int64_t)0x0123456789ABCDEFull;
-		CHECK(vedaMemsetD2D16(ptr_2d, pitch_size, value, w, h));
-		CHECK(vedaMemcpyDtoH(host_2d,ptr_2d, sizeof(int64_t) *w*h));
-		auto h64 = (int64_t*)host_2d;
-		for(size_t W = 0; W < w; W++) {
-			for(size_t H = 0; H < h; H++) {
-				if(h64[W + H * pitch_size] != value) {
-					printf("TEST CASE ID: FT_VEDA_MEM_11 failed\n");
-					exit(0);
-				}
-			}
-		}
-	}
-	free(host_2d);
-#endif
+	test_memset_2d((int8_t)0x12, w, h);
+	test_memset_2d((int16_t)0x1234, w, h);
+	test_memset_2d((int32_t)0x12345678, w, h);
+	test_memset_2d((int64_t)0x0123456789ABCDEFll, w, h);
 
 	printf("\nTEST CASE ID: FT_VEDA_MEM_12\n");
 	CHECK(vedaMemsetD8(ptr, 0x00, size_1d/sizeof(int8_t)));
@@ -226,7 +201,8 @@ int main(int argc, char** argv) {
 	printf("\nTEST CASE ID: FT_VEDA_MEM_13\n");
 	VEDAptr<char> ptr1 = 0;
 	CHECK(vedaMemAlloc(&ptr1, size_1d));
-	if(ptr1.size() != 64)
+	allocated += size_1d;
+	if(ptr1.size() != size_1d)
 	{
 		printf("TEST CASE ID: FT_VEDA_MEM_13 failed\n");
 		exit(0);
@@ -295,6 +271,7 @@ int main(int argc, char** argv) {
 		CHECK(vedaCtxCreate(&c2, VEDA_CONTEXT_MODE_SCALAR, 1));
 		VEDAptr<char> ptr2 = 0;
 		CHECK(vedaMemAlloc(&ptr2, size_1d));
+		allocated += ptr2.size();
 		if(ptr2.size() != 64)
 		{
 			printf("TEST CASE ID: FT_VEDA_MEM_14 failed\n");
@@ -312,6 +289,7 @@ int main(int argc, char** argv) {
 				exit(0);
 			}
 		}
+		allocated -= ptr2.size();
 		CHECK(vedaMemFree(ptr2));
 	}
 	printf("\nTEST CASE ID: FT_VEDA_MEM_15\n");
@@ -372,6 +350,8 @@ int main(int argc, char** argv) {
 	printf("\nTEST CASE ID: FT_VEDA_MEM_18\n");
 	VEDAptr<char> ptr_free = 0;
 	CHECK(vedaMemAlloc(&ptr_free, size_1d));
+	allocated += ptr_free.size();
+	allocated -= ptr_free.size();
 	CHECK(vedaMemFree(ptr_free));
 	size_t ptr_free_size=-1;
 	if(vedaMemSize(&ptr_free_size,ptr_free) != VEDA_ERROR_UNKNOWN_VPTR
@@ -428,12 +408,14 @@ int main(int argc, char** argv) {
         CHECK(vedaLaunchKernel(func, 0, ptr3, ptr22, 8));
 	ptr_size = 0;
 	vedaMemSize(&ptr_size,ptr22);
+	allocated += ptr_size;
 	if(ptr_size != 32)
 	{
 		printf("TEST CASE ID: FT_VEDA_MEM_22 %d failed\n", ptr_size);
 		exit(0);	
 	}
 	CHECK(vedaCtxSynchronize());
+	allocated -= ptr_size;
 	CHECK(vedaMemFree(ptr22));
 
 // DISABLED, vedaMemHMEMSize no longer exists because VEDA no longer tracks HMEM ptrs
@@ -462,9 +444,9 @@ int main(int argc, char** argv) {
 	printf("\nTEST CASE ID: FT_VEDA_MEM_26\n");
 	size_t free=0,total=0;
 	CHECK(vedaMemGetInfo(&free,&total));
-	if((total-free) != (64 + 64 + 128))
+	if((total-free) != allocated)
 	{
-		printf("TEST CASE ID: FT_VEDA_MEM_26 %d failed\n", (total-free));
+		printf("TEST CASE ID: FT_VEDA_MEM_26 failed. Reported %llu but expected %llu\n", (total-free), allocated);
 		exit(0);	
 	}
 	

@@ -28,6 +28,7 @@ typedef uint64_t veo_lib;
 #include <functional>
 #include <dlfcn.h>
 #include <memory>
+#include <future>
 
 #define L_MODULE "VEDA-VH"
 #include <tungl/c.h>
@@ -89,6 +90,7 @@ struct return_type<R (*)(A...)> {
 #include "devices/devices.h"
 #include "profiler/profiler.h"
 #include "Stream.h"
+#include "helper.h"
 
 namespace veda {
 	namespace internal {

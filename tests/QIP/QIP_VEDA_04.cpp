@@ -27,7 +27,7 @@ void run(VEDAcontext_mode omp, VEDAdevice device) {
 	printf("vedaCtxCreate(%p, %i, %i)\n", ctx, omp, device);
 
 	VEDAmodule mod;
-	const char* modName = "libveda_sm_device.vso";
+	const char* modName = "./libveda_sm_device.vso";
 	CHECK(vedaModuleLoad(&mod, modName));
 	printf("vedaModuleLoad(%p, \"%s\")\n", mod, modName);
 
@@ -68,7 +68,7 @@ void run(VEDAcontext_mode omp, VEDAdevice device) {
 	CHECK(vedaCtxDestroy(ctx));
 	printf("vedaCtxDestroy\n");
 	ret=vedaCtxDestroy(ctx);
-        if(ret == VEDA_ERROR_UNKNOWN_CONTEXT)
+        if(ret == VEDA_ERROR_CONTEXT_IS_DESTROYED)
                 printf("QIP_VEDA_05 PASSED\n");
 	else{
                 printf("QIP_VEDA_05 FAILED\n");

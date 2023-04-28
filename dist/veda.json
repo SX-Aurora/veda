@@ -7,6 +7,7 @@
 	"author":		"__GIT__",
 	"author-email":		"__GIT__",
 	"license":		"3 BSD-License",
+	"license-file": 	"veda/LICENSE",
 	"requires-python":	">=3.6",
 	"download-url":		"https://github.com/sx-aurora/veda/tags",
 	"classifier": [
@@ -17,7 +18,7 @@
 	"payload": [
 		"veda/bin/veda-smi?",
 		"veda/include/vera/*.h?",
-		"veda/*LICENSE",
+		"veda/*_LICENSE",
 		"veda/cmake/*.cmake",
 		"veda/cmake/nec/*.cmake",
 		"veda/cmake/nec/*.cmake.in",

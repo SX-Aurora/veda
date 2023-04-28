@@ -40,14 +40,14 @@ int main(int argc, char** argv) {
 	    printf("FAILED\n");
 
 	printf("\nTEST CASE ID: FT_VEDA_MODULE_06:");
-	ret = vedaModuleLoad(&mod, "NotAvailable.vso");
+	ret = vedaModuleLoad(&mod, "./NotAvailable.vso");
 	if(ret == VEDA_ERROR_MODULE_NOT_FOUND)
             printf("PASSED\n");
 	else
 	    printf("FAILED\n");
 
 	printf("\nTEST CASE ID: FT_VEDA_MODULE_01:");
-	CHECK(vedaModuleLoad(&mod, "libveda_module_device.vso"));
+	CHECK(vedaModuleLoad(&mod, "./libveda_module_device.vso"));
 	printf("PASSED\n");
 
 	VEDAfunction func;
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 
 	printf("\nTEST CASE ID: FT_VEDA_MODULE_09:");
 	ret = vedaModuleGetFunction(&func,mod , NULL);
-	if(ret == VEDA_ERROR_INVALID_VALUE)
+	if(ret == VEDA_ERROR_INVALID_ARGS)
             printf("PASSED\n");
 	else
 	    printf("FAILED\n");
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 	CHECK(vedaModuleUnload(mod));
 	printf("PASSED\n");
 	printf("\nTEST CASE ID: FT_VEDA_MODULE_10:");
-	CHECK(vedaModuleLoad(&mod, "libveda_module_device.vso"));
+	CHECK(vedaModuleLoad(&mod, "./libveda_module_device.vso"));
 	CHECK(vedaModuleGetFunction(&func,mod , "hello_world2"));
 	CHECK(vedaLaunchKernelEx(func, 0, args, 1, 0));
 	printf("PASSED\n");

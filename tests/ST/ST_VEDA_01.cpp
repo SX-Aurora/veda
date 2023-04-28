@@ -26,9 +26,9 @@ int main(int argc, char** argv) {
 	int dev=0;
 
 	veraModule_t mod;
-	const char* modName = "libST_VEDA_01_ve.vso";
+	const char* modName = "./libST_VEDA_01_ve.vso";
 	CHECK(veraModuleLoad(&mod, modName));
-  		printf("vedaModuleLoad(%p, \"%s\")\n", mod, modName);
+  		printf("veraModuleLoad(%p, \"%s\")\n", mod, modName);
 
 	veraFunction_t func;
 	const char* funcName = "testST_VEDA_01";

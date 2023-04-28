@@ -1,6 +1,6 @@
 #define __cplusplus
 PACKAGE := veoffload-veda
-VERSION = $(shell grep "PROJECT" ../CMakeLists.txt | sed "s/[^0-9\.]\+//g")
+VERSION = $(shell cat ../src/VERSION)
 TOP_SRCDIR = $(abspath ../ ./)
 
 edit = sed -e "s,@PACKAGE@,$(PACKAGE),g" \

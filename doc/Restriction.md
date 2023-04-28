@@ -11,3 +11,4 @@
  - VEDA library can instantiate only single VEDA context per VEDA device.
  - Maximum 4,194,204 memory allocation can be performed at a time per VEDA device.
  - Maximum 64 MB of data transfer can be done to VEDA device function.
+ - Shared objects to be loaded with VEDA must be linked with libnc++.so.

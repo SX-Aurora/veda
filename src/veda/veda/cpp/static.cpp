@@ -5,7 +5,7 @@ namespace veda {
 	namespace cpp {
 //------------------------------------------------------------------------------
 std::string_view driverVersion	(void) { return veo_version_string();	}
-std::string_view version	(void) { return VEDA_STR(VEDA_VERSION);	}
+std::string_view version	(void) { return VEDA_VERSION;		}
 
 //------------------------------------------------------------------------------
 void exit(void) {
@@ -13,7 +13,6 @@ void exit(void) {
 	internal::setInitialized(false);
 	internal::devices::shutdown();
 	internal::contexts::shutdown();
-	internal::profiler::shutdown();
 }
 
 //------------------------------------------------------------------------------

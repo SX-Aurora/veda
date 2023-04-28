@@ -16,7 +16,6 @@
 #define VGEN_C		
 #include "veda_memset.tpl.h"
 
-
 #define VGEN_B		D64
 #define VGEN_T		uint64_t
 #define VGEN_L		"%llu"

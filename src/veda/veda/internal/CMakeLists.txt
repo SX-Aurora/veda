@@ -4,6 +4,7 @@ LIST(APPEND VEDA_SRC
 	${CMAKE_CURRENT_LIST_DIR}/Module.cpp
 	${CMAKE_CURRENT_LIST_DIR}/Semaphore.cpp
 	${CMAKE_CURRENT_LIST_DIR}/Stream.cpp
+	${CMAKE_CURRENT_LIST_DIR}/helper.cpp
 	${CMAKE_CURRENT_LIST_DIR}/veda.cpp
 )
 

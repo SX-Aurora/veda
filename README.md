@@ -437,6 +437,7 @@ types to get access to further information.
 	1. `kernel`: name of the kernel that gets called
 1. `type == VEDA_PROFILER_LAUNCH_HOST`: `VEDAprofiler_vedaLaunchHostFunc`
 	1. `func`: function pointer that gets called
+1. `type == VEDA_PROFILER_SYNC`: `VEDAprofiler_data`
 
 ---
 

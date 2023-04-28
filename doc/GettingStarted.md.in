@@ -4,7 +4,7 @@ Runtime API-like APIs for hybrid programming. It is based on AVEO.
 Most of the functionality is identical to the CUDA Driver API and CUDA 
 Runtime API.
 
-## Introduction
+@section intro Introduction
 VEDA is a parallel computing platform and hybrid programming model. 
 It enables Vector engine (VE) for general purpose computing in a 
 simple and elegant manner. VEDA API's  are inspired by the widely 
@@ -15,7 +15,7 @@ design principles and maps these onto the execution model of AVEO.
 Using VEDA, a programmer can execute code on VE and can control the 
 execution from VH main program.
 
-## Installation
+@section inst Installation
 
 ### Prerequisite
 
@@ -23,7 +23,7 @@ VEDA API are build upon AVEO, Hence as a prerequisite first please install AVEO.
 @n For veda program execution, veoffload-aveorun package is required.
 @n For veda program development, veoffload-aveo and veoffload-aveo-devel packages are required.
 @n For installation of aveo packages refer link
-https://www.hpc.nec/documents/veos/en/aveo/md_GettingStarted.html
+https://sxauroratsubasa.sakura.ne.jp/documents/veos/en/aveo/md_GettingStarted.html
 
 ### Installing runtime package
 To run programs, please install veoffload-veda and the runtime packages of the compiler (2.2.2 or later).
@@ -43,14 +43,16 @@ To install the packages to develop programs by yum, execute the following comman
 # yum install @PACKAGE@-devel
 ~~~
 
-## Hello World
+libveda.vso is installed and it is linked with the libnc++.so. Shared objects to be loaded with VEDA must be linked with libnc++.so. Please confirm /opt/nec/ve/ncc/<version>/lib/libnc++.so is installed when you build shared objects using nc++. <version> is the version of nc++ you are using to build your shared objects.
+
+@section hello Hello World
 First, let's try a "Hello, World!" program on VE.
 
-### The Required Number of HugePages for VEDA
+### The required number of hugepages for VEDA
 VEDA requires HugePages for data transfer.
 The required number of HugePages 32 per VEDA thread context.
 
-### VE Code
+### VE code
 Code to run on VE is shown below. Standard C functions are available,
 hence, you can use printf(3).
 
@@ -66,7 +68,7 @@ Save the above code as [libvehello.vc](examples_2VE_2libvehello_8vc-example.html
 A function on VE called via VEDA needs to return a 64-bit unsigned integer.
 A function on VE called via VEDA can have arguments as mentioned later.
 
-### Compile VE Code
+### Compile VE code5
 VEDA supports a function in a shared library.
 
 To execute a function on VE using VEDA, compile and link a source file
@@ -78,7 +80,7 @@ To build a shared library with the functions for dynamic loading, execute as fol
 /opt/nec/ve/bin/ncc -shared -o libvehello.vso libvehello.o
 ~~~
 
-### VH Main Program
+### VH main program
 Main routine on VH side to run VE program is shown here.
 
 A program using VEDA needs to include "veda.h" and "vera.h" for VERA.
@@ -91,44 +93,45 @@ The example VH program to call a VE function in a dynamic library with VEDA:
 #include <stdlib.h>
 #include <veda.h>
 
-  1 int main(int argc, char** argv) {
-  2         printf("Hello World from Host!\n");
-  3
-  4         vedaInit(0);
-  5
-  6         VEDAcontext ctx;
-  7         vedaDevicePrimaryCtxRetain(&ctx, 0);
-  8         vedaCtxPushCurrent(ctx);
-  9
- 10         VEDAmodule mod;
- 11         vedaModuleLoad(&mod, "libvehello.vso");
- 12
- 13         VEDAfunction func;
- 14         vedaModuleGetFunction(&func, mod, "hello_world");
- 15
- 16         VEDAargs args;
- 17         vedaArgsCreate(&args);
- 18         vedaLaunchKernelEx(func, 0, args, 1);
- 19
- 20         vedaCtxSynchronize();
- 21         vedaExit();
- 22
- 23         return 0;
- 24 }
+int main(int argc, char** argv) {
+        printf("Hello World from Host!\n");
+
+        vedaInit(0);
+
+        VEDAcontext ctx;
+        vedaDevicePrimaryCtxRetain(&ctx, 0);
+        vedaCtxPushCurrent(ctx);
+
+        VEDAmodule mod;
+        vedaModuleLoad(&mod, "./libvehello.vso");
+
+        VEDAfunction func;
+        vedaModuleGetFunction(&func, mod, "hello_world");
+
+        VEDAargs args;
+        vedaArgsCreate(&args);
+        vedaLaunchKernelEx(func, 0, args, 1, NULL);
+
+        vedaCtxSynchronize();
+        vedaExit();
+
+        return 0;
+}
 
 ~~~
 Save the above code as [hello.c](examples_2VH_2hello_8c-example.html)
 
-1. At line #4 vedaInit() is called to initialized VE devices, the initialized VE devices may be termed as VEDA device.
-2. At the line#6-8  VE process is created on the VEDA device and the handle to the VE process is returned to the VH process. The returned handle to the VE process is termed as the VEDA context in the VEDA hybrid program. vedaDevicePrimaryCtxRetain() retain the primary Context on the VEDA device and vedaCtxPushCurrent() pushes a context on the current CPU thread.
-3. Internally VEDA context instantiate the VE threads on the VE device to execute the VE functions. These VE threads are termed as VEDA Streaming Multiprocessor(SM) throughout this mechanism.
-4. At the line #11 VE compiled device code(libvehello.vc) is loaded into the VE memory. vedaModuleLoad() loads a VE shared library. 
-5. At line#14 VE device address of the VE device function “hello_world” retrieved by calling vedaModuleGetFunction() function. VE device function is termed as VEDA device function in VEDA hybrid program. Although VEDA device function and VEDA kernel function can be used interchangeably and logically both the term refers to the same entity VE function. But VEDA kernel functions are different in terms as they are the preloaded VE device functions at the time of context creation. On the other hand, VEDA device function are loaded by the VH program.
-6. At line#18 By calling vedaLaunchKernelEx(), VEDA hybrid program submits the request for the execution of the VEDA device function to VEDA streaming Multiprocessor(SM). It may be termed as launching of the VEDA device function. VEDA arguement would be destroyed after VEDA device function is called as fourth argument is set to 1.
-7. At line#20 Execution of the VH programs is blocked by calling vedaCtxSynchronize() since the execution of the “hello_world” program is finished, this is termed as VEDA streaming multiprocessor(SM) synchronization.
-8. At line #21 vedaExit() releases the VEDA driver API library gracefully and perform the proper cleanup of the VEDA driver library.
+1. API vedaInit() is called to initialized VE devices, the initialized VE devices may be termed as VEDA device.
+2. VE process is created on the VEDA device and the handle to the VE process is returned to the VH process. The returned handle to the VE process is termed as the VEDA context in the VEDA hybrid program. 
+3. vedaDevicePrimaryCtxRetain() retain the primary Context on the VEDA device or create a new context incase of no context and vedaCtxPushCurrent() pushes a context on the current CPU thread.
+4. Internally VEDA context instantiate the VE threads on the VE device to execute the VE functions. These VE threads are termed as VEDA Streaming Multiprocessor(SM) throughout this mechanism.
+5. VE compiled device code(libvehello.vc) is loaded into the VE memory by calling vedaModuleLoad(), which loads a VE shared library.
+6. VE device address of the VE device function “hello_world” is retrieved by calling vedaModuleGetFunction() function. Note VE device function is termed as VEDA device function in VEDA hybrid program.
+7. By calling vedaLaunchKernelEx(), VEDA hybrid program submits the request for the execution of the VEDA device function to VEDA streaming Multiprocessor(SM). It may be termed as launching of the VEDA device function. VEDA arguement would be destroyed after VEDA device function is called as fourth argument is set to 1.
+8. Execution of the VH programs is blocked by calling vedaCtxSynchronize() since the execution of the “hello_world” program is finished, this is termed as VEDA streaming multiprocessor(SM) synchronization.
+9. API vedaExit() releases the VEDA driver API library gracefully and perform the proper cleanup of the VEDA driver library.
 
-### Compile VH Main Program
+### Compile VH main program
 Compile source code on VH side as shown below.
 
 ~~~
@@ -147,7 +150,7 @@ $ ./hello
 Hello, world!
 ~~~
 
-## Various Arguments for a VE function
+@section args Various arguments for a VE function
 You can pass one or more arguments to a function on VE.
 To specify arguments, VEDA arguments object is used.
 A VEDA argument object is created by vedaArgsCreate().
@@ -186,7 +189,7 @@ vedaArgsCreate(&args);
 vedaArgsSetI32(args, 0, 1);
 vedaArgsSetF64(args, 1, 2.0);
 VEDAmodule mod;
-vedaModuleLoad(&mod, "libvehello.vso"));
+vedaModuleLoad(&mod, "./libvehello.vso"));
 VEDAfunction func1;
 vedaModuleGetFunction(&func1, mod, "func");
 vedaLaunchKernel(func1, 0, args);
@@ -211,12 +214,12 @@ The fourth argument specifies the argument is for input and/or output.
  - VEDA_ARGS_INTENT_INOUT: the argument is for both input and output;
   data is copied into and out from a VE stack area.
 
-##How to call the function written by Fortran
+@section fort Fortran program
 
-###VE Code (Fortran)
+### VE code
 Code written by Fortran to run on VE is shown below.
 
-~~~c
+~~~fortran
 SUBROUTINE SUB1(x, ret)
   implicit none
   INTEGER, INTENT(IN) :: x
@@ -226,7 +229,7 @@ END SUBROUTINE SUB1
 ~~~
 Save the above code as [libvefortran.vf90](examples_2VE_2libvefortran_8vf90-example.html).
 
-###Compile VE Code (Fortran)
+### Compile VE code
 
 To build a shared library with the functions for dynamic loading, execute as follows:
 ~~~
@@ -234,7 +237,7 @@ $/opt/nec/ve/bin/nfort -x f95 -I/opt/nec/ve/share/veda/include -c -o libvefortra
 $/opt/nec/ve/bin/nfort  -shared -fpic -o libvefortran.vso libvefortran.o
 ~~~
 
-### VH Main Program (Fortran)
+### VH main program
 Main routine on VH side to run VE program written by Fortran is shown here.
 
 The example VH program to call a VE Fortran function in a dynamically linked executable:
@@ -243,60 +246,62 @@ The example VH program to call a VE Fortran function in a dynamically linked exe
 #include <stdlib.h>
 #include <veda.h>
 
-  1 #define VEDA(err) check(err, __FILE__, __LINE__)
-  2
-  3 void check(VEDAresult err, const char* file, const int line) {
-  4         if(err != VEDA_SUCCESS) {
-  5                 const char *name, *str;
-  6                 vedaGetErrorName        (err, &name);
-  7                 vedaGetErrorString      (err, &str);
-  8                 printf("%s: %s @ %s:%i\n", name, str, file, line);
-  9                 exit(1);
- 10         }
- 11 }
- 12
- 13 int main(int argc, char** argv) {
- 14         printf("Hello World from Host!\n");
- 15
- 16         VEDA(vedaInit(0));
- 17
- 18         VEDAcontext ctx;
- 19         VEDA(vedaDevicePrimaryCtxRetain(&ctx, 0));
- 20         VEDA(vedaCtxPushCurrent(ctx));
- 21
- 22         VEDAmodule mod;
- 23         VEDA(vedaModuleLoad(&mod, "libvefortran.vso"));
- 24
- 25         VEDAfunction func;
- 26         VEDA(vedaModuleGetFunction(&func, mod, "sub1_"));
- 27
- 28         VEDAargs args;
- 29         VEDA(vedaArgsCreate(&args));
- 30         size_t x = 42;
- 31         size_t y = 1;
- 32         VEDA(vedaArgsSetStack(args, 0, &x, VEDA_ARGS_INTENT_IN, sizeof(x)));
- 33         VEDA(vedaArgsSetStack(args, 1, &y, VEDA_ARGS_INTENT_OUT, sizeof(y)));
- 34         VEDA(vedaLaunchKernel(func, 0, args));
- 35         VEDA(vedaCtxSynchronize());
- 36         printf("SUB1 return %lu\n",y);
- 37         VEDA(vedaExit());
- 38
- 39         return 0;
- 40 }
+#define VEDA(err) check(err, __FILE__, __LINE__)
+
+void check(VEDAresult err, const char* file, const int line) {
+        if(err != VEDA_SUCCESS) {
+                const char *name, *str;
+                vedaGetErrorName        (err, &name);
+                vedaGetErrorString      (err, &str);
+                printf("%s: %s @ %s:%i\n", name, str, file, line);
+                exit(1);
+        }
+}
+
+int main(int argc, char** argv) {
+        printf("Hello World from Host!\n");
+
+        VEDA(vedaInit(0));
+
+        VEDAcontext ctx;
+        VEDA(vedaDevicePrimaryCtxRetain(&ctx, 0));
+        VEDA(vedaCtxPushCurrent(ctx));
+
+        VEDAmodule mod;
+        VEDA(vedaModuleLoad(&mod, "./libvefortran.vso"));
+
+        VEDAfunction func;
+        VEDA(vedaModuleGetFunction(&func, mod, "sub1_"));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        size_t x = 42;
+        size_t y = 1;
+        VEDA(vedaArgsSetStack(args, 0, &x, VEDA_ARGS_INTENT_IN, sizeof(x)));
+        VEDA(vedaArgsSetStack(args, 1, &y, VEDA_ARGS_INTENT_OUT, sizeof(y)));
+        VEDA(vedaLaunchKernel(func, 0, args));
+        VEDA(vedaArgsDestroy(args));
+        VEDA(vedaCtxSynchronize());
+        printf("SUB1 return %lu\n",y);
+        VEDA(vedaExit());
+
+        return 0;
+}
 ~~~
 Save the above code as [fortran.c](examples_2VH_2fortran_8c-example.html).
 
-1. At line #16 vedaInit() is called to initialized VE devices, the initialized VE devices may be termed as VEDA device.
-2. At the line#18-20 VE process is created on the VEDA device and the handle to the VE process is returned to the VH process. The returned handle to the VE process is termed as the VEDA context in the VEDA hybrid program. vedaDevicePrimaryCtxRetain() retain the primary Context on the VEDA device and vedaCtxPushCurrent() pushes a context on the current CPU thread.
-3. Internally VEDA context instantiate the VE threads on the VE device to execute the VE functions. These VE threads are termed as VEDA Streaming Multiprocessor(SM) throughout this mechanism.
-4. At the line #23 VE compiled device code(libvefortran.vf90) is loaded into the VE memory. vedaModuleLoad() loads a VE shared library. 
-5. At line#26 VE device address of the VE device function “sub1_” retrieved by calling vedaModuleGetFunction() function. VE device function is termed as VEDA device function in VEDA hybrid program. Although VEDA device function and VEDA kernel function can be used interchangeably and logically both the term refers to the same entity VE function. But VEDA kernel functions are different in terms as they are the preloaded VE device functions at the time of context creation. On the other hand, VEDA device function are loaded by the VH program.
-6. At line#29 Instantiate the VEDA function argument handler by calling vedaArgsCreate().
-7. At line#32 vedaArgsSetStack() initialize the VEDA function argument to point the buffer on stack. Where x is treated as the Input buffer to the VEDA device function.
-8. At line#33 vedaArgsSetStack() initialize the VEDA function argument to point the buffer on stack. Where y is treated as the Output buffer, some output is expected.
-9. At line#34 By calling vedaLaunchKernel(), VEDA hybrid program submits the request for the execution of the VEDA device function to VEDA streaming Multiprocessor(SM). It may be termed as launching of the VEDA device function.
-10. At line#35 Execution of the VH programs is blocked by calling vedaCtxSynchronize() since the execution of the “sub1_” program is finished, this is termed as VEDA streaming multiprocessor(SM) synchronization.
-11. At line #37 vedaExit() releases the VEDA driver API library gracefully and perform the proper clean-up of the VEDA driver library.
+1. API vedaInit() is called to initialized VE devices, the initialized VE devices may be termed as VEDA device.
+2. VE process is created on the VEDA device and the handle to the VE process is returned to the VH process. The returned handle to the VE process is termed as the VEDA context in the VEDA hybrid program. 
+3. vedaDevicePrimaryCtxRetain() retain the primary Context on the VEDA device or create a new context incase of no context and vedaCtxPushCurrent() pushes a context on the current CPU thread.
+4. Internally VEDA context instantiate the VE threads on the VE device to execute the VE functions. These VE threads are termed as VEDA Streaming Multiprocessor(SM) throughout this mechanism.
+5. VE compiled device code(libvefortran.vf90) is loaded into the VE memory by calling vedaModuleLoad(), which loads a VE shared library.
+6. VE device address of the VE device function “sub1_” is retrieved by calling vedaModuleGetFunction() function. Note VE device function is termed as VEDA device function in VEDA hybrid program.
+7. API vedaArgsCreate() instantiate the VEDA function argument handler.
+8. API vedaArgsSetStack() initialize the VEDA function argument to point the buffer on stack. Where x is treated as the Input buffer to the VEDA device function.
+9. API vedaArgsSetStack() initialize the VEDA function argument to point the buffer on stack. Where y is treated as the Output buffer, some output is expected.
+10. By calling vedaLaunchKernel(), VEDA hybrid program submits the request for the execution of the VEDA device function to VEDA streaming Multiprocessor(SM). It may be termed as launching of the VEDA device function.
+11. Execution of the VH programs is blocked by calling vedaCtxSynchronize() since the execution of the “sub1_” program is finished, this is termed as VEDA streaming multiprocessor(SM) synchronization.
+12. API vedaExit() releases the VEDA driver API library gracefully and perform the proper clean-up of the VEDA driver library.
 
 For passing arguments to VE Fortran function, please use vedaArgsSetStack() to pass arguments as stack arguments.
 However, for passing arguments to arguments with VALUE attribute in Fortran function, please pass arguments by value in the same way as VE C function.
@@ -308,7 +313,7 @@ Taking libvefortran.vf90 and fortran.c as an example, pass "sub1_" as an argumen
 
 The method of compiling and running VH main program are same as C program.
 
-### Compile VH Main Program (Fortran)
+### Compile VH main program
 Compile source code on VH side as shown below.
 This is the same as the compilation method described above.
 
@@ -325,9 +330,10 @@ $ ./fortran
 SUB1 return 43
 ~~~
 
-##How to parallelize code using OpenMP
+@section omp Parallelized program using OpenMP
 
-###VE code using OpenMP in C
+## OpenMP in C
+### VE code using OpenMP in C
 
 The following is an example of VE code using OpenMP written in C.
 
@@ -353,7 +359,7 @@ int omp_hello(void)
 ~~~
 Save the above code in [libomphello.vc](examples_2VE_2libomphello_8vc-example.html).
 
-###How to build VE code
+### How to build VE code
 To use OpenMP parallelization, specify -fopenmp at compilation and linking.
 
 Here is an example of building VE code written in C.
@@ -364,7 +370,7 @@ $/opt/nec/ve/bin/ncc -x c -fpic -I/opt/nec/ve/share/veda/include -o libomphello.
 $/opt/nec/ve/bin/ncc -shared -o libomphello.vso libomphello.o
 ~~~
 
-#### Compile VH Main Program (Omp)
+### Compile VH main program
 Example [omphello.c](examples_2VH_2omphello_8c-example.html) which calls the above omp VE code,
 
 Compile source code on VH side as shown below.
@@ -388,7 +394,8 @@ Hello, World! from thread = 6
 Number of threads = 8
 ~~~
 
-###VE code using OpenMP in fortran
+## OpenMP in Fortran
+### VE code using OpenMP in Fortran
 
 The following shows the example written in Fortran.
 
@@ -409,19 +416,19 @@ END FUNCTION OMP_HELLO
 ~~~
 Save the above code in [libompfortran.vf90](examples_2VE_2libompfortran_8vf90-example.html).
 
-###How to build VE code
+### How to build VE code
 To use OpenMP parallelization, specify -fopenmp at compilation and linking.
 
 Here is an example of building VE code written in Fortran.
 
 To build a shared library, execute as follows:
 ~~~
-$/opt/nec/ve/bin/nfort -x f95 -fpic -I/opt/nec/ve/share/veda/include -o libompfortran.o -c libompfortran.v95 -fopenmp
+$/opt/nec/ve/bin/nfort -x f95 -fpic -I/opt/nec/ve/share/veda/include -o libompfortran.o -c libompfortran.vf90 -fopenmp
 $/opt/nec/ve/bin/nfort -shared -o libompfortran.vso libompfortran.o
 ~~~
 To build code written in Fortran, change the compiler to nfort.
 
-#### Compile VH Main Program (Omp)
+### Compile VH main program
 Example [omphellofortran.c](examples_2VH_2omphellofortran_8c-example.html) which calls the above omp VE code,
 
 Compile source code on VH side as shown below.
@@ -445,8 +452,264 @@ Hello, World! from thread = 7
 Hello, World! from thread = 6
 Number of threads = 8
 ~~~
-##Alternate way of building VEDA
-### VEDA Hybrid Offloading:
+
+@section mpi MPI program with VEDA
+
+A MPI program on VH side can call VEDA API to call VE device functions.
+
+### VE code
+Code to run on VE is shown below.
+
+~~~c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+
+uint64_t
+init( int *p, int v, int n )
+{
+    printf( "VE init : %d %d %p\n", v, n, p );
+    fflush( stdout );
+    int *ve;
+    vedaHMemPtr(&ve, p);
+
+    int i;
+    for ( i = 0; i < n; i++ ) ve[i] = v;
+
+    return (uint64_t)ve;
+}
+
+uint64_t
+check( int *p, int v, int n )
+{
+    printf( "VE init : %d %d %p\n", v, n, p );
+    fflush( stdout );
+    int *ve;
+    vedaHMemPtr(&ve, p);
+
+    int i;
+    for ( i = 0; i < n; i++ ) {
+       if ( ve[i] != v ) break;
+    }
+
+    return i < n ? ~0ULL : 0ULL;
+}
+
+~~~
+Save the above code as [libmpive.vc](examples_2VE_2libmpive_8vc-example.html).
+
+### Compile VE code
+To execute a function on VE using VEDA, compile and link a source file
+into a binary for VE.
+To build a shared library with the functions for dynamic loading, execute as follows:
+~~~
+/opt/nec/ve/bin/ncc -x c -fpic -I/opt/nec/ve/share/veda/include -o libmpive.o -c libmpive.vc
+/opt/nec/ve/bin/ncc -shared -o libmpive.vso libmpive.o
+~~~
+
+### VH MPI program
+
+Main routine on VH side to run VE program written by C is shown here.
+The example VH program to call a VE C function in a dynamically linked executable:
+~~~c
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
+#include <veda.h>
+#define CHECK(err) check(err, __FILE__, __LINE__)
+#define MAX_LEN (1024*1024)
+void check(VEDAresult err, const char* file, const int line) {
+        if(err != VEDA_SUCCESS) {
+                const char* name = 0;
+                vedaGetErrorName(err, &name);
+                printf("Error: %i %s @ %s (%i)\n", err, name, file, line);
+                assert(0);
+                exit(1);
+        }
+}
+
+int
+main()
+{
+    int myrank;
+    int nprocs;
+    int nelems = MAX_LEN;
+    int dev,cnt;
+    uint64_t rc;
+    uint64_t id;
+
+    MPI_Init( 0, 0 );
+    MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
+    MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
+
+    printf( "myrank = %d, nprocs = %d, started\n", myrank, nprocs );
+    fflush( stdout );
+
+    CHECK(vedaInit(0));
+    VEDAcontext cont;
+    CHECK(vedaDevicePrimaryCtxRetain(&cont, 0));
+    CHECK(vedaCtxPushCurrent(cont));
+    CHECK(vedaCtxStreamCnt(&cnt));
+
+    printf( "myrank = %d, nprocs = %d, context = %16p, created\n", myrank, nprocs, cont );
+    VEDAmodule mod;
+    const char* modName = "./libmpive.vso";
+    CHECK(vedaModuleLoad(&mod, modName));
+
+    //
+    // Allocate VE memory
+    //
+
+    VEDAhmemptr vebuf;
+    CHECK(vedaHMemAlloc(&vebuf, sizeof(int) * nelems));
+    printf( "myrank = %d, nprocs = %d, vebuf = %16p, allocated\n", myrank, nprocs, vebuf );
+
+    //
+    // Call VE function 'init' to initialize VE memory
+    //
+    VEDAargs args1;
+    CHECK(vedaArgsCreate(&args1));
+    CHECK(vedaArgsSetHMEM(args1, 0, vebuf));
+    CHECK(vedaArgsSetI32(args1, 1, myrank));
+    CHECK(vedaArgsSetI32(args1, 2, nelems));
+
+    VEDAfunction func1;
+    const char* funcName1 = "init";
+    CHECK(vedaModuleGetFunction(&func1, mod, funcName1));
+    CHECK(vedaLaunchKernel(func1, 0, args1));
+    rc = vedaCtxSynchronize();
+    printf( "myrank = %d, nprocs = %d, rc=%d, VE offload\n", myrank, nprocs, rc );
+
+    int peer = myrank^1;
+    if ( peer >= nprocs ) peer = MPI_PROC_NULL;
+
+    //
+    // Call VE function 'check' to check initialized VE memory
+    //
+    VEDAargs args2;
+    CHECK(vedaArgsCreate(&args2));
+    CHECK(vedaArgsSetHMEM(args2, 0, vebuf));
+    CHECK(vedaArgsSetI32(args2, 1, myrank));
+    CHECK(vedaArgsSetI32(args2, 2, nelems));
+
+    VEDAfunction func2;
+    const char* funcName2 = "check";
+    CHECK(vedaModuleGetFunction(&func2, mod, funcName1));
+    CHECK(vedaLaunchKernel(func2, 0, args2));
+    rc = vedaCtxSynchronize();
+    printf( "myrank = %d, nprocs = %d, rc=%d, VE offload\n", myrank, nprocs, rc );
+
+    MPI_Status        status;
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    //
+    // MPI calls on VH with VE memory buffers
+    //
+
+    if ( myrank%2 == 0) {
+        MPI_Send((void *)vebuf, MAX_LEN, MPI_INT, peer, 0, MPI_COMM_WORLD);
+    }
+    else {
+        MPI_Recv((void *)vebuf, MAX_LEN, MPI_INT, peer, 0, MPI_COMM_WORLD, &status );
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    //
+    // Call VE function 'check' to check VE memory after MPI calls
+    //
+    VEDAargs args3;
+    CHECK(vedaArgsCreate(&args3));
+    CHECK(vedaArgsSetHMEM(args3, 0, vebuf));
+    CHECK(vedaArgsSetI32(args3, 1, myrank));
+    CHECK(vedaArgsSetI32(args3, 2, nelems));
+    CHECK(vedaLaunchKernel(func2, 0, args3)); //func2 is check()
+
+    rc = vedaCtxSynchronize();
+    printf( "myrank = %d, nprocs = %d, rc=%d, VE offload\n", myrank, nprocs, rc );
+
+    // Verify
+    uint64_t result;
+    MPI_Reduce( &rc, &result, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD );
+    if ( myrank == 0 ) {
+        printf( "Result : %s\n", result ? "Failed" : "Success" );
+        fflush( stdout );
+    }
+
+    vedaArgsDestroy(args1);
+    vedaArgsDestroy(args2);
+    vedaArgsDestroy(args3);
+
+    CHECK(vedaHMemFree(vebuf));
+    CHECK(vedaCtxDestroy(cont));
+
+    MPI_Finalize();
+    vedaExit();
+    return 0;
+}
+~~~
+Save the above code as [mpi_veda.c](examples_2VH_2mpi_veda_8c-example.html)
+
+### Compile VH MPI program
+Compile source code on VH side as shown below.
+~~~
+source /opt/nec/ve/mpi/3.0.0/bin/necmpivars.sh gnu
+mpincc -vh mpi_veda.c -o mpi_veda -I/opt/nec/ve/share/veda/include  -L/opt/nec/ve/veos/lib64 \
+-rdynamic -Wl,-rpath,/opt/nec/ve/veos/lib64 -lveda
+~~~
+
+### Run the program using MPI
+Execute the compiled VEDA program.
+~~~
+VE_OMP_NUM_THREADS=1 mpirun -veo -np 4 ./mpi_veda
+
+myrank = 2, nprocs = 4, started
+myrank = 3, nprocs = 4, started
+myrank = 1, nprocs = 4, started
+myrank = 0, nprocs = 4, started
+myrank = 1, nprocs = 4, context =         0xf0a5b8, created
+myrank = 0, nprocs = 4, context =        0x1cab5b8, created
+myrank = 3, nprocs = 4, context =        0x22b05b8, created
+myrank = 2, nprocs = 4, context =        0x20ad5b8, created
+myrank = 1, nprocs = 4, vebuf = 0x8000601000f47de0, allocated
+myrank = 0, nprocs = 4, vebuf = 0x8000601000f47de0, allocated
+myrank = 3, nprocs = 4, vebuf = 0x8000601000f47de0, allocated
+myrank = 2, nprocs = 4, vebuf = 0x8000601000f47de0, allocated
+VE init : 1 1048576 0x601000f47de0
+VE init : 0 1048576 0x601000f47de0
+VE init : 3 1048576 0x601000f47de0
+VE init : 2 1048576 0x601000f47de0
+myrank = 1, nprocs = 4, rc=0, VE offload
+myrank = 0, nprocs = 4, rc=0, VE offload
+myrank = 3, nprocs = 4, rc=0, VE offload
+VE init : 0 1048576 0x601000f47de0
+myrank = 2, nprocs = 4, rc=0, VE offload
+VE init : 1 1048576 0x601000f47de0
+myrank = 0, nprocs = 4, rc=0, VE offload
+myrank = 1, nprocs = 4, rc=0, VE offload
+VE init : 3 1048576 0x601000f47de0
+VE init : 2 1048576 0x601000f47de0
+myrank = 3, nprocs = 4, rc=0, VE offload
+myrank = 2, nprocs = 4, rc=0, VE offload
+VE init : 3 1048576 0x601000f47de0
+VE init : 1 1048576 0x601000f47de0
+VE init : 0 1048576 0x601000f47de0
+VE init : 2 1048576 0x601000f47de0
+myrank = 1, nprocs = 4, rc=0, VE offload
+myrank = 3, nprocs = 4, rc=0, VE offload
+myrank = 0, nprocs = 4, rc=0, VE offload
+myrank = 2, nprocs = 4, rc=0, VE offload
+Result : Success
+
+~~~
+
+@section cmake Alternate way of building VEDA
+
+### VEDA Hybrid Offloading
+
 (1) VEDA projects can be compiled including VEDA host and device code within a single CMake build system.
 @n(2) We need to write separate files for host and device code.
 @n(3) VEDA cmake project can be configured by setting CMAKE_MODULE_PATH to the VEDA cmake directory path.
@@ -455,10 +718,10 @@ Number of threads = 8
 
 ~~~
 SET(CMAKE_MODULE_PATH /opt/nec/ve/share/veda/cmake)
-FIND_PACKAGE(VE)
+FIND_PACKAGE(VEDA)
 ENABLE_LANGUAGE(VEDA_C)
 
-INCLUDE_DIRECTORIES(${VEDA_INCLUDES})
+INCLUDE_DIRECTORIES(${VEDA_INCLUDE_DIRS})
 ADD_EXECUTABLE		(hello_world host.c)
 TARGET_LINK_LIBRARIES	(hello_world ${VEDA_LIBRARY})
 ADD_LIBRARY		(hello_world_device SHARED device.vc)
@@ -475,7 +738,7 @@ Sample CXX project directory:
 Sample Fortran project directory:
 @n [CMakeLists.txt](examples_2Hybrid_Offloading_2helloworld_veda_fortran_2CMakeLists_8txt-example.html)  [device.vf](examples_2Hybrid_Offloading_2helloworld_veda_fortran_2device_8vf-example.html)  [host.c](examples_2Hybrid_Offloading_2helloworld_veda_fortran_2host_8c-example.html)
 
-#### How to build your project:
+### How to build your project
 To build a project, execute as follows:
 ~~~
 mkdir build
@@ -491,7 +754,7 @@ Hello World from Host!
 Hello World from Device!
 ~~~
 
-###NUMA Support
+@section numa NUMA support
 VEDA supports VE NUMA nodes since v0.10. To enable NUMA on your system you need to execute (set -N ? to specific device index):
 
 ~~~
@@ -508,7 +771,62 @@ distance == 0.0; // same device
 distance == 0.5; // same physical device, different NUMA node
 distance == 1.0; // differeny physical device
 ~~~
-###VEDA-smi
+### Example program of NUMA node
+
+~~~c
+#include <veda.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+
+#define CHECK(err) check(err, __FILE__, __LINE__)
+
+void check(VEDAresult err, const char* file, const int line) {
+        if(err != VEDA_SUCCESS) {
+                const char* name = 0;
+                vedaGetErrorName(err, &name);
+                printf("Error: %i %s @ %s (%i)\n", err, name, file, line);
+                assert(false);
+                exit(1);
+        }
+}
+
+int main(int argc, char** argv) {
+        CHECK(vedaInit(0));
+
+        int devcnt;
+        CHECK(vedaDeviceGetCount(&devcnt));
+
+        for(int devA = 0; devA < devcnt; devA++) {
+                for(int devB = 0; devB < devcnt; devB++) {
+                        float distance = 0;
+                        CHECK(vedaDeviceDistance(&distance, devA, devB));
+                        printf("Distance %i >> %i = %f (%s)\n", devA, devB, distance, distance == 0 ? "same device" : distance == 0.5f ? "different numa node" : "different device");
+                }
+        }
+
+        CHECK(vedaExit());
+        return 0;
+}
+~~~
+Save the above code in [numa_node.cpp](examples_2VH_2numa_node_8cpp-example.html).
+
+Compile source code on VH side as shown below.
+~~~
+$ g++ -o numa_node numa_node.cpp -I/opt/nec/ve/share/veda/include  -L/opt/nec/ve/veos/lib64 \
+-rdynamic -Wl,-rpath,/opt/nec/ve/veos/lib64 -lveda
+~~~
+
+Execute the compiled code.
+~~~
+$ ./numa_node
+Distance 0 >> 0 = 0.000000 (same device)
+Distance 0 >> 1 = 0.500000 (different numa node)
+Distance 1 >> 0 = 0.500000 (different numa node)
+Distance 1 >> 1 = 0.000000 (same device)
+~~~
+
+@section smi VEDA-smi
 The executable veda-smi displays available VEDA devices in your system. It uses the VEDA_VISIBLE_DEVICES env var and therefore only shows the devices that your VEDA application would be able to use. Use VEDA_VISIBLE_DEVICES= veda-smi to ensure that you see all installed devices.
 
 ~~~
@@ -549,7 +867,7 @@ The executable veda-smi displays available VEDA devices in your system. It uses 
   └ Power:    36.3W (11.9V, 3.1A)
 └───────────────────────────────────────────────────────────────────────────────┘
 ~~~
-###Environment variables for VEDA
+@section env Environment variables for VEDA
 
 Environment variables | Brief | Default value
 --------------------- | ----- | --------------
@@ -557,20 +875,26 @@ VE_LD_LIBRARY_PATH | Default library path of VE to check dynamic and shared libr
 LD_LIBRARY_PATH | Default library path for VE to check for available dynamic and shared libraries of VEDA. | None |
 VEDA_VISIBLE_DEVICES | To restrict VEDA to only use those GPUs that have peer-to-peer support. | 0 |
 
-###Environment variables to optimize data transfer
+### Environment variables to optimize data transfer
 AVEO(2.7.5 or later) supports the environment variables to optimize the performance of data transfer.
 
 Please refer below link to set AVEO related environment variables,
-https://www.hpc.nec/documents/veos/en/aveo/md_GettingStarted.html
+https://sxauroratsubasa.sakura.ne.jp/documents/veos/en/aveo/md_GettingStarted.html
 
 @example examples/VH/hello.c
 @example examples/VH/omphello.c
 @example examples/VH/fortran.c
 @example examples/VH/omphellofortran.c
+@example examples/VH/Scalar_stream.cpp
+@example examples/VH/Omp_stream.cpp
+@example examples/VH/numa_node.cpp
+@example examples/VH/Device_stream.cpp
+@example examples/VH/mpi_veda.c
 @example examples/VE/libvehello.vc
 @example examples/VE/libvefortran.vf90
 @example examples/VE/libompfortran.vf90
 @example examples/VE/libomphello.vc
+@example examples/VE/libmpive.vc
 @example examples/Hybrid_Offloading/helloworld_veda_c/CMakeLists.txt
 @example examples/Hybrid_Offloading/helloworld_veda_c/device.vc
 @example examples/Hybrid_Offloading/helloworld_veda_c/host.c
