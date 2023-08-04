@@ -10,7 +10,6 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 [![PyPI](https://img.shields.io/pypi/v/veda)](https://pypi.org/project/veda)
 [![License](https://img.shields.io/pypi/l/veda)](https://pypi.org/project/veda)
 ![Python Versions](https://img.shields.io/pypi/pyversions/veda)
-![Linux](https://svgshare.com/i/Zhy.svg)
 ![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
 ![Maintenance](https://img.shields.io/pypi/dm/veda)
 
@@ -45,6 +44,26 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+
+<tr><td>v2.0.2</td><td>
+<ul>
+<li>Fixed detection of i64 cblas library.</li>
+</ul>
+</td></tr>
+
+<tr><td>v2.0.2</td><td>
+<ul>
+<li>Fixed CMake to correct find 64Bit BLAS libraries</li>
+</ul>
+</td></tr>
+
+<tr><td>v2.0.1</td><td>
+<ul>
+<li>Bugfixes.</li>
+<li>Merged changes of VEOS VEDA.</li>
+<li>Extended Profiler API.</li>
+</ul>
+</td></tr>
 
 <tr><td>v2.0.0</td><td>
 <ul>
@@ -248,7 +267,10 @@ VEDA supports asynchronous ```vedaMemAllocAsync``` and ```vedaMemFreeAsync```. T
 	}
 	```
 1. VEDA streams differ from CUDA streams. See chapter "OMP Threads vs Streams" for more details.
-1. VEDA uses the env var ```VEDA_VISIBLE_DEVICES``` in contrast to ```CUDA_VISIBLE_DEVICES```.
+1. VEDA uses the env var `VEDA_VISIBLE_DEVICES` in contrast to `CUDA_VISIBLE_DEVICES`. The behavior of `VEDA_VISIBLE_DEVICES` is slightly different:
+	- `VEDA_VISIBLE_DEVICES=` enables all devices, `CUDA_VISIBLE_DEVICES=` disables all devices.
+	- For enabling VE's in NUMA mode, use `{ID}.0` and `{ID}.1`.
+	- `VEDA_VISIBLE_DEVICES` ids correspond to VE hardware ids, `CUDA_VISIBLE_DEVICES` corresponds to the CUDA specific ids.
 
 ---
 

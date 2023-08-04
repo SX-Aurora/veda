@@ -1,0 +1,13 @@
+diff --git a/src/veo_urpc.h b/src/veo_urpc.h
+index 4c901d9..7479314 100644
+--- a/src/veo_urpc.h
++++ b/src/veo_urpc.h
+@@ -33,7 +33,7 @@
+
+ // The maximum size of arguments we can send using URPC_CMD_CALL_STKxx.
+ // 40 is the size to send message with "LPLLP".
+-#define MAX_ARGS_STACK_SIZE (DATA_BUFF_END - 40)
++#define MAX_ARGS_STACK_SIZE ((up->send.data_buff_end) - 40)
+
+ // The size of a reserved stack area to avoid overwrite of arguments
+ // We chose a big value as possible as we can, because the code to

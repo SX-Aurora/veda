@@ -19,7 +19,7 @@ ExternalProject_Add(aveo
 	GIT_TAG			${AVEO_GIT_TAG}
 	INSTALL_COMMAND		make install
 	INSTALL_DIR		""
-	PATCH_COMMAND		git apply ${CMAKE_CURRENT_BINARY_DIR}/aveo.patch
+	PATCH_COMMAND		git apply ${CMAKE_CURRENT_BINARY_DIR}/aveo.patch ${CMAKE_CURRENT_LIST_DIR}/aveo.patch2
 	PREFIX			${AVEO_PATH}
 	SOURCE_DIR		${AVEO_PATH}/src
 	STAMP_DIR		${AVEO_PATH}/stamp
