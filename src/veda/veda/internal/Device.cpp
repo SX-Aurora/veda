@@ -9,10 +9,31 @@ Context&		Device::ctx		(void) 						{ return m_ctx;							}
 VEDAdevice		Device::vedaId		(void) const					{ return m_vedaId;						}
 bool			Device::isNUMA		(void) const					{ return numaCnt() != 1;					}
 const Device::Cores&	Device::coreIds		(void) const					{ return m_cores;						}
-float			Device::powerCurrent	(void) const					{ return readSensor<float>("sensor_12")/1000.0f / numaCnt();	}
-float			Device::powerCurrentEdge(void) const					{ return readSensor<float>("sensor_13")/1000.0f / numaCnt();	}
-float			Device::powerVoltage	(void) const					{ return readSensor<float>("sensor_8")/1000000.0f;		}
-float			Device::powerVoltageEdge(void) const					{ return readSensor<float>("sensor_9")/1000000.0f;		}
+
+float			Device::powerCurrent	(void) const	{
+	if (m_model == 3)
+		return readSensor<float>("sensor_41")/1000.0f / numaCnt();
+	return readSensor<float>("sensor_12")/1000.0f / numaCnt();
+}
+
+float			Device::powerCurrentEdge(void) const	{
+	if (m_model == 3)
+		return readSensor<float>("sensor_42")/1000.0f / numaCnt();	}
+	return readSensor<float>("sensor_13")/1000.0f / numaCnt();
+}
+
+float			Device::powerVoltage	(void) const	{
+	if (m_model == 3)
+		return readSensor<float>("sensor_36")/1000000.0f;
+	return readSensor<float>("sensor_8")/1000000.0f;
+}
+
+float			Device::powerVoltageEdge(void) const	{
+	if (m_model == 3)
+		return readSensor<float>("sensor_37")/1000000.0f;
+	return readSensor<float>("sensor_9")/1000000.0f;
+}
+
 int			Device::aveoId		(void) const					{ return m_aveoId;						}
 int			Device::cacheL1d	(void) const					{ return m_cacheL1d;						}
 int			Device::cacheL1i	(void) const					{ return m_cacheL1i;						}
