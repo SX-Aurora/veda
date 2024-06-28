@@ -9,6 +9,7 @@ Device&		get		(const VEDAdeviceptr ptr);
 Device&		get		(const VEDAhmemptr ptr);
 Device*		tryGet		(const VEDAhmemptr ptr);
 Device*		tryGet		(veo_proc_handle* handle);
+int		architecture	(void);
 int		count		(void);
 uint64_t	readSensor	(const int sensorId, const char* file, const bool isHex);
 void		init		(void);

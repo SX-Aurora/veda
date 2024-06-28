@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
 	
 		auto aveo = driverVersion().begin();
 		printf("╔ veda-smi ═════════════════════════════════════════════════════════════════════╗\n");
-		printf("║ VEDA Version: %-10s AVEO Version: %-10s                             ║\n", VEDA_VERSION, aveo);
+		printf("║ VEDA Version: %-10s AVEO Version: %-10s Arch: ve%i                   ║\n", VEDA_VERSION, aveo, architecture());
 		printf("╚═══════════════════════════════════════════════════════════════════════════════╝\n\n");
 		
 		auto cnt = Device::count();

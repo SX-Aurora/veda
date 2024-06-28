@@ -1,31 +1,35 @@
 diff --git a/make_aveo.inc b/make_aveo.inc
-index fe91c2a..9f54ba8 100644
+index 675302a..f7fa174 100644
 --- a/make_aveo.inc
 +++ b/make_aveo.inc
-@@ -1,6 +1,6 @@
- NCPP = /opt/nec/ve/bin/nc++
- NCC = /opt/nec/ve/bin/ncc
--NFORT = /opt/nec/ve/bin/nfort
-+NFORT = @AVEO_NFORT@
- NAR = /opt/nec/ve/bin/nar
+@@ -1,8 +1,8 @@
+ VE_ARCH ?= ve1
+ VEBIN ?= /opt/nec/ve/bin
+-NCPP ?= $(VEBIN)/nc++
+-NCC ?= $(VEBIN)/ncc
+-NFORT ?= $(VEBIN)/nfort
++NCPP ?= @AVEO_NCC@/bin/nc++
++NCC ?= @AVEO_NCC@/bin/ncc
++NFORT ?= @AVEO_NFORT@/bin/nfort
+ NAR ?= $(VEBIN)/nar
+
  GCC = gcc
- GPP = g++
 diff --git a/src/Makefile b/src/Makefile
-index f9e86aa..3bdbc98 100644
+index 34eb0b2..76441b8 100644
 --- a/src/Makefile
 +++ b/src/Makefile
-@@ -131,12 +131,12 @@ $(BLIB)/libveo.a: $(VHLIB_OBJS) | $$(@D)/
- $(BLIBEX)/aveorun: $(BVE)/aveorun.o $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a | $$(@D)/
+@@ -159,12 +159,12 @@ $(BB)/mk_veorun_static: $(BB)/relink_aveorun
+ $(BLIBEX)/aveorun_$(VE_ARCH): $(BVE)/aveorun.o $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a | $$(@D)/
  	$(NFORT) $(NFORTFLAGS) -v -cxxlib -fopenmp -o $@ $^ \
  		$(NLDFLAGS) $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a \
 -		-lveio -pthread
 +		-lveio -pthread -rdynamic
- 
- $(BLIBEX)/aveorun-ftrace: $(BVE)/aveorun-ftrace.o $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a | $$(@D)/
+
+ $(BLIBEX)/aveorun-ftrace_$(VE_ARCH): $(BVE)/aveorun-ftrace.o $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a | $$(@D)/
  	$(NFORT) $(NFORTFLAGS) -ftrace -cxxlib -fopenmp -o $@ $^ \
  		$(NLDFLAGS) $(BVELIB)/libaveoVE.a $(BVELIB)/liburpcVE_omp.a \
 -		-lveio -pthread
 +		-lveio -pthread -rdynamic
- 
- $(BLIBEX)/relink_aveorun: ../scripts/relink_aveorun.in
+
+ $(BLIBEX)/relink_aveorun_$(VE_ARCH): ../scripts/relink_aveorun.in
  	sed -e "s,@libexecdir@,$(DEST)/libexec,g" -e "s,@velibdir@,$(VEDEST)/lib,g" \

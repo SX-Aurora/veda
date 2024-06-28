@@ -36,7 +36,7 @@ public:
 				Context			(Device& device);
 				Context			(const Context&) = delete;
 	Device&			device			(void);
-	Module*			moduleLoad		(const std::string_view name);
+	Module*			moduleLoad		(std::string name);
 	ReqId			call			(VEDAfunction func, VEDAstream stream, VEDAargs args, const bool destroyArgs, const bool checkResult, ResultPtr result);
 	ReqId			call			(VEDAhost_function func, VEDAstream stream, void* userData, const bool checkResult, ResultPtr result);
 	StreamGuard		stream			(const VEDAstream stream);

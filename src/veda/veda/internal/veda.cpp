@@ -33,8 +33,8 @@ void setInitialized(const bool value) {
 
 #if BUILD_VEOS_RELEASE
 		if(!std::getenv("VEORUN_BIN")) {
-			if(std::getenv("VEDA_FTRACE"))	setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun")
-			else				setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun-ftrace")
+			if(std::getenv("VEDA_FTRACE"))	setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun_ve1")
+			else				setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun-ftrace_ve1")
 		}
 		s_stdLib = "/opt/nec/ve/veos/lib64/libveda.vso";
 #else
@@ -53,6 +53,10 @@ void setInitialized(const bool value) {
 			veorun.append("/libexec/aveorun");
 			if(std::getenv("VEDA_FTRACE"))
 				veorun.append("-ftrace");
+			const auto arch = devices::architecture();
+			if	(arch == 1)	veorun.append("_ve1");
+			else if	(arch == 3)	veorun.append("_ve3");
+			else VEDA_THROW(VEDA_ERROR_UNKNOWN);
 			setenv("VEORUN_BIN", veorun.c_str(), 1);
 		}
 

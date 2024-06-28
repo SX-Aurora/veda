@@ -35,7 +35,7 @@ IF(VEDA_WITH_VEOS_PRODUCT_INFO)
 	TARGET_LINK_LIBRARIES(veda PRIVATE ${LIBVEPRODUCTINFO_LIBRARY})
 ENDIF()
 IF(NOT VEDA_DIST_TYPE STREQUAL VEOS)
-	ADD_DEPENDENCIES(veda aveo)
+	ADD_DEPENDENCIES(veda aveo_ve1 aveo_ve3)
 ENDIF()
 
 ## Install Files ---------------------------------------------------------------

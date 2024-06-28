@@ -37,6 +37,13 @@ VEDAresult vedaGetVersion(const char** str) {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaGetArchitecture(int* arch) {
+	*arch = veda::internal::devices::architecture();
+	L_TRACE("vedaGetArchitecture(%i)", *arch);
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 /**
  * @brief Releases the VEDA driver API library gracefully.
  * @retval VEDA_SUCCESS on Success \n 

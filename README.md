@@ -31,12 +31,13 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 		- [Loading Modules](#veda_483)
 		- [Memory Buffer Objects](#veda_484)
 		- [Fetching Functions](#veda_485)
-- [Limitations/Known Problems](#veda_5)
-- [How to build](#veda_6)
-- [How to use](#veda_7)
-	- [VEDA Hybrid Offloading](#veda_71)
-	- [VE Native applications](#veda_72)
-	- [VE Native Injection](#veda_73)
+- [SX-Aurora VE3](#veda_5)
+- [Limitations/Known Problems](#veda_6)
+- [How to build](#veda_7)
+- [How to use](#veda_8)
+	- [VEDA Hybrid Offloading](#veda_81)
+	- [VE Native applications](#veda_82)
+	- [VE Native Injection](#veda_83)
 
 ---
 
@@ -44,6 +45,13 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 ## Release Notes
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
+
+<tr><td>v2.1.0</td><td>
+<ul>
+<li>VE3 support</li>
+<li>NCC 5 Bugfixes</li>
+</ul>
+</td></tr>
 
 <tr><td>v2.0.2</td><td>
 <ul>
@@ -690,6 +698,31 @@ will fail at runtime!
 ---
 
 <a name="veda_5"></a>
+## SX-Aurora VE3 support
+Since v2.1.0 VEDA supports the SX-Aurora VE3. It's important that your libraries
+are compatible to the used architecture. Use these compile and linking flags:
+
+| Architecture | Flags | File Extension
+| --- | --- | --- |
+| VE1+2 | `-march=ve1 -stdlib=libc++` | *.vso |
+| VE3 | `-march=ve3 -stdlib=libc++` | *.vso3 |
+
+To load the library you can just use `vedaModuleLoad(&mod, "libsomething.vso")`
+and VEDA will automatically load `libsomething.vso` for VE1+2 or
+`libsomething.vso3` for VE3.
+
+By default VEDA determines automatically which architecture to use. You can
+override this behavior by setting the env var `VEDA_ARCH=1` or `VEDA_ARCH=3`.
+Be warned, you cannot run `VEDA_ARCH=3` on a VE1, but you can use `VEDA_ARCH=1`
+on a VE3!
+
+If you are unsure which architecture your library is for, you can use `nreadelf
+-h libsomething.vso | grep 'Flags'`. Flags ending with 0 are for VE1, with 1 are
+for VE3.
+
+---
+
+<a name="veda_6"></a>
 ## Limitations/Known Problems:
 1. VEDA only supports one ```VEDAcontext``` per device.
 1. No unified memory space (yet).
@@ -702,7 +735,7 @@ variable ```${AVEO_NFORT}``` to another compiler.
 
 ---
 
-<a name="veda_6"></a>
+<a name="veda_7"></a>
 ## How to build:
 ```bash
 git clone https://github.com/SX-Aurora/veda/
@@ -725,13 +758,13 @@ cmake3 --build . --target dist
 
 ---
 
-<a name="veda_7"></a>
+<a name="veda_8"></a>
 ## How to use:
 VEDA has an own CMake find script. This supports 3 modes. The script uses the compilers installed in ```/opt/nec/ve/bin```. You can modify the ```CMAKE_[LANG]_COMPILER``` flags to change that behavior. See the Hello World examples in the [Examples Folder](example)
 
 ---
 
-<a name="veda_71"></a>
+<a name="veda_81"></a>
 ### 1. VEDA Hybrid Offloading:
 This mode is necessary for VEDA offloading applications. It enables to compile host and device code within the same CMake project. For this it is necessary to use different file extensions for the VE code. All ```*.vc``` files get compiled using NCC, ```*.vcpp``` using NC++ and ```*.vf``` with NFORT.
 
@@ -747,7 +780,7 @@ TARGET_LINK_LIBRARIES(myApp ${VEDA_LIBRARY})
 
 ---
 
-<a name="veda_72"></a>
+<a name="veda_82"></a>
 ### 2. VE Native applications:
 This mode enables to compile VE native applications.
 
@@ -760,7 +793,7 @@ ADD_EXECUTABLE(myApp mycode.c mycode.cpp)
 
 ---
 
-<a name="veda_73"></a>
+<a name="veda_83"></a>
 ### 3. VE Native Injection:
 If you have a CPU application and you don't want to modify the CMake script you can build your project using:
 ```

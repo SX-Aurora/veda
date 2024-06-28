@@ -9,6 +9,6 @@ include veda/cmake/nec/*.cmake*
 include veda/cmake/nec/inject/*.cmake
 include veda/*LICENSE
 include veda/bin/veda-smi
-include veda/libexec/aveorun
-include veda/libexec/aveorun-ftrace
+include veda/libexec/aveorun_ve1
+include veda/libexec/aveorun-ftrace_ve1
 include veda/libve/libveda.vso

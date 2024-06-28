@@ -74,11 +74,11 @@ void Device::destroy(void) const {
 }
 
 //------------------------------------------------------------------------------
-Device	Device::getCurrent	(void)					{ return internal::contexts::current();	}
-Device	Device::popCurrent	(void)					{ return internal::contexts::pop();	}
-Module	Device::load		(const std::string_view name) const	{ return ctx()->moduleLoad(name);	}
-void	Device::pushCurrent	(void) const				{ veda::internal::contexts::push(ctx());}
-void	Device::setCurrent	(void) const				{ veda::internal::contexts::set(ctx());	}
+Device	Device::getCurrent	(void)					{ return internal::contexts::current();		}
+Device	Device::popCurrent	(void)					{ return internal::contexts::pop();		}
+Module	Device::load		(const std::string_view name) const	{ return ctx()->moduleLoad(name.begin());	}
+void	Device::pushCurrent	(void) const				{ veda::internal::contexts::push(ctx());	}
+void	Device::setCurrent	(void) const				{ veda::internal::contexts::set(ctx());		}
 
 //------------------------------------------------------------------------------
 void Device::sync(const StreamId stream) const {

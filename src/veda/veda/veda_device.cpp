@@ -334,8 +334,8 @@ VEDAresult vedaDeviceGetAttribute(int* pi, VEDAdevice_attribute attrib, VEDAdevi
 		if(attrib == VEDA_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO) {
 			*pi = 2;
 		} else {
-			auto& device = veda::internal::devices::get(dev);
-			*pi = [&](void) -> int {
+			*pi = [attrib, dev](void) -> int {
+				auto& device = veda::internal::devices::get(dev);
 				switch(attrib) {
 					case VEDA_DEVICE_ATTRIBUTE_CLOCK_RATE:			return device.clockRate();
 					case VEDA_DEVICE_ATTRIBUTE_CLOCK_BASE:			return device.clockBase();

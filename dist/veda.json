@@ -28,9 +28,9 @@
 		"veda/include/veda/cpp/*.h",
 		"veda/lib64/libveda.so*",
 		"veda/lib64/libveo.so*",
-		"veda/libve/libveda.vso",
-		"veda/libexec/aveorun",
-		"veda/libexec/aveorun-ftrace"
+		"veda/libve/libveda.vso*",
+		"veda/libexec/aveorun_ve*",
+		"veda/libexec/aveorun-ftrace_ve*"
 	],
 	"requires-dist": [
 		"tungl (>= @Tungl_VERSION@, < @Tungl_VERSION_NEXT_MINOR@)"

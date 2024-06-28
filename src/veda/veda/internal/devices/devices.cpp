@@ -222,6 +222,45 @@ uint64_t readSensor(const int sensorId, const char* file, const bool isHex) {
 }
 
 //------------------------------------------------------------------------------
+int architecture(void) {
+	static int s_architecture = 0;
+
+	if(s_architecture == 0) {
+		if(auto env = std::getenv("VEDA_ARCH")) {
+			if(strlen(env) == 1) {
+				switch(env[0]) {
+					case '1':	s_architecture = 1; break;
+					case '3':	s_architecture = 3; break;
+				}
+			}
+		} else {
+			std::string buf("/sys/class/ve/ve0/ve_arch_class");
+			const auto pos = buf.find('0');
+			for(char i = '0'; i <= '9'; i++) {
+				buf[pos] = i;
+				std::ifstream f(buf, std::ios::binary);
+				if(f.fail())
+					break;
+
+				std::string str;
+				f >> str;
+				f.close();
+
+				s_architecture = 3;
+				if(str.compare("ve3") != 0) {
+					s_architecture = 1;
+					break;
+				}
+			}
+		}
+	}
+
+	if(s_architecture == 0)
+		VEDA_THROW(VEDA_ERROR_UNKNOWN_VEDA_ARCHITECTURE);
+	return s_architecture;
+}
+
+//------------------------------------------------------------------------------
 static Device* tryGet(const int aveoProcId) {
 	if(aveoProcId < 0 || aveoProcId >= VEO_MAX_HMEM_PROCS)
 		return 0;

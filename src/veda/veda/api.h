@@ -84,6 +84,7 @@ VEDAresult	vedaGetErrorString		(VEDAresult error, const char** pStr);
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
  */
 VEDAresult	vedaGetVersion			(const char** str);
+VEDAresult	vedaGetArchitecture		(int* arch);
 VEDAresult	vedaInit			(uint32_t Flags);
 VEDAresult	vedaLaunchHostFunc		(VEDAstream stream, VEDAhost_function fn, void* userData);
 VEDAresult	vedaLaunchHostFuncEx		(VEDAstream stream, VEDAhost_function fn, void* userData, uint64_t* result);

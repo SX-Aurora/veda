@@ -4,8 +4,9 @@
 namespace veda {
 	namespace cpp {
 //------------------------------------------------------------------------------
-std::string_view driverVersion	(void) { return veo_version_string();	}
-std::string_view version	(void) { return VEDA_VERSION;		}
+int			architecture	(void) { return internal::devices::architecture();	}
+std::string_view	driverVersion	(void) { return veo_version_string();			}
+std::string_view	version		(void) { return VEDA_VERSION;				}
 
 //------------------------------------------------------------------------------
 void exit(void) {

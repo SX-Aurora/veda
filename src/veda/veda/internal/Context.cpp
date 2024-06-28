@@ -134,10 +134,22 @@ veo_sym Context::moduleGetFunction(const Module* mod, const std::string_view nam
 }
 
 //------------------------------------------------------------------------------
-Module* Context::moduleLoad(const std::string_view name) {
-	if(!name.begin())
+Module* Context::moduleLoad(std::string name) {
+	if(name.empty())
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
-	auto lib = veo_load_library(m_handle, name.begin());
+	
+	if(devices::architecture() == 3) {
+		if(auto pos = name.find(".vso"); pos != std::string::npos) {
+			std::string name_(name);
+			name_.replace(pos, 4, ".vso3");
+
+			struct stat buffer;
+			if(!stat(name_.c_str(), &buffer) && S_ISREG(buffer.st_mode))
+				std::swap(name, name_);
+		}
+	}
+
+	auto lib = veo_load_library(m_handle, name.c_str());
 	if(lib == 0)
 		VEDA_THROW(VEDA_ERROR_MODULE_NOT_FOUND);
 	LOCK(mutex_modules);

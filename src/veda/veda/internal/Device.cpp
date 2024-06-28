@@ -9,31 +9,6 @@ Context&		Device::ctx		(void) 						{ return m_ctx;							}
 VEDAdevice		Device::vedaId		(void) const					{ return m_vedaId;						}
 bool			Device::isNUMA		(void) const					{ return numaCnt() != 1;					}
 const Device::Cores&	Device::coreIds		(void) const					{ return m_cores;						}
-
-float			Device::powerCurrent	(void) const	{
-	if (m_model == 3)
-		return readSensor<float>("sensor_41")/1000.0f / numaCnt();
-	return readSensor<float>("sensor_12")/1000.0f / numaCnt();
-}
-
-float			Device::powerCurrentEdge(void) const	{
-	if (m_model == 3)
-		return readSensor<float>("sensor_42")/1000.0f / numaCnt();	}
-	return readSensor<float>("sensor_13")/1000.0f / numaCnt();
-}
-
-float			Device::powerVoltage	(void) const	{
-	if (m_model == 3)
-		return readSensor<float>("sensor_36")/1000000.0f;
-	return readSensor<float>("sensor_8")/1000000.0f;
-}
-
-float			Device::powerVoltageEdge(void) const	{
-	if (m_model == 3)
-		return readSensor<float>("sensor_37")/1000000.0f;
-	return readSensor<float>("sensor_9")/1000000.0f;
-}
-
 int			Device::aveoId		(void) const					{ return m_aveoId;						}
 int			Device::cacheL1d	(void) const					{ return m_cacheL1d;						}
 int			Device::cacheL1i	(void) const					{ return m_cacheL1i;						}
@@ -53,6 +28,12 @@ int			Device::versionFirmware	(void) const					{ return m_versionFirmware;					}
 size_t			Device::memorySize	(void) const					{ return m_memorySize;						}
 size_t			Device::numaMemBlockSize(void) const					{ return m_numaMemBlockSize;					}
 uint64_t		Device::readSensor	(const char* file, const bool isHex) const	{ return devices::readSensor(sensorId(), file, isHex);		}
+
+//------------------------------------------------------------------------------
+float Device::powerCurrent	(void) const {	return readSensor<float>(m_model == 3 ? "sensor_41" : "sensor_12")/1000.0f / numaCnt();	}
+float Device::powerCurrentEdge	(void) const {	return readSensor<float>(m_model == 3 ? "sensor_42" : "sensor_13")/1000.0f / numaCnt();	}
+float Device::powerVoltage	(void) const {	return readSensor<float>(m_model == 3 ? "sensor_36" : "sensor_8")/1000000.0f;		}
+float Device::powerVoltageEdge	(void) const {	return readSensor<float>(m_model == 3 ? "sensor_37" : "sensor_9")/1000000.0f;		}
 
 //------------------------------------------------------------------------------
 Device::Device(const VEDAdevice vedaId, const int aveoId, const int sensorId, const int numaId, const int numaCnt) :
@@ -138,15 +119,15 @@ float Device::distance(const Device& other) const {
 std::string Device::name(void) const {
 	std::string name;
 	name.reserve(28);
-		
-	auto version		= model();
-	auto cores		= this->cores() * numaCnt();
-	auto memory		= memorySize()/1024/1024/1024;
-	auto clock_memory	= clockMemory();
-	auto clock_rate		= clockRate();
 
 	name.append("NEC SX-Aurora Tsubasa VE");
-	name.append([&] {
+	name.append([this] {
+		auto version		= model();
+		auto cores		= this->cores() * numaCnt();
+		auto memory		= memorySize()/1024/1024/1024;
+		auto clock_memory	= clockMemory();
+		auto clock_rate		= clockRate();
+		
 		if(version == 1) {
 			if(memory == 48) {
 				if(clock_rate >= 1500)	return clock_memory < 1700 ? "10A" : "10AE";
