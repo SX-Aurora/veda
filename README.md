@@ -46,6 +46,12 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v2.1.1</td><td>
+<ul>
+<li>Shutdown Bugfix</li>
+</ul>
+</td></tr>
+
 <tr><td>v2.1.0</td><td>
 <ul>
 <li>VE3 support</li>

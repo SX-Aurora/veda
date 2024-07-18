@@ -161,12 +161,12 @@ int count(void) {
 
 //------------------------------------------------------------------------------
 void shutdown(void) {
-	for(auto& device : s_devices) {
-		auto& ctx = device.ctx();
-		if(ctx.isActive())
-			ctx.destroy();
-	}
+	/**
+	 * Don't destroy CTX during shutdown, as it will try to sync pointers
+	 * which can cause `ERROR: wait_req_ack() timeout waiting for ACK req=29`
+	 */
 	s_devices.clear();
+	s_mapping.clear();
 }
 
 //------------------------------------------------------------------------------
