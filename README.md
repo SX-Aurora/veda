@@ -46,6 +46,32 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v2.2</td><td>
+<p>
+	Added experimental feature to free VEDAdeviceptr within a
+	kernel. This mechanism has some limitations!
+</p>
+
+<p>
+	The VEDAdeviceptr needs to be allocated using delayed malloc.
+	First call <code>vedaMemAlloc(&vptr, 0)</code> on the host, call
+	your kernel and execute <code>vedaMemAlloc(vptr, size)</code>.
+</p>
+
+<p>
+	To free the VEDAdeviceptr, first call
+	<code>vedaMemRelease(vptr)</code> on the host to take the
+	ownership of the VEDAdeviceptr. Then you can use
+	<code>vedaMemFree</code> within your kernel.
+</p>
+
+<p>
+	This mechanism doesn't work with non-delayed mallocs as they
+	might be registered to NEC MPI, which cannot be deregistered
+	from within the device.
+</p>
+</td></tr>
+
 <tr><td>v2.1.1</td><td>
 <ul>
 <li>Shutdown Bugfix</li>

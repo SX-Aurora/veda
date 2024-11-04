@@ -232,7 +232,7 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 		incMemIdx();
 
 	auto idx  = m_memidx;
-	auto info = m_ptrs.emplace(MAP_EMPLACE(idx, new VEDAdeviceptrInfo(0, size))).first->second;
+	auto info = m_ptrs.emplace(MAP_EMPLACE(idx, new VEDAdeviceptrInfo(0, size, size ? 0 : 1))).first->second;
 	auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
 
 	incMemIdx();
@@ -266,7 +266,7 @@ void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream _stream) {
 }
 
 //------------------------------------------------------------------------------
-void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream) {
+void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream, const bool free) {
 	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
 
 	// If this context is not active, we don't care about still pending frees.
@@ -287,10 +287,14 @@ void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream) {
 	if(info->ptr == 0 && info->size != 0)
 		sync();
 
-	if(info->size) {
-		auto s = stream(_stream);
-		s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
-		s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info->ptr);
+	if(free) {
+		if(info->size) {
+			auto s = stream(_stream);
+			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
+			s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info->ptr);
+		}
+	} else {
+		VEDA_ASSERT(info->isDelayed, VEDA_ERROR_CANT_RELEASE_NON_DELAYED_VPTR);			
 	}
 
 	m_ptrs.erase(it);
@@ -309,7 +313,7 @@ VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr) {
 	if(info->ptr == 0) syncPtrs();
 	if(info->ptr == 0) return *info;
 
-	return {((char*)info->ptr) + VEDA_GET_OFFSET(vptr), info->size};
+	return {((char*)info->ptr) + VEDA_GET_OFFSET(vptr), info->size, info->isDelayed};
 }
 
 //------------------------------------------------------------------------------

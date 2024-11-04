@@ -221,6 +221,28 @@ VEDAresult vedaMemFree(VEDAdeviceptr ptr) {
 
 //------------------------------------------------------------------------------
 /**
+ * @brief Releases a VEDAdeviceptr, so it can be freed on the device using
+ * vedaMemFree(ptr).
+ * @param ptr Pointer to memory to be released.
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.\n 
+ *
+ * Frees the memory space pointed to by dptr, which must have been returned by a
+ * previous call to vedaMemAlloc() or vedaMemAllocPitch().
+ */
+VEDAresult vedaMemRelease(VEDAdeviceptr ptr) {
+	GUARDED(
+		auto& ctx = veda::internal::devices::get(ptr).ctx();
+		L_TRACE("[ve:%i] vedaMemRelease(%p)", ctx.device().vedaId(), ptr);
+		ctx.memFree(ptr, 0, false);
+	)
+}
+
+//------------------------------------------------------------------------------
+/**
  * @brief Frees device memory with stream ordered semantics.
  * @param ptr Pointer to memory to free.
  * @param stream The stream establishing the stream ordering contract.

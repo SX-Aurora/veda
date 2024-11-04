@@ -472,6 +472,7 @@ VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdevic
 VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
 VEDAresult	vedaMemPtr			(void** ptr, VEDAdeviceptr vptr);
 VEDAresult	vedaMemPtrSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
+VEDAresult	vedaMemRelease			(VEDAdeviceptr ptr);
 VEDAresult	vedaMemReport			(void);
 VEDAresult	vedaMemSize			(size_t* size, VEDAdeviceptr ptr);
 VEDAresult	vedaMemSwap			(VEDAdeviceptr A, VEDAdeviceptr B);

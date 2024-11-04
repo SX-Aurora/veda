@@ -55,7 +55,7 @@ public:
 	veo_sym			moduleGetFunction	(const Module* mod, const std::string_view name);
 	void			destroy			(void);
 	void			init			(const VEDAcontext_mode mode);
-	void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);
+	void			memFree			(VEDAdeviceptr vptr, VEDAstream stream, const bool free = true);
 	void			memReport		(void);
 	void			memSwap			(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream);
 	void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);

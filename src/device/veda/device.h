@@ -20,6 +20,7 @@
 __global__	VEDAresult	vedaGetErrorName	(VEDAresult error, const char** pStr);
 __global__	VEDAresult	vedaGetErrorString	(VEDAresult error, const char** pStr);
 __global__	VEDAresult	vedaMemAlloc		(VEDAdeviceptr vptr, const size_t size);
+__global__	VEDAresult	vedaMemFree		(VEDAdeviceptr vptr);
 __global__	VEDAresult	vedaMemAllocPtr		(void** ptr, VEDAdeviceptr vptr, const size_t size);
 __global__	VEDAresult	vedaMemPtr		(void** ptr, VEDAdeviceptr vptr);
 __global__	VEDAresult	vedaMemPtrSize		(void** ptr, size_t* size, VEDAdeviceptr vptr);
