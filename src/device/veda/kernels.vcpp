@@ -1,5 +1,5 @@
 #include "internal.h"
-
+#include <stdio.h>
 //------------------------------------------------------------------------------
 extern "C" {
 //------------------------------------------------------------------------------
@@ -97,17 +97,11 @@ VEDAresult veda_mem_remove(VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
-void* veda_mem_ptr(VEDAdeviceptr vptr) {
-	void* ptr = 0;
-	vedaMemPtr(&ptr, vptr);
-	return ptr;
-}
-
-//------------------------------------------------------------------------------
-size_t veda_mem_size(VEDAdeviceptr vptr) {
-	size_t size = 0;
-	vedaMemSize(&size, vptr);
-	return size;
+VEDAresult veda_mem_free(VEDAdeviceptr vptr) {
+	auto res = vedaMemFree(vptr);
+	// We ignore UNKNOWN_VPTR. This just means that it has been allocated
+	// on the host, but never on device.
+	return res != VEDA_ERROR_UNKNOWN_VPTR ? res : VEDA_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
@@ -168,6 +162,11 @@ VEDAresult veda_raw_memset_u128(void* dst, const uint64_t x, const uint64_t y, c
 //------------------------------------------------------------------------------
 VEDAresult veda_raw_memset_u128_2d(void* dst, const size_t pitch, const uint64_t x, const uint64_t y, const size_t w, const size_t h) {
 	return vedaMemsetD2D128(dst, pitch, x, y, w, h);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_info(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info) {
+	return vedaMemInfo(cnt, vptrs, info);
 }
 
 //------------------------------------------------------------------------------

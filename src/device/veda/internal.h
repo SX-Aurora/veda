@@ -15,13 +15,14 @@
 
 VEDAresult vedaAssignPtr(VEDAdeviceptr vptr, void* ptr, const size_t size);
 VEDAresult vedaRemovePtr(VEDAdeviceptr vptr);
+VEDAresult vedaMemInfo(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info);
 
 __global__	VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
+__global__	VEDAresult	veda_mem_info		(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info);
 __global__	VEDAresult	veda_mem_remove		(VEDAdeviceptr vptr);
+__global__	VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
 __global__	VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptr B);
-__global__	size_t		veda_mem_size		(VEDAdeviceptr vptr);
 __global__	void*		veda_mem_assign		(VEDAdeviceptr vptr, const size_t size);
-__global__	void*		veda_mem_ptr		(VEDAdeviceptr vptr);
 
 __global__	VEDAresult	veda_memcpy_d2d		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size);
 __global__	VEDAresult	veda_memset_u128	(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t size);

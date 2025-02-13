@@ -48,9 +48,9 @@ struct Stream;
 class StreamGuard;
 
 template<typename T>
-using is_function_ptr = std::is_function<typename std::remove_pointer<T>::type>;
-using ResultPtr = std::shared_ptr<uint64_t>;
-using ReqId = uint64_t;
+using is_function_ptr	= std::is_function<typename std::remove_pointer<T>::type>;
+using ResultPtr		= std::shared_ptr<uint64_t>;
+using ReqId		= uint64_t;
 
 class Result final : public ResultPtr {
 	struct Deleter {

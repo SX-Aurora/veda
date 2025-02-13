@@ -46,6 +46,20 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v2.2.1</td><td>
+<p>
+	Significantly reducted VEDA overhead in applications that make use of
+	many delayed tensors.
+</p>
+
+<p>
+	Minor change: when using <code>vedaMemRelease</code> additionally
+	<code>vedaMemFree</code> needs to be called on the host. The reasoning
+	is to have a consistent behavior, e.g., when opaque libraries such as
+	VEDA-PyTorch will always call <code>vedaMemFree</code>.
+</p>
+</td></tr>
+
 <tr><td>v2.2</td><td>
 <p>
 	Added experimental feature to free VEDAdeviceptr within a

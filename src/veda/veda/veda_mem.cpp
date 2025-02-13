@@ -237,7 +237,7 @@ VEDAresult vedaMemRelease(VEDAdeviceptr ptr) {
 	GUARDED(
 		auto& ctx = veda::internal::devices::get(ptr).ctx();
 		L_TRACE("[ve:%i] vedaMemRelease(%p)", ctx.device().vedaId(), ptr);
-		ctx.memFree(ptr, 0, false);
+		ctx.memRelease(ptr);
 	)
 }
 

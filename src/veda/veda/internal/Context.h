@@ -5,13 +5,13 @@ namespace veda {
 //------------------------------------------------------------------------------
 class Context final {
 public:
-	typedef std::tuple<VEDAdeviceptr, size_t> VPtrTuple;
+	using VPtrTuple = std::tuple<VEDAdeviceptr, size_t>;
 
 private:
-	typedef std::map	<VEDAidx, std::shared_ptr<VEDAdeviceptrInfo>>	Ptrs;
-	typedef std::vector	<VEDAfunction>					Kernels;
-	typedef std::vector	<Stream>					Streams;
-	typedef std::map	<veo_lib, Module>				Modules;
+	using Ptrs	= std::unordered_map	<VEDAidx, VEDAdeviceptrInfo>;
+	using Kernels	= std::vector		<VEDAfunction>;
+	using Streams	= std::vector		<Stream>;
+	using Modules	= std::map		<veo_lib, Module>;
 
 		std::mutex		mutex_streams;
 		std::mutex		mutex_ptrs;
@@ -28,9 +28,11 @@ private:
 		VEDAmodule		m_lib;
 		VEDAidx			m_memidx;
 		VEDAdeviceptr		m_memOverride;
+		ReqId			m_memLastAveoRequest;
+		bool			m_memDelayedDirty;
 
 	void			incMemIdx		(void);
-	void			syncPtrs		(void);
+	void			syncPtrs		(VEDAstream stream);
 
 public:
 				Context			(Device& device);
@@ -42,7 +44,7 @@ public:
 	StreamGuard		stream			(const VEDAstream stream);
 	VEDAcontext_mode	mode			(void) const;
 	VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
-	VEDAdeviceptrInfo	getPtr			(VEDAdeviceptr vptr);
+	VEDAdeviceptrInfo	getPtr			(VEDAdeviceptr vptr, VEDAstream stream = 0);
 	VEDAfunction		kernel			(Kernel kernel) const;
 	VEDAhmemptr		hmemAlloc		(const size_t size);
 	VEDAresult		query			(VEDAstream stream);
@@ -55,7 +57,8 @@ public:
 	veo_sym			moduleGetFunction	(const Module* mod, const std::string_view name);
 	void			destroy			(void);
 	void			init			(const VEDAcontext_mode mode);
-	void			memFree			(VEDAdeviceptr vptr, VEDAstream stream, const bool free = true);
+	void			memRelease		(VEDAdeviceptr vptr);
+	void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);
 	void			memReport		(void);
 	void			memSwap			(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream);
 	void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);

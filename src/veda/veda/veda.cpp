@@ -104,7 +104,7 @@ VEDAresult vedaLaunchKernel(VEDAfunction f, VEDAstream stream, VEDAargs args) {
 VEDAresult vedaLaunchKernelEx(VEDAfunction f, VEDAstream stream, VEDAargs args, const int destroyArgs, uint64_t* result) {
 	GUARDED(
 		auto ctx = veda::internal::contexts::current();
-		L_TRACE("[ve:%i] vedaLaunchKernelEx(%p, %i, ..., %i, %p)", ctx->device().vedaId(), f, stream, destroyArgs, result);
+		L_TRACE("[ve:%i] vedaLaunchKernelEx(%s, %i, ..., %i, %p)", ctx->device().vedaId(), f.kernel, stream, destroyArgs, result);
 		ctx->call(f, stream, args, destroyArgs != 0, false, veda::internal::Result(result));
 	)
 }

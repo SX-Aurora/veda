@@ -7,8 +7,8 @@
 
 #define LOCK() std::lock_guard<std::mutex> __lock__(veda_mutex)
 
-static std::unordered_map<int, VEDAdeviceptrInfo> veda_ptrs;
-static std::mutex veda_mutex;
+static std::unordered_map<VEDAidx, VEDAdeviceptrInfo>	veda_ptrs;
+static std::mutex					veda_mutex;
 
 //------------------------------------------------------------------------------
 #include <veda/veda_error.inc.cpp>
@@ -23,15 +23,11 @@ VEDAresult vedaAssignPtr(VEDAdeviceptr vptr, void* ptr, const size_t size) {
 	assert(ptr);
 
 	auto idx = VEDA_GET_IDX(vptr);
-	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
-	if(VEDA_GET_OFFSET(vptr))		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
-	auto it = veda_ptrs.find(idx);
-	if(it != veda_ptrs.end()) {
-		if(it->second.size == size)	return VEDA_ERROR_VPTR_ALREADY_ALLOCATED;
-		else				return VEDA_ERROR_INVALID_VALUE;
-	}
-
-	*((uint64_t*)ptr) = 12345;
+	if(idx == 0)			return VEDA_ERROR_UNKNOWN_VPTR;
+	if(VEDA_GET_OFFSET(vptr))	return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	
+	if(auto it = veda_ptrs.find(idx); it != veda_ptrs.end())
+		return it->second.size == size ? VEDA_ERROR_VPTR_ALREADY_ALLOCATED : VEDA_ERROR_INVALID_VALUE;
 
 	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, ptr, size, 0)).second)
 		return VEDA_ERROR_UNKNOWN; // should never happen
@@ -55,6 +51,24 @@ VEDAresult vedaRemovePtr(VEDAdeviceptr vptr) {
 }
 
 //------------------------------------------------------------------------------
+VEDAresult vedaMemInfo(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info) {
+	LOCK();
+	#pragma omp parallel for
+	for(size_t i = 0; i < cnt; i++) {
+		auto it = veda_ptrs.find(VEDA_GET_IDX(vptrs[i]));
+		auto& inf = info[i];
+		if(it != veda_ptrs.end()) {
+			inf.ptr		= it->second.ptr;
+			inf.size	= it->second.size;
+		} else {
+			inf.ptr		= 0;
+			inf.size	= 0;
+		}
+	}
+	return VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 // Public
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
@@ -68,7 +82,7 @@ __global__ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 	
 	auto it = veda_ptrs.find(idx);
 	if(it == veda_ptrs.end())	return VEDA_ERROR_UNKNOWN_VPTR;
-	if(!it->second.isDelayed)	return VEDA_ERROR_CANT_FREE_NON_DELAYED_VPTR;
+	if(!it->second.isDelayed())	return VEDA_ERROR_CANT_FREE_NON_DELAYED_VPTR;
 
 	free(it->second.ptr);
 
@@ -79,13 +93,14 @@ __global__ VEDAresult vedaMemFree(VEDAdeviceptr vptr) {
 //------------------------------------------------------------------------------
 __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size_t size) {
 	if(ptr == 0 || size == 0 || vptr == 0)	return VEDA_ERROR_INVALID_ARGS;
-	
+
 	LOCK();
 	*ptr = 0;
 	
 	auto idx = VEDA_GET_IDX(vptr);
-	if(idx == 0)				return VEDA_ERROR_UNKNOWN_VPTR;
-	if(VEDA_GET_OFFSET(vptr))		return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+	if(idx == 0)			return VEDA_ERROR_UNKNOWN_VPTR;
+	if(VEDA_GET_OFFSET(vptr))	return VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED;
+
 	auto it = veda_ptrs.find(idx);
 	if(it != veda_ptrs.end()) {
 		if(it->second.size == size) {
@@ -97,11 +112,15 @@ __global__ VEDAresult vedaMemAllocPtr(void** ptr, VEDAdeviceptr vptr, const size
 	}
 
 	*ptr = malloc(size);
-	if(*ptr == 0)				return VEDA_ERROR_OUT_OF_MEMORY;
-	if(!veda_ptrs.emplace(MAP_EMPLACE(idx, *ptr, size, 1)).second) {
+	if(*ptr == 0)
+		return VEDA_ERROR_OUT_OF_MEMORY;
+
+	auto pair = veda_ptrs.emplace(MAP_EMPLACE(idx, *ptr, size, VEDA_IS_DELAYED));
+	if(!pair.second) {
 		free(*ptr);			// free as we otherwise loose the ptr
 		return VEDA_ERROR_UNKNOWN;	// should never happen
 	}
+
 	return VEDA_SUCCESS;
 }
 
@@ -179,7 +198,7 @@ __global__ VEDAresult vedaMemSwap(VEDAdeviceptr A, VEDAdeviceptr B) {
 
 //------------------------------------------------------------------------------
 inline int veo_is_ve_addr(const void *addr) {
-  return IS_VE(addr) ? 1 : 0;
+	return IS_VE(addr) ? 1 : 0;
 }
 
 //------------------------------------------------------------------------------

@@ -100,14 +100,14 @@ template<> void Copy::copy_<void*, HMEM>(void* dst, HMEM src, const size_t size,
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<HMEM, VEDA>(HMEM dst, VEDA src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::d2d(%p > %p, %lli, %i)", src, dst, size, stream);
-	auto info = internal::devices::get(src).ctx().getPtr(src);
+	auto info = internal::devices::get(src).ctx().getPtr(src, stream);
 	internal::hmemcpy(dst, (HMEM)info.ptr, size);
 }
 
 //------------------------------------------------------------------------------
 template<> void Copy::copy_<VEDA, HMEM>(VEDA dst, HMEM src, const size_t size, const StreamId stream) {
 	L_TRACE("veda::copy::h2d(%p, %p, %lli, %i)", dst, src, size, stream);
-	auto info = internal::devices::get(dst).ctx().getPtr(dst);
+	auto info = internal::devices::get(dst).ctx().getPtr(dst, stream);
 	internal::hmemcpy((HMEM)info.ptr, src, size);
 }
 

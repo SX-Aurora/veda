@@ -23,14 +23,16 @@ void Context::setMemOverride(VEDAdeviceptr vptr) {
 
 //------------------------------------------------------------------------------
 Context::Context(Device& device) :
-	m_mode		(VEDA_CONTEXT_MODE_OMP),
-	m_kernels	(VEDA_KERNEL_CNT),
-	m_device	(device),
-	m_handle	(0),
-	m_aveoProcId	(-1),
-	m_lib		(0),
-	m_memidx	(1),
-	m_memOverride	(0)
+	m_mode			(VEDA_CONTEXT_MODE_OMP),
+	m_kernels		(VEDA_KERNEL_CNT),
+	m_device		(device),
+	m_handle		(0),
+	m_aveoProcId		(-1),
+	m_lib			(0),
+	m_memidx		(1),
+	m_memOverride		(0),
+	m_memLastAveoRequest	(0),
+	m_memDelayedDirty	(false)
 {}
 
 //------------------------------------------------------------------------------
@@ -44,11 +46,11 @@ VEDAhmemptr Context::hmemAlloc(const size_t size) {
 //------------------------------------------------------------------------------
 size_t Context::memUsed(void) {
 	LOCK(mutex_ptrs);
-	syncPtrs();
+	syncPtrs(0);
 
 	size_t used = 0;
 	for(auto&& [idx, info] : m_ptrs)
-		used += info->size;
+		used += info.size;
 	
 	return used;
 }
@@ -66,7 +68,7 @@ void Context::memReport(void) {
 	printf("# VE#%i %.2f/%.2fGB\n", device().vedaId(), used/(1024.0*1024.0*1024.0), total/(1024.0*1024.0*1024.0));
 	for(auto&& [idx, info] : m_ptrs) {
 		auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
-		printf("%p/%p %lluB\n", vptr, info->ptr, info->size);
+		printf("%p/%p %lluB\n", vptr, info.ptr, info.size);
 	}
 	printf("\n");
 }
@@ -106,11 +108,11 @@ std::string_view Context::kernelName(const Kernel k) const {
 		case VEDA_KERNEL_RAW_MEMSET_U64_2D:	return "veda_raw_memset_u64_2d";
 		case VEDA_KERNEL_RAW_MEMSET_U8:		return "veda_raw_memset_u8";
 		case VEDA_KERNEL_RAW_MEMSET_U8_2D:	return "veda_raw_memset_u8_2d";
-		case VEDA_KERNEL_MEM_PTR:		return "veda_mem_ptr";
 		case VEDA_KERNEL_MEM_ASSIGN:		return "veda_mem_assign";
 		case VEDA_KERNEL_MEM_REMOVE:		return "veda_mem_remove";
-		case VEDA_KERNEL_MEM_SIZE:		return "veda_mem_size";
+		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
 		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
+		case VEDA_KERNEL_MEM_INFO:		return "veda_mem_info";
 	}
 
 	VEDA_THROW(VEDA_ERROR_UNKNOWN_KERNEL);
@@ -174,73 +176,106 @@ void Context::incMemIdx(void) {
 }
 
 //------------------------------------------------------------------------------
-void Context::syncPtrs(void) {
-	bool syn = false;
+void Context::syncPtrs(VEDAstream _stream) {
+	// Don't lock mutex_ptrs here, as ALL calling functions do this on
+	// behalf of this function
 
-	// Don't lock mutex_ptrs here, as ALL calling functions do this on behalf of this
-	for(auto&& [idx, info] : m_ptrs) {
-		if(info->ptr == 0) {
-			// if size is == 0, then no malloc call had been issued, so we need to fetch the info
-			// is size is != 0, then we only need to wait till the malloc reports back the ptr
-			if(info->size == 0) {
-				// TODO: this issues many kernel calls when lazy allocation is used!
-				auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
-				auto s = stream(0);
-				s.enqueue(false, Result(&info->ptr),  kernel(VEDA_KERNEL_MEM_PTR),  vptr);
-				s.enqueue(false, Result(&info->size), kernel(VEDA_KERNEL_MEM_SIZE), vptr);
-			}
-			syn = true;
+	// Iterators is used to fetch Delayed Ptrs from VE
+	std::vector<Ptrs::iterator> iterators;
+	if(m_memDelayedDirty) {
+		iterators.reserve(m_ptrs.size());
+
+		// If non-delayed Ptrs are missing, then we just need to sync
+		for(auto it = m_ptrs.begin(); it != m_ptrs.end(); it++) {
+			auto& info = it->second;
+			if(info.ptr == 0 && info.isDelayed() && !it->second.isReleased())
+				iterators.emplace_back(it);
 		}
 	}
-	
+
 	// sync all streams as we don't know which mallocs are in flight in a different stream
-	if(syn)
-		sync();
+	if(iterators.size()) {
+		std::vector<VEDAdeviceptr>	vptrs;
+		std::vector<VEDAdeviceptrInfoS> sizes;
+		vptrs.reserve	(iterators.size());
+		sizes.resize	(iterators.size());
+
+		const auto vedaId = device().vedaId();
+		for(auto& it : iterators)
+			vptrs.emplace_back(VEDA_SET_PTR(vedaId, it->first, 0));
+		
+		auto s = stream(_stream);
+		s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_INFO),
+			vptrs.size(),
+			VEDAstack(vptrs.data(), VEDA_ARGS_INTENT_IN,	sizeof(VEDAdeviceptr)		* vptrs.size()),
+			VEDAstack(sizes.data(), VEDA_ARGS_INTENT_OUT,	sizeof(VEDAdeviceptrInfoS)	* sizes.size())
+		);
+		sync(_stream);
+
+		auto sit = sizes.begin();
+		for(auto vit = iterators.begin(); vit != iterators.end(); sit++, vit++) {
+			if(sit->ptr) {
+				auto& v = (*vit)->second;
+				VEDA_ASSERT(!v.size && sit->size && v.isDelayed() && !v.isReleased(), VEDA_ERROR_UNKNOWN);
+				v.ptr	= sit->ptr;
+				v.size	= sit->size;
+			}
+		}
+
+		m_memDelayedDirty = false;
+	} else if(m_memLastAveoRequest) {
+		sync(_stream, m_memLastAveoRequest);
+	}
 }
 
 //------------------------------------------------------------------------------
 VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
-	if(m_memOverride)
-		syncPtrs();
-
 	LOCK(mutex_ptrs);
-
-	// Check if VPTRs are left ---------------------------------------------
-	if(m_ptrs.size() == VEDA_CNT_IDX)
-		VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
 
 	// Override pointer? ---------------------------------------------------
 	if(m_memOverride) {
+		syncPtrs(_stream);
+
 		auto dev	= VEDA_GET_DEVICE(m_memOverride);	assert(dev == device().vedaId());
 		auto idx	= VEDA_GET_IDX(m_memOverride);
 		m_memOverride	= 0;
 		auto it		= m_ptrs.find(idx);
 		
-		if(it == m_ptrs.end())	VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
-		auto info = it->second;
-		if(info->size != size) {
-			L_TRACE("[ve:%i] Cannot override pointer using %lluB, expected %lluB", device().vedaId(), size, info->size);
+		if(it == m_ptrs.end())
+			VEDA_THROW(VEDA_ERROR_UNKNOWN_VPTR);
+
+		auto& info = it->second;
+		if(info.size != size) {
+			L_TRACE("[ve:%i] Cannot override pointer using %lluB, expected %lluB", device().vedaId(), size, info.size);
 			VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 		}
-		if(info->ptr  == 0)	VEDA_THROW(VEDA_ERROR_UNKNOWN_PPTR);
+
+		if(info.ptr  == 0)
+			VEDA_THROW(VEDA_ERROR_UNKNOWN_PPTR);
 
 		return VEDA_SET_PTR(dev, idx, 0);
 	}
+
+	// Check if VPTRs are left ---------------------------------------------
+	if(m_ptrs.size() == VEDA_CNT_IDX)
+		VEDA_THROW(VEDA_ERROR_OUT_OF_MEMORY);
 
 	// Find free idx -------------------------------------------------------
 	while(m_ptrs.find(m_memidx) != m_ptrs.end())
 		incMemIdx();
 
-	auto idx  = m_memidx;
-	auto info = m_ptrs.emplace(MAP_EMPLACE(idx, new VEDAdeviceptrInfo(0, size, size ? 0 : 1))).first->second;
-	auto vptr = VEDA_SET_PTR(device().vedaId(), idx, 0);
+	auto idx	= m_memidx;
+	auto vptr	= VEDA_SET_PTR(device().vedaId(), idx, 0);
+	auto& info	= m_ptrs.emplace(MAP_EMPLACE(idx, (void*)0, size)).first->second;
 
 	incMemIdx();
 
 	if(size) {
 		auto s	= stream(_stream);
 		s.enqueue(veo_alloc_mem_async, false, {}, 0, size);
-		s.enqueue(false, Result(&info->ptr), kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, size);
+		m_memLastAveoRequest = s.enqueue(false, Result(&info.ptr), kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, size);
+	} else {
+		info.addFlag(VEDA_IS_DELAYED);
 	}
 
 	return vptr;
@@ -266,7 +301,7 @@ void Context::memSwap(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream _stream) {
 }
 
 //------------------------------------------------------------------------------
-void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream, const bool free) {
+void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream) {
 	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
 
 	// If this context is not active, we don't care about still pending frees.
@@ -279,47 +314,64 @@ void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream, const bool free) {
 	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
 	VEDA_ASSERT(it != m_ptrs.end(), VEDA_ERROR_UNKNOWN_VPTR);
 	
-	auto info = it->second;
-	
-	/** This is a special case. When we issue AsyncMalloc and immediately
-	 * do AsyncFree, then the data might not have arrived on the host yet
-	 * causing a Segfault */
-	if(info->ptr == 0 && info->size != 0)
-		sync();
+	auto& info = it->second;
 
-	if(free) {
-		if(info->size) {
-			auto s = stream(_stream);
-			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
-			s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info->ptr);
-		}
+	auto s = stream(_stream);
+	if(info.isDelayed()) {
+		if(!info.isReleased())
+			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_FREE), vptr);
 	} else {
-		VEDA_ASSERT(info->isDelayed, VEDA_ERROR_CANT_RELEASE_NON_DELAYED_VPTR);			
+		syncPtrs(_stream);
+		if(info.size) {
+			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
+			s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info.ptr);
+		}
 	}
-
+	
 	m_ptrs.erase(it);
 }
 
 //------------------------------------------------------------------------------
-VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr) {
+void Context::memRelease(VEDAdeviceptr vptr) {
+	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
+
+	// If this context is not active, we don't care about still pending frees.
+	if(!isActive())
+		return;
+
+	VEDA_ASSERT(VEDA_GET_OFFSET(vptr) == 0, VEDA_ERROR_OFFSETTED_VPTR_NOT_ALLOWED);
+
+	LOCK(mutex_ptrs);
+	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
+	VEDA_ASSERT(it != m_ptrs.end(), VEDA_ERROR_UNKNOWN_VPTR);
+	
+	auto& info = it->second;
+	VEDA_ASSERT( info.isDelayed (), VEDA_ERROR_CANT_RELEASE_NON_DELAYED_VPTR);
+	VEDA_ASSERT(!info.isReleased(), VEDA_ERROR_CANT_RELEASE_ALREADY_RELEASED_VPTR);
+	info.addFlag(VEDA_IS_RELEASED);
+}
+
+//------------------------------------------------------------------------------
+VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr, VEDAstream stream) {
 	ASSERT(VEDA_GET_DEVICE(vptr) == device().vedaId());
 	
 	LOCK(mutex_ptrs);
 	auto it = m_ptrs.find(VEDA_GET_IDX(vptr));
 	VEDA_ASSERT(it != m_ptrs.end(), VEDA_ERROR_UNKNOWN_VPTR);
 	
-	auto info = it->second;
+	auto& info = it->second;
 
-	if(info->ptr == 0) syncPtrs();
-	if(info->ptr == 0) return *info;
+	if(info.ptr == 0) syncPtrs(stream);
+	if(info.ptr == 0) return info;
 
-	return {((char*)info->ptr) + VEDA_GET_OFFSET(vptr), info->size, info->isDelayed};
+	return {((char*)info.ptr) + VEDA_GET_OFFSET(vptr), info.size, info.flags};
 }
 
 //------------------------------------------------------------------------------
 // Function Calls
 //------------------------------------------------------------------------------
 ReqId Context::call(VEDAfunction func, VEDAstream _stream, VEDAargs args, const bool destroyArgs, const bool checkResult, ResultPtr result) {
+	m_memDelayedDirty = true;
 	auto id = stream(_stream).enqueue(veo_call_async, checkResult, result, func.kernel, func.ptr, args);
 	if(destroyArgs)
 		TVEDA(vedaArgsDestroy(args));
@@ -345,7 +397,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 	if(!dst || !src)
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
 
-	auto info	= getPtr(src);
+	auto info	= getPtr(src, _stream);
 	auto ptr	= info.ptr;
 	auto size	= info.size;
 	THROWIF(ptr == 0 || size == 0, "Uninitialized vptr: %p, ptr: %p, size: %llu", src, ptr, size);
@@ -359,7 +411,7 @@ void Context::memcpyD2H(void* dst, VEDAdeviceptr src, const size_t bytes, VEDAst
 void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, VEDAstream _stream) {
 	VEDA_ASSERT(dst && src, VEDA_ERROR_INVALID_VALUE);
 
-	auto res	= getPtr(dst);
+	auto res	= getPtr(dst, _stream);
 	auto ptr	= res.ptr;	ASSERT(ptr);
 	auto size	= res.size;	ASSERT(size);
 
@@ -370,14 +422,15 @@ void Context::memcpyH2D(VEDAdeviceptr dst, const void* src, const size_t bytes, 
 
 //------------------------------------------------------------------------------
 void Context::sync(VEDAstream _stream, const ReqId until) {
-	auto sync = _stream >= 0 ?
-		(std::function<void(void)>)[this, _stream, until] {
+	auto sync = [this, _stream, until] {
+		if(_stream >= 0)  {
 			stream(_stream)->sync(until);
-		} :
-		(std::function<void(void)>)[this] {
+		} else {
 			for(int i = 0; i < m_streams.size(); i++)
 				stream(i)->sync();
-		};
+		}
+		m_memLastAveoRequest = 0;
+	};
 
 	if(auto data = profiler::data(device().vedaId(), _stream, false, VEDA_PROFILER_SYNC)) {
 		profiler::callbackIssue(data);
@@ -455,12 +508,12 @@ void Context::destroy(void) {
 	VEDA_ASSERT(isActive(), VEDA_ERROR_CONTEXT_IS_DESTROYED);
 
 	LOCK(mutex_ptrs);
-	syncPtrs();
+	syncPtrs(0);
 
 	if(veda::internal::isMemTrace()) {
 		for(auto&& [idx, info] : m_ptrs) {
 			auto vptr = (VEDAdeviceptr)(VEDA_SET_PTR(device().vedaId(), idx, 0));
-			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, info->size);
+			printf("[VEDA ERROR]: VEDAdeviceptr %p with size %lluB has not been freed!\n", vptr, info.size);
 		}
 	}
 	

@@ -142,7 +142,7 @@ VEDAresult vedaHMemcpyXtoDAsync(VEDAdeviceptr dst, void* src, size_t ByteCount, 
 		auto& ctx = veda::internal::devices::get(dst).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyXtoDAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
 		if(veo_is_ve_addr(src))
-			return vedaHMemcpy(ctx.getPtr(dst).ptr, src, ByteCount);
+			return vedaHMemcpy(ctx.getPtr(dst, hStream).ptr, src, ByteCount);
 		return vedaMemcpyHtoDAsync(dst, src, ByteCount, hStream);
 	)
 }
@@ -169,7 +169,7 @@ VEDAresult vedaHMemcpyDtoXAsync(void* dst, VEDAdeviceptr src, size_t ByteCount, 
 		auto& ctx = veda::internal::devices::get(src).ctx();
 		L_TRACE("[ve:%i] vedaHMemcpyDtoXAsync(%p, %p, %llu, %i)", ctx.device().vedaId(), dst, src, ByteCount, hStream);
 		if(veo_is_ve_addr(dst))
-			return vedaHMemcpy(dst, ctx.getPtr(src).ptr, ByteCount);
+			return vedaHMemcpy(dst, ctx.getPtr(src, hStream).ptr, ByteCount);
 		return vedaMemcpyDtoHAsync(dst, src, ByteCount, hStream);
 	)
 }
