@@ -7,7 +7,7 @@
 	"author":		"__GIT__",
 	"author-email":		"__GIT__",
 	"license":		"3 BSD-License",
-	"license-file": 	"veda/LICENSE",
+	"license-file": 	"veda/VEDA_LICENSE",
 	"requires-python":	">=3.6",
 	"download-url":		"https://github.com/sx-aurora/veda/tags",
 	"classifier": [
@@ -16,9 +16,8 @@
 		"Programming Language :: C"
 	],
 	"payload": [
-		"veda/bin/veda-smi?",
-		"veda/include/vera/*.h?",
 		"veda/*_LICENSE",
+		"veda/bin/veda-smi?",
 		"veda/cmake/*.cmake",
 		"veda/cmake/nec/*.cmake",
 		"veda/cmake/nec/*.cmake.in",
@@ -26,11 +25,13 @@
 		"veda/include/*.h",
 		"veda/include/veda/*.h",
 		"veda/include/veda/cpp/*.h",
+		"veda/include/vera/*.h?",
 		"veda/lib64/libveda.so*",
-		"veda/lib64/libveo.so*",
 		"veda/libve/libveda.vso*",
-		"veda/libexec/aveorun_ve*",
-		"veda/libexec/aveorun-ftrace_ve*"
+
+		"veda/lib64/libveo.so*?>=0",
+		"veda/libexec/aveorun_ve*?>=0",
+		"veda/libexec/aveorun-ftrace_ve*?>=0"
 	],
 	"requires-dist": [
 		"tungl (>= @Tungl_VERSION@, < @Tungl_VERSION_NEXT_MINOR@)"

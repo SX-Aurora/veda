@@ -79,8 +79,7 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
 //------------------------------------------------------------------------------
 /**
  * @brief Overrides the pointer returned by the next call to vedaMemAllocAsync.
- * @param size Requested allocation size in bytes.
- * @param stream The stream establishing the stream ordering contract and the
+ * @param VEDA device pointer
  * memory pool to allocate from
  * @retval VEDA_SUCCESS on Success
  * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
@@ -99,8 +98,36 @@ VEDAresult vedaMemAlloc(VEDAdeviceptr* ptr, size_t size) {
 VEDAresult vedaMemAllocOverrideOnce(VEDAdeviceptr ptr) {
 	GUARDED(
 		auto ctx = veda::internal::contexts::current();
-		ctx->setMemOverride(ptr);
 		L_TRACE("[ve:%i] vedaMemAllocOverrideOnce(%p)", ctx->device().vedaId(), ptr);
+		ctx->setMemOverride(ptr);
+	)
+}
+
+//------------------------------------------------------------------------------
+/**
+ * @brief Overrides the raw pointer returned by the next call to vedaMemAllocAsync.
+ * @param ptr raw pointer
+ * @param size bytes of the allocation
+ * memory pool to allocate from
+ * @retval VEDA_SUCCESS on Success
+ * @retval VEDA_ERROR_NOT_INITIALIZED VEDA library not initialized
+ * @retval VEDA_ERROR_INVALID_DEVICE VEDA device id is not valid.
+ * @retval VEDA_ERROR_UNKNOWN_CONTEXT VEDA context is not set for the calling thread.
+ * @retval VEDA_ERROR_CONTEXT_IS_DESTROYED VEDA current context is already destroyed.
+ * @retval VEDA_ERROR_OFFSET_NOT_ALLOWED Only non-offsetted pointers are allowed.
+ * 
+ * You probably don't need to use this method ever. It's a hack to override 
+ * the allocation size of the next call to vedaMemAllocAsync. I.e. if you have
+ * allocated memory on VE, but you need to load that data into an opaque data
+ * structure that is not under your control, but that calls vedaMemAllocAsync,
+ * you can use vedaMemAllocOverrideOnce to return this pointer instead.
+ * 
+ */
+VEDAresult vedaMemAssign(VEDAdeviceptr* vptr, void* ptr, size_t size, VEDAstream stream) {
+	GUARDED(
+		auto ctx = veda::internal::contexts::current();
+		*vptr = ctx->memAssign(ptr, size, stream);
+		L_TRACE("[ve:%i] vedaMemAssign(%p, %p, %lu, %i)", ctx->device().vedaId(), *vptr, ptr, size, stream);
 	)
 }
 
@@ -589,6 +616,20 @@ VEDAresult vedaMemSize(size_t* size, VEDAdeviceptr vptr) {
 		auto res = ctx.getPtr(vptr);
 		*size	= res.size;
 		L_TRACE("[ve:%i] vedaMemSize(%llu, %p)", ctx.device().vedaId(), *size, vptr);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemOpt(VEDAmallopt opt, const int value) {
+	return vedaMemOptAsync(opt, value, -1);
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemOptAsync(VEDAmallopt opt, const int value, VEDAstream hStream) {
+	GUARDED(
+		auto ctx = veda::internal::contexts::current();
+		ctx->memOpt(opt, value, hStream);
+		L_TRACE("[ve:%i] vedaMemOptAsync(%i, %i, %i)", ctx->device().vedaId(), opt, value, hStream);
 	)
 }
 

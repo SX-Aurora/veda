@@ -8,10 +8,20 @@ public:
 	using VPtrTuple = std::tuple<VEDAdeviceptr, size_t>;
 
 private:
-	using Ptrs	= std::unordered_map	<VEDAidx, VEDAdeviceptrInfo>;
-	using Kernels	= std::vector		<VEDAfunction>;
-	using Streams	= std::vector		<Stream>;
-	using Modules	= std::map		<veo_lib, Module>;
+	struct Info final : public VEDAdeviceptrInfo {
+		bool	isReleased;
+
+		template<typename... Args>
+		inline Info(Args... args) :
+			VEDAdeviceptrInfo	(args...),
+			isReleased		(false)
+		{}
+	};
+
+	using Ptrs	= std::map	<VEDAidx, Info>;
+	using Kernels	= std::vector	<VEDAfunction>;
+	using Streams	= std::vector	<Stream>;
+	using Modules	= std::map	<veo_lib, Module>;
 
 		std::mutex		mutex_streams;
 		std::mutex		mutex_ptrs;
@@ -28,11 +38,13 @@ private:
 		VEDAmodule		m_lib;
 		VEDAidx			m_memidx;
 		VEDAdeviceptr		m_memOverride;
-		ReqId			m_memLastAveoRequest;
+		ReqId			m_memLastRequest;
 		bool			m_memDelayedDirty;
 
 	void			incMemIdx		(void);
 	void			syncPtrs		(VEDAstream stream);
+	
+	std::tuple<VEDAdeviceptr, VEDAdeviceptrInfo*> newPtr(const size_t size);
 
 public:
 				Context			(Device& device);
@@ -44,6 +56,7 @@ public:
 	StreamGuard		stream			(const VEDAstream stream);
 	VEDAcontext_mode	mode			(void) const;
 	VEDAdeviceptr		memAlloc		(const size_t size, VEDAstream stream);
+	VEDAdeviceptr		memAssign		(void* ptr, const size_t size, VEDAstream stream);
 	VEDAdeviceptrInfo	getPtr			(VEDAdeviceptr vptr, VEDAstream stream = 0);
 	VEDAfunction		kernel			(Kernel kernel) const;
 	VEDAhmemptr		hmemAlloc		(const size_t size);
@@ -57,8 +70,9 @@ public:
 	veo_sym			moduleGetFunction	(const Module* mod, const std::string_view name);
 	void			destroy			(void);
 	void			init			(const VEDAcontext_mode mode);
-	void			memRelease		(VEDAdeviceptr vptr);
 	void			memFree			(VEDAdeviceptr vptr, VEDAstream stream);
+	void			memOpt			(const VEDAmallopt opt, const int value, VEDAstream stream);
+	void			memRelease		(VEDAdeviceptr vptr);
 	void			memReport		(void);
 	void			memSwap			(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream stream);
 	void			memcpyD2D		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream stream);

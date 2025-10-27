@@ -456,35 +456,39 @@ VEDAresult	vedaHMemsetD8			(VEDAhmemptr dstDevice, uint8_t value, size_t N);
  *
  * Sets the memory range of N 8-bit values to the specified value "value".
  */
-VEDAresult	vedaHMemsetD8Async		(VEDAhmemptr dstDevice, uint8_t value, size_t N, VEDAstream hStream);
+VEDAresult	vedaHMemsetD8Async	(VEDAhmemptr dstDevice, uint8_t value, size_t N, VEDAstream hStream);
 
 // VEDAdeviceptr API -----------------------------------------------------------
-VEDAresult	vedaArgsSetPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
-VEDAresult	vedaArgsSetVPtr			(VEDAargs args, const int idx, const VEDAdeviceptr value);
-VEDAresult	vedaMemAlloc			(VEDAdeviceptr* ptr, size_t size);
-VEDAresult	vedaMemAllocAsync		(VEDAdeviceptr* ptr, size_t size, VEDAstream stream);
-VEDAresult	vedaMemAllocOverrideOnce	(VEDAdeviceptr ptr);
-VEDAresult	vedaMemAllocPitch		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte);
-VEDAresult	vedaMemAllocPitchAsync		(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream);
-VEDAresult	vedaMemFree			(VEDAdeviceptr ptr);
-VEDAresult	vedaMemFreeAsync		(VEDAdeviceptr ptr, VEDAstream stream);
-VEDAresult	vedaMemGetAddressRange		(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
-VEDAresult	vedaMemGetDevice		(VEDAdevice* dev, VEDAdeviceptr ptr);
-VEDAresult	vedaMemPtr			(void** ptr, VEDAdeviceptr vptr);
-VEDAresult	vedaMemPtrSize			(void** ptr, size_t* size, VEDAdeviceptr vptr);
-VEDAresult	vedaMemRelease			(VEDAdeviceptr ptr);
-VEDAresult	vedaMemReport			(void);
-VEDAresult	vedaMemSize			(size_t* size, VEDAdeviceptr ptr);
-VEDAresult	vedaMemSwap			(VEDAdeviceptr A, VEDAdeviceptr B);
-VEDAresult	vedaMemSwapAsync		(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream hStream);
-VEDAresult	vedaMemcpy			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
-VEDAresult	vedaMemcpyAsync			(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
-VEDAresult	vedaMemcpyDtoD			(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount);
-VEDAresult	vedaMemcpyDtoDAsync		(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream);
-VEDAresult	vedaMemcpyDtoH			(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount);
-VEDAresult	vedaMemcpyDtoHAsync		(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream);
-VEDAresult	vedaMemcpyHtoD			(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount);
-VEDAresult	vedaMemcpyHtoDAsync		(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream);
+VEDAresult	vedaArgsSetPtr		(VEDAargs args, const int idx, const VEDAdeviceptr value);
+VEDAresult	vedaArgsSetVPtr		(VEDAargs args, const int idx, const VEDAdeviceptr value);
+VEDAresult	vedaMemAlloc		(VEDAdeviceptr* ptr, size_t size);
+VEDAresult	vedaMemAllocAsync	(VEDAdeviceptr* ptr, size_t size, VEDAstream stream);
+VEDAresult	vedaMemAllocOverrideOnce(VEDAdeviceptr ptr);
+VEDAresult	vedaMemAllocPitch	(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte);
+VEDAresult	vedaMemAllocPitchAsync	(VEDAdeviceptr* ptr, size_t* pPitch, size_t WidthInBytes, size_t Height, uint32_t ElementSizeByte, VEDAstream stream);
+VEDAresult	vedaMemAssign		(VEDAdeviceptr* vptr, void* ptr, size_t size, VEDAstream stream);
+VEDAresult	vedaMemFree		(VEDAdeviceptr ptr);
+VEDAresult	vedaMemFreeAsync	(VEDAdeviceptr ptr, VEDAstream stream);
+VEDAresult	vedaMemGetAddressRange	(VEDAdeviceptr* base, size_t* size, VEDAdeviceptr ptr);
+VEDAresult	vedaMemGetDevice	(VEDAdevice* dev, VEDAdeviceptr ptr);
+VEDAresult	vedaMemPtr		(void** ptr, VEDAdeviceptr vptr);
+VEDAresult	vedaMemPtrSize		(void** ptr, size_t* size, VEDAdeviceptr vptr);
+VEDAresult	vedaMemRelease		(VEDAdeviceptr ptr);
+VEDAresult	vedaMemReport		(void);
+VEDAresult	vedaMemSize		(size_t* size, VEDAdeviceptr ptr);
+VEDAresult	vedaMemSwap		(VEDAdeviceptr A, VEDAdeviceptr B);
+VEDAresult	vedaMemSwapAsync	(VEDAdeviceptr A, VEDAdeviceptr B, VEDAstream hStream);
+VEDAresult	vedaMemcpy		(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount);
+VEDAresult	vedaMemcpyAsync		(VEDAdeviceptr dst, VEDAdeviceptr src, size_t ByteCount, VEDAstream hStream);
+VEDAresult	vedaMemcpyDtoD		(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount);
+VEDAresult	vedaMemcpyDtoDAsync	(VEDAdeviceptr dstDevice, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream);
+VEDAresult	vedaMemcpyDtoH		(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount);
+VEDAresult	vedaMemcpyDtoHAsync	(void* dstHost, VEDAdeviceptr srcDevice, size_t ByteCount, VEDAstream hStream);
+VEDAresult	vedaMemcpyHtoD		(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount);
+VEDAresult	vedaMemcpyHtoDAsync	(VEDAdeviceptr dstDevice, const void* srcHost, size_t ByteCount, VEDAstream hStream);
+VEDAresult	vedaMemOpt		(VEDAmallopt opt, const int value);
+VEDAresult	vedaMemOptAsync		(VEDAmallopt opt, const int value, VEDAstream hStream);
+VEDAresult	vedaMemToHMEM		(VEDAhmemptr* hmem, VEDAdeviceptr vptr);
 //------------------------------------------------------------------------------
 /**
  * @brief Initializes device memory.

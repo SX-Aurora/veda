@@ -1,9 +1,5 @@
 #include <veda/internal/api.h>
 
-#if VEDA_WITH_VEOS_PRODUCT_INFO
-#include <productinfo.h>
-#endif
-
 extern "C" {
 // implementation of VEDA API functions
 /**

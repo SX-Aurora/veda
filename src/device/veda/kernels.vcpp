@@ -1,5 +1,7 @@
 #include "internal.h"
 #include <stdio.h>
+#include <malloc.h>
+
 //------------------------------------------------------------------------------
 extern "C" {
 //------------------------------------------------------------------------------
@@ -84,16 +86,20 @@ VEDAresult veda_memset_u128_2d(VEDAdeviceptr vdst, const size_t pitch, const uin
 }
 
 //------------------------------------------------------------------------------
-void* veda_mem_assign(VEDAdeviceptr vptr, const size_t size) {
+VEDAresult veda_mem_assign(VEDAdeviceptr vptr, void* ptr, const size_t size) {
+	return vedaAssignPtr(vptr, ptr, size);
+}
+
+//------------------------------------------------------------------------------
+void* veda_mem_alloc(VEDAdeviceptr vptr, const size_t size) {
 	void* ptr = 0;
-        veo_prev_req_result(0, (uint64_t*)&ptr);
-	auto res = vedaAssignPtr(vptr, ptr, size);
+	auto res = vedaMemAllocPtr(&ptr, vptr, size);
 	return res != VEDA_SUCCESS ? 0 : ptr;
 }
 
 //------------------------------------------------------------------------------
 VEDAresult veda_mem_remove(VEDAdeviceptr vptr) {
-	return vedaRemovePtr(vptr);
+	return vedaMemRemove(vptr);
 }
 
 //------------------------------------------------------------------------------
@@ -102,6 +108,11 @@ VEDAresult veda_mem_free(VEDAdeviceptr vptr) {
 	// We ignore UNKNOWN_VPTR. This just means that it has been allocated
 	// on the host, but never on device.
 	return res != VEDA_ERROR_UNKNOWN_VPTR ? res : VEDA_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+VEDAresult veda_mem_opt(const int opt, const int value) {
+	return mallopt(opt, value) ? VEDA_SUCCESS : VEDA_ERROR_INVALID_VALUE;
 }
 
 //------------------------------------------------------------------------------
@@ -165,7 +176,7 @@ VEDAresult veda_raw_memset_u128_2d(void* dst, const size_t pitch, const uint64_t
 }
 
 //------------------------------------------------------------------------------
-VEDAresult veda_mem_info(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info) {
+VEDAresult veda_mem_info(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfo* info) {
 	return vedaMemInfo(cnt, vptrs, info);
 }
 

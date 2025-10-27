@@ -3,6 +3,7 @@
 #include "device.h"
 #include "omp.h"
 #include <veda/internal/types.h>
+#include <veda/internal/hmem_macros.h>
 #include <unordered_map>
 #include <cstring>
 #include <cstdlib>
@@ -13,16 +14,18 @@
 
 #define MAP_EMPLACE(KEY, ...) std::piecewise_construct, std::forward_as_tuple(KEY), std::forward_as_tuple(__VA_ARGS__)
 
-VEDAresult vedaAssignPtr(VEDAdeviceptr vptr, void* ptr, const size_t size);
-VEDAresult vedaRemovePtr(VEDAdeviceptr vptr);
-VEDAresult vedaMemInfo(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info);
+VEDAresult vedaAssignPtr	(VEDAdeviceptr vptr, void* ptr, const size_t size);
+VEDAresult vedaMemInfo		(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfo* info);
+VEDAresult vedaMemRemove	(VEDAdeviceptr vptr);
 
+__global__	VEDAresult	veda_mem_assign		(VEDAdeviceptr vptr, void* ptr, const size_t size);
 __global__	VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
-__global__	VEDAresult	veda_mem_info		(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfoS* info);
+__global__	VEDAresult	veda_mem_info		(const size_t cnt, const VEDAdeviceptr* vptrs, VEDAdeviceptrInfo* info);
+__global__	VEDAresult	veda_mem_opt		(const int opt, const int value);
+__global__	VEDAresult	veda_mem_release	(VEDAdeviceptr vptr);
 __global__	VEDAresult	veda_mem_remove		(VEDAdeviceptr vptr);
-__global__	VEDAresult	veda_mem_free		(VEDAdeviceptr vptr);
 __global__	VEDAresult	veda_mem_swap		(VEDAdeviceptr A, VEDAdeviceptr B);
-__global__	void*		veda_mem_assign		(VEDAdeviceptr vptr, const size_t size);
+__global__	void*		veda_mem_alloc		(VEDAdeviceptr vptr, const size_t size);
 
 __global__	VEDAresult	veda_memcpy_d2d		(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size);
 __global__	VEDAresult	veda_memset_u128	(VEDAdeviceptr dst, const uint64_t x, const uint64_t y, const size_t size);

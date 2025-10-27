@@ -27,17 +27,10 @@ void setInitialized(const bool value) {
 		s_memTrace = memTrace && std::atoi(memTrace);
 
 		// Init OMP Threads --------------------------------------------
-		auto env = std::getenv("VE_OMP_NUM_THREADS");
-		if(env)
+		if(auto env = std::getenv("VE_OMP_NUM_THREADS"))
 			s_ompThreads = std::atoi(env);
 
-#if BUILD_VEOS_RELEASE
-		if(!std::getenv("VEORUN_BIN")) {
-			if(std::getenv("VEDA_FTRACE"))	setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun_ve1")
-			else				setenv("VEORUN_BIN", "/opt/nec/ve/veos/libexec/aveorun-ftrace_ve1")
-		}
-		s_stdLib = "/opt/nec/ve/veos/lib64/libveda.vso";
-#else
+	
 		// Init StdLib Path --------------------------------------------
 		// Stolen from: https://stackoverflow.com/questions/33151264/get-dynamic-library-directory-in-c-linux
 		Dl_info dl_info;
@@ -47,9 +40,16 @@ void setInitialized(const bool value) {
 		pos = home.find_last_of('/', pos-1);	assert(pos != std::string::npos);
 		home.replace(pos, std::string::npos, "");
 
-		// Set Paths ---------------------------------------------------
+		s_stdLib = home;
+		s_stdLib.append("/libve/libveda.vso");
+	
 		if(!std::getenv("VEORUN_BIN")) {
-			std::string veorun(home);
+			#if WITH_SYSTEM_AVEO
+				std::string veorun("/opt/nec/ve/veos");
+			#else
+				std::string veorun(home);
+			#endif
+
 			veorun.append("/libexec/aveorun");
 			if(std::getenv("VEDA_FTRACE"))
 				veorun.append("-ftrace");
@@ -59,10 +59,6 @@ void setInitialized(const bool value) {
 			else VEDA_THROW(VEDA_ERROR_UNKNOWN);
 			setenv("VEORUN_BIN", veorun.c_str(), 1);
 		}
-
-		s_stdLib = home;
-		s_stdLib.append("/libve/libveda.vso");
-#endif
 
 		L_TRACE("AVEORUN: %s", std::getenv("VEORUN_BIN"));
 		L_TRACE("libveda: %s", s_stdLib.c_str());

@@ -1,5 +1,5 @@
 #include <veda/internal/api.h>
-#include <veo_hmem_macros.h>
+#include <veda/internal/hmem_macros.h>
 #include <regex>
 
 #define SYS_CLASS_VE_BUFFER_SIZE 128

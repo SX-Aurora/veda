@@ -46,9 +46,20 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v2.3.0</td><td>
+<ul>
+	<li>Removed limitation that only delayed VEDAdeviceptr can be released.</li>
+	<li>Added <code>vedaMemAssign(VEDAdeviceptr*, void*, size_t)</code> that allows to register raw pointers to VEDA.</li>
+	<li>Added <code>vedaMemOpt(...)</code> that allows modify `mallopt(...)`.</li>
+	<li>Added <code>vedaMemToHMEM(...)</code> that converts a `VEDAdeviceptr` into `VEDAhmemptr`. You still need to free the pointer using <code>vedaMemFree(...)</code>!</li>
+	<li>Removed bundled AVEO and using system AVEO instead.</li>
+	<li>Fixed Tungl in device code.</li>
+</ul>
+</td></tr>
+
 <tr><td>v2.2.1</td><td>
 <p>
-	Significantly reducted VEDA overhead in applications that make use of
+	Significantly reduced VEDA overhead in applications that make use of
 	many delayed tensors.
 </p>
 

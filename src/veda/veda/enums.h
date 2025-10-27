@@ -60,7 +60,9 @@ enum VEDAresult_enum {
 	VEDA_ERROR_UNKNOWN_VEDA_ARCHITECTURE,
 	VEDA_ERROR_CANT_RELEASE_NON_DELAYED_VPTR,
 	VEDA_ERROR_CANT_RELEASE_ALREADY_RELEASED_VPTR,
-	VEDA_ERROR_CANT_FREE_NON_DELAYED_VPTR
+	VEDA_ERROR_CANT_FREE_NON_DELAYED_VPTR,
+	VEDA_ERROR_CANT_RELEASE_NON_DEVICE_ALLOCATED_VPTR,
+	VEDA_ERROR_OVERRIDE_ALREADY_SET
 };
 
 enum VEDAdevice_attribute_enum {
@@ -109,11 +111,23 @@ enum VEDAprofiler_event_enum {
 	VEDA_PROFILER_EVENT_END		= 2
 };
 
+enum VEDAmallopt_enum {
+	VEDA_MEM_OPT_TRIM_THRESHOLD   = -1,
+	VEDA_MEM_OPT_TOP_PAD          = -2,
+	VEDA_MEM_OPT_MMAP_THRESHOLD   = -3,
+	VEDA_MEM_OPT_MMAP_MAX         = -4,
+	VEDA_MEM_OPT_CHECK_ACTION     = -5,
+	VEDA_MEM_OPT_PERTURB          = -6,
+	VEDA_MEM_OPT_ARENA_TEST       = -7,
+	VEDA_MEM_OPT_ARENA_MAX        = -8
+};
+
 typedef enum VEDAprofiler_event_enum	VEDAprofiler_event;
 typedef enum VEDAprofiler_type_enum	VEDAprofiler_type;
 typedef enum VEDAresult_enum		VEDAresult;
 typedef enum VEDAdevice_attribute_enum	VEDAdevice_attribute;
 typedef enum VEDAargs_intent_enum	VEDAargs_intent;
 typedef enum VEDAcontext_mode_enum	VEDAcontext_mode;
+typedef enum VEDAmallopt_enum		VEDAmallopt;
 
 static_assert(sizeof(VEDAprofiler_type) == 4, "");

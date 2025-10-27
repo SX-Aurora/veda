@@ -14,11 +14,38 @@ void			Context::sync		(void)		{	sync(-1);			}
 
 //------------------------------------------------------------------------------
 void Context::setMemOverride(VEDAdeviceptr vptr) {
+	if(m_memOverride)
+		VEDA_THROW(VEDA_ERROR_OVERRIDE_ALREADY_SET);
+
 	if(vptr != 0) {
 		if(VEDA_GET_OFFSET(vptr))			VEDA_THROW(VEDA_ERROR_OFFSET_NOT_ALLOWED);
 		if(VEDA_GET_DEVICE(vptr) != device().vedaId())	VEDA_THROW(VEDA_ERROR_INVALID_DEVICE);
 	}
 	m_memOverride = vptr;
+}
+
+//------------------------------------------------------------------------------
+VEDAdeviceptr Context::memAssign(void* ptr, const size_t size, VEDAstream _stream) {
+	if(!size)
+		return 0;
+
+	VEDA_ASSERT(ptr, VEDA_ERROR_INVALID_ARGS);
+
+	auto [vptr, info] = newPtr(size);
+	info->ptr = ptr;
+
+	auto s = stream(_stream);
+	s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, ptr, size);
+	return vptr;
+}
+
+//------------------------------------------------------------------------------
+std::tuple<VEDAdeviceptr, VEDAdeviceptrInfo*> Context::newPtr(const size_t size) {
+	auto idx	= m_memidx;
+	incMemIdx();
+	auto vptr	= VEDA_SET_PTR(device().vedaId(), idx, 0);
+	auto& info	= m_ptrs.emplace(MAP_EMPLACE(idx, (void*)0, size)).first->second;
+	return {vptr, &info};
 }
 
 //------------------------------------------------------------------------------
@@ -31,7 +58,7 @@ Context::Context(Device& device) :
 	m_lib			(0),
 	m_memidx		(1),
 	m_memOverride		(0),
-	m_memLastAveoRequest	(0),
+	m_memLastRequest	(0),
 	m_memDelayedDirty	(false)
 {}
 
@@ -97,6 +124,12 @@ std::string_view Context::kernelName(const Kernel k) const {
 		case VEDA_KERNEL_MEMSET_U64_2D:		return "veda_memset_u64_2d";
 		case VEDA_KERNEL_MEMSET_U8:		return "veda_memset_u8";
 		case VEDA_KERNEL_MEMSET_U8_2D:		return "veda_memset_u8_2d";
+		case VEDA_KERNEL_MEM_ALLOC:		return "veda_mem_alloc";
+		case VEDA_KERNEL_MEM_ASSIGN:		return "veda_mem_assign";
+		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
+		case VEDA_KERNEL_MEM_INFO:		return "veda_mem_info";
+		case VEDA_KERNEL_MEM_REMOVE:		return "veda_mem_remove";
+		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
 		case VEDA_KERNEL_RAW_MEMCPY_D2D:	return "veda_raw_memcpy_d2d";
 		case VEDA_KERNEL_RAW_MEMSET_U128:	return "veda_raw_memset_u128";
 		case VEDA_KERNEL_RAW_MEMSET_U128_2D:	return "veda_raw_memset_u128_2d";
@@ -108,11 +141,7 @@ std::string_view Context::kernelName(const Kernel k) const {
 		case VEDA_KERNEL_RAW_MEMSET_U64_2D:	return "veda_raw_memset_u64_2d";
 		case VEDA_KERNEL_RAW_MEMSET_U8:		return "veda_raw_memset_u8";
 		case VEDA_KERNEL_RAW_MEMSET_U8_2D:	return "veda_raw_memset_u8_2d";
-		case VEDA_KERNEL_MEM_ASSIGN:		return "veda_mem_assign";
-		case VEDA_KERNEL_MEM_REMOVE:		return "veda_mem_remove";
-		case VEDA_KERNEL_MEM_FREE:		return "veda_mem_free";
-		case VEDA_KERNEL_MEM_SWAP:		return "veda_mem_swap";
-		case VEDA_KERNEL_MEM_INFO:		return "veda_mem_info";
+		case VEDA_KERNEL_MEM_OPT:		return "veda_mem_opt";
 	}
 
 	VEDA_THROW(VEDA_ERROR_UNKNOWN_KERNEL);
@@ -188,15 +217,16 @@ void Context::syncPtrs(VEDAstream _stream) {
 		// If non-delayed Ptrs are missing, then we just need to sync
 		for(auto it = m_ptrs.begin(); it != m_ptrs.end(); it++) {
 			auto& info = it->second;
-			if(info.ptr == 0 && info.isDelayed() && !it->second.isReleased())
+			if(info.ptr == 0 && info.size == 0 && !info.isReleased) {
 				iterators.emplace_back(it);
+			}
 		}
 	}
 
 	// sync all streams as we don't know which mallocs are in flight in a different stream
 	if(iterators.size()) {
 		std::vector<VEDAdeviceptr>	vptrs;
-		std::vector<VEDAdeviceptrInfoS> sizes;
+		std::vector<VEDAdeviceptrInfo>	sizes;
 		vptrs.reserve	(iterators.size());
 		sizes.resize	(iterators.size());
 
@@ -207,8 +237,8 @@ void Context::syncPtrs(VEDAstream _stream) {
 		auto s = stream(_stream);
 		s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_INFO),
 			vptrs.size(),
-			VEDAstack(vptrs.data(), VEDA_ARGS_INTENT_IN,	sizeof(VEDAdeviceptr)		* vptrs.size()),
-			VEDAstack(sizes.data(), VEDA_ARGS_INTENT_OUT,	sizeof(VEDAdeviceptrInfoS)	* sizes.size())
+			VEDAstack(vptrs.data(), VEDA_ARGS_INTENT_IN,	sizeof(VEDAdeviceptr)     * vptrs.size()),
+			VEDAstack(sizes.data(), VEDA_ARGS_INTENT_OUT,	sizeof(VEDAdeviceptrInfo) * sizes.size())
 		);
 		sync(_stream);
 
@@ -216,15 +246,19 @@ void Context::syncPtrs(VEDAstream _stream) {
 		for(auto vit = iterators.begin(); vit != iterators.end(); sit++, vit++) {
 			if(sit->ptr) {
 				auto& v = (*vit)->second;
-				VEDA_ASSERT(!v.size && sit->size && v.isDelayed() && !v.isReleased(), VEDA_ERROR_UNKNOWN);
+				VEDA_ASSERT(
+					sit->size &&				// device size is known
+					(!v.size || v.size == sit->size) &&	// host size is either 0 or equal to device
+					!v.isReleased				// released tensors should not use this mechanism!
+				, VEDA_ERROR_UNKNOWN);
 				v.ptr	= sit->ptr;
 				v.size	= sit->size;
 			}
 		}
 
 		m_memDelayedDirty = false;
-	} else if(m_memLastAveoRequest) {
-		sync(_stream, m_memLastAveoRequest);
+	} else if(m_memLastRequest) {
+		sync(_stream, m_memLastRequest);
 	}
 }
 
@@ -264,18 +298,10 @@ VEDAdeviceptr Context::memAlloc(const size_t size, VEDAstream _stream) {
 	while(m_ptrs.find(m_memidx) != m_ptrs.end())
 		incMemIdx();
 
-	auto idx	= m_memidx;
-	auto vptr	= VEDA_SET_PTR(device().vedaId(), idx, 0);
-	auto& info	= m_ptrs.emplace(MAP_EMPLACE(idx, (void*)0, size)).first->second;
-
-	incMemIdx();
+	auto [vptr, info] = newPtr(size);
 
 	if(size) {
-		auto s	= stream(_stream);
-		s.enqueue(veo_alloc_mem_async, false, {}, 0, size);
-		m_memLastAveoRequest = s.enqueue(false, Result(&info.ptr), kernel(VEDA_KERNEL_MEM_ASSIGN), vptr, size);
-	} else {
-		info.addFlag(VEDA_IS_DELAYED);
+		m_memLastRequest = stream(_stream).enqueue(false, Result(&info->ptr), kernel(VEDA_KERNEL_MEM_ALLOC), vptr, size);
 	}
 
 	return vptr;
@@ -315,17 +341,10 @@ void Context::memFree(VEDAdeviceptr vptr, VEDAstream _stream) {
 	VEDA_ASSERT(it != m_ptrs.end(), VEDA_ERROR_UNKNOWN_VPTR);
 	
 	auto& info = it->second;
-
-	auto s = stream(_stream);
-	if(info.isDelayed()) {
-		if(!info.isReleased())
-			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_FREE), vptr);
-	} else {
-		syncPtrs(_stream);
-		if(info.size) {
-			s.enqueue(true, {}, kernel(VEDA_KERNEL_MEM_REMOVE), vptr);
-			s.enqueue(veo_free_mem_async, false, {}, 0, (uint64_t)info.ptr);
-		}
+	if(!info.isReleased) {
+		stream(_stream).enqueue(true, {}, kernel(VEDA_KERNEL_MEM_FREE), vptr);
+		if(!info.ptr && info.size && _stream >= 0)
+			sync(_stream, m_memLastRequest);
 	}
 	
 	m_ptrs.erase(it);
@@ -346,9 +365,8 @@ void Context::memRelease(VEDAdeviceptr vptr) {
 	VEDA_ASSERT(it != m_ptrs.end(), VEDA_ERROR_UNKNOWN_VPTR);
 	
 	auto& info = it->second;
-	VEDA_ASSERT( info.isDelayed (), VEDA_ERROR_CANT_RELEASE_NON_DELAYED_VPTR);
-	VEDA_ASSERT(!info.isReleased(), VEDA_ERROR_CANT_RELEASE_ALREADY_RELEASED_VPTR);
-	info.addFlag(VEDA_IS_RELEASED);
+	VEDA_ASSERT(!info.isReleased, VEDA_ERROR_CANT_RELEASE_ALREADY_RELEASED_VPTR);
+	info.isReleased = true;
 }
 
 //------------------------------------------------------------------------------
@@ -364,7 +382,12 @@ VEDAdeviceptrInfo Context::getPtr(VEDAdeviceptr vptr, VEDAstream stream) {
 	if(info.ptr == 0) syncPtrs(stream);
 	if(info.ptr == 0) return info;
 
-	return {((char*)info.ptr) + VEDA_GET_OFFSET(vptr), info.size, info.flags};
+	return {((char*)info.ptr) + VEDA_GET_OFFSET(vptr), info.size};
+}
+
+//------------------------------------------------------------------------------
+void Context::memOpt(const VEDAmallopt opt, const int value, VEDAstream _stream) {
+	stream(_stream).enqueue(true, {}, kernel(VEDA_KERNEL_MEM_OPT), opt, value);
 }
 
 //------------------------------------------------------------------------------
@@ -389,6 +412,7 @@ ReqId Context::call(VEDAhost_function func, VEDAstream _stream, void* userData, 
 void Context::memcpyD2D(VEDAdeviceptr dst, VEDAdeviceptr src, const size_t size, VEDAstream _stream) {
 	if(!dst || !src)
 		VEDA_THROW(VEDA_ERROR_INVALID_VALUE);
+	
 	stream(_stream).enqueue(true, {}, kernel(VEDA_KERNEL_MEMCPY_D2D), dst, src, size);
 }
 
@@ -425,11 +449,13 @@ void Context::sync(VEDAstream _stream, const ReqId until) {
 	auto sync = [this, _stream, until] {
 		if(_stream >= 0)  {
 			stream(_stream)->sync(until);
+			if(m_memLastRequest <= until)
+				m_memLastRequest = 0;
 		} else {
 			for(int i = 0; i < m_streams.size(); i++)
 				stream(i)->sync();
+			m_memLastRequest = 0;
 		}
-		m_memLastAveoRequest = 0;
 	};
 
 	if(auto data = profiler::data(device().vedaId(), _stream, false, VEDA_PROFILER_SYNC)) {
@@ -469,9 +495,8 @@ void Context::init(const VEDAcontext_mode mode) {
 
 	// Calculate the number of VEDA SM based on the VEDA context mode.
 	if(mode == VEDA_CONTEXT_MODE_OMP) {
-		char buffer[3];
-		snprintf(buffer, sizeof(buffer), "%i", cores);
-		setenv("VE_OMP_NUM_THREADS", buffer, 1);
+		const auto cores_ = std::to_string(cores);
+		setenv("VE_OMP_NUM_THREADS", cores_.c_str(), 1);
 		numStreams = 1;
 	} else if(mode == VEDA_CONTEXT_MODE_SCALAR) {
 		setenv("VE_OMP_NUM_THREADS", "1", 1);

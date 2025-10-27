@@ -1,4 +1,5 @@
 #include <veda/internal/api.h>
+#include <veda/internal/hmem_macros.h>
 
 extern "C" {
 // implementation of VEDA API functions
@@ -171,6 +172,18 @@ VEDAresult vedaHMemcpyDtoXAsync(void* dst, VEDAdeviceptr src, size_t ByteCount, 
 		if(veo_is_ve_addr(dst))
 			return vedaHMemcpy(dst, ctx.getPtr(src, hStream).ptr, ByteCount);
 		return vedaMemcpyDtoHAsync(dst, src, ByteCount, hStream);
+	)
+}
+
+//------------------------------------------------------------------------------
+VEDAresult vedaMemToHMEM(VEDAhmemptr* hmem, VEDAdeviceptr vptr) {
+	GUARDED(
+		auto& ctx	= veda::internal::devices::get(vptr).ctx();
+		auto ptr	= (uint64_t)ctx.getPtr(vptr).ptr;
+		ptr		= SET_VE_FLAG(ptr);
+		ptr		= SET_PROC_IDENT(ptr, ctx.aveoProcId());
+		*hmem		= (VEDAhmemptr)ptr;
+		L_TRACE("[ve:%i] vedaMemToHMEM(%p, %p)", ctx.device().vedaId(), *hmem, vptr);
 	)
 }
 
