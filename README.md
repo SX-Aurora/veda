@@ -46,6 +46,12 @@ API](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html).
 <table>
 <tr><th>Version</th><th>Comment</th></tr>
 
+<tr><td>v2.3.1</td><td>
+<ul>
+	<li>Updated to Tungl v0.1.7 to include MPI ranks in logging.</li>
+</ul>
+</td></tr>
+
 <tr><td>v2.3.0</td><td>
 <ul>
 	<li>Removed limitation that only delayed VEDAdeviceptr can be released.</li>
